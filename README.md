@@ -21,6 +21,14 @@ r2g uses the following NPM utilities to do it's thing:
 1. For the project being tested: `npm pack`
 2. In another project: `npm install /path/to/tarball.tgz`
 
+
+### Installation
+
+## `npm install -g r2g`
+#### then add the following to your ~/.bashrc and/or ~/.bash_profile files:
+### `. "$HOME/.r2g/r2g.sh"`
+
+
 ## Usage
 
 To make it work (fulfill the contract):
