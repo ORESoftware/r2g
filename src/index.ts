@@ -9,6 +9,6 @@ export const x = async function foo(){
 
 
 export const r2gSmokeTest = function () {
-  console.log('running the smoke test which should fail.');
-   return false;
+  console.log('running the smoke test which should succeed.');
+   return true;
 };

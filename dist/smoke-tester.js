@@ -5,15 +5,23 @@ const path = require("path");
 const util = require("util");
 process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
-const links = fs.readdirSync(nm).map(function (v) {
-    return path.join(nm, v);
+const pkgJSON = require(__dirname + '/package.json');
+const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
+const links = fs.readdirSync(nm).filter(function (v) {
+    return deps[v];
 })
-    .filter(function (v) {
-    return fs.statSync(v).isSymbolicLink();
+    .map(function (v) {
+    return path.join(nm, v);
 });
-Promise.all(links.map(function (l) {
-    return require(l).r2gSmokeTest().then((v) => ({ path: l, result: v }));
-}))
+const getAllPromises = function (links) {
+    return Promise.resolve(null).then(function () {
+        return Promise.all(links.map(function (l) {
+            return Promise.resolve(require(l).r2gSmokeTest())
+                .then((v) => ({ path: l, result: v }));
+        }));
+    });
+};
+getAllPromises(links)
     .then(function (results) {
     console.log('This many packages were tested:', results.length);
     let failure = null;
