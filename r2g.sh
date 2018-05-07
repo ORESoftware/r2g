@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-r2g(){
+r2g_get_latest_source(){
+  . "$HOME/.r2g/r2g.sh"
+}
 
-    set -e;
+r2g(){
 
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
@@ -11,6 +13,9 @@ r2g(){
     local gmx_green='\033[1;32m'
     local gmx_no_color='\033[0m'
 
+    if [[ -z "$(which prepend)" ]]; then
+      npm install -g prepend;
+    fi
 
     mkdir -p "$HOME/.r2g/node"
     mkdir -p "$HOME/.r2g/temp"
@@ -21,7 +26,7 @@ r2g(){
        my_cwd="$(node "$HOME/.r2g/node/find-root.js")"
        if [[ -z "$my_cwd" ]]; then
          echo -e "${gmx_magenta}You are not within an NPM project.${gmx_no_color}";
-         exit 1;
+         return 1;
        fi
 
     fi
@@ -31,7 +36,7 @@ r2g(){
     local result="$(npm pack)"
     if [[ -z "$result" ]]; then
         echo -e "${gmx_magenta}NPM pack command did not appear to yield a .tgz file.${gmx_no_color}";
-        exit 1;
+        return 1;
     fi
 
     local tgz_path="$my_cwd/$result";
@@ -42,14 +47,14 @@ r2g(){
 
     if [[ -z "$copy_test" ]]; then
         echo -e "${gmx_magenta}No NPM script named 'r2g-copy-tests' in your package.json file.${gmx_no_color}";
-        exit 1;
+        return 1;
     fi
 
     local run_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'scripts.r2g-run-tests')";
 
-    if [[ -z "$copy_test" ]]; then
+    if [[ -z "$run_test" ]]; then
         echo -e "${gmx_magenta}No NPM script named 'r2g-run-tests' in your package.json file.${gmx_no_color}";
-        exit 1;
+        return 1;
     fi
 
     (
@@ -60,14 +65,43 @@ r2g(){
     )
 
     # run the user's copy command
-    echo "$copy_test" | bash;
+    (
+      set -o pipefail
 
-    # run the tests
-    cd "$dest";
-    echo "$run_test" | bash && echo -e "${gmx_green}r2g tests passed.${gmx_no_color}" || {
-      echo -e "${gmx_magenta}===============================${gmx_no_color}"
-      echo -e "${gmx_magenta} => Your r2g test(s) have failed.${gmx_no_color}"
-      echo -e "${gmx_magenta}===============================${gmx_no_color}"
-    }
+#      echo "$copy_test" | bash 2>&1 | prepend "r2g-copy: " "yellow";
+#      echo "$copy_test" | bash 2> >(prepend 'r2g-copy: ' 'red') | prepend "r2g-copy: " "yellow";
+
+#      echo "$copy_test" | bash > >(prepend 'r2g-copying: ' 'yellow') 2> >(prepend 'r2g-copying: ' 'red'  >&2);
+
+      exec 3>&2; {  echo "$copy_test" | bash | prepend 'r2g-copying: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-copying: ' 'magenta'
+
+      set +o pipefail
+    )
+
+
+   ### see: https://unix.stackexchange.com/questions/442240/send-stderr-to-a-different-receiver-in-pipe
+
+    (
+        # run the tests
+        cd "$dest";
+        set -o pipefail
+#        echo "$run_test" | bash > >(prepend 'r2g-test: ' 'yellow') 2> >(prepend 'r2g-test: ' 'red'  >&2);
+
+        exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+
+        local exit_code="$?"
+        set +o pipefail
+
+        if [[ "$exit_code" == "0" ]]; then
+           echo -e "${gmx_green}r2g tests passed.${gmx_no_color}"
+           return 0;
+        fi
+
+         echo -e "${gmx_magenta}===============================${gmx_no_color}"
+         echo -e "${gmx_magenta} => Your r2g test(s) have failed.${gmx_no_color}"
+         echo -e "${gmx_magenta}===============================${gmx_no_color}"
+         return 1;
+    )
+
 }
 
