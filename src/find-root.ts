@@ -40,11 +40,10 @@ while (true) {
   }
   
   down.push('/../');
-  
 }
 
 if (found) {
-  console.log(p);
+  console.log(path.dirname(p));
   process.exit(0);
 }
 else {
