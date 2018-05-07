@@ -11,7 +11,7 @@
   "scripts": {
     "postinstall": "./postinstall.sh",
     "test": "suman test",
-    "r2g-copy-tests": "cp -r ./test \"$HOME/.r2g/temp/project\"",
+    "r2g-copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
     "r2g-run-tests": "node test"
   },
   "repository": {

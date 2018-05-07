@@ -2,17 +2,28 @@
 
 # r2g
 
+#### Purpose 
+
 Allows you to test your package in the published format, without actually having to publish to NPM.
 Everything happens locally. For packages that do some crazier things, might be useful to use a Docker container.
 For now, testing happens in `"$HOME/.r2g/temp/project"`.
+
+What you do: Write some smoke tests that will run after (a) your library is in the published format, and (b) is
+installed in another project as dependency. This serves the two obvious purposes, does it actually install
+properly, and can it be loaded and run with at some basic functionality.
+
+<p>
+
+## How it works
 
 r2g uses the following NPM utilities to do it's thing:
 
 1. For the project being tested: `npm pack`
 2. In another project: `npm install /path/to/tarball.tgz`
 
+## Usage
 
-To make it work:
+To make it work (fulfill the contract):
 
 1. Add the following scripts to your package.json file:
 
