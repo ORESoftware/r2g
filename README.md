@@ -8,8 +8,8 @@ For now, testing happens in `"$HOME/.r2g/temp/project"`.
 
 r2g uses the following NPM utilities to do it's thing:
 
-1. `npm pack`
-2. `npm install /path/to/tarball.tgz`
+1. For the project being tested: `npm pack`
+2. In another project: `npm install /path/to/tarball.tgz`
 
 
 To make it work:
