@@ -3,10 +3,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
+const assert = require("assert");
 process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
+const match = [/:[0-9]/];
+const notMatch = [/bootstrap_node\.js/, /Function\.Module\.runMain/, /process\._tickCallback/];
+const getUsefulStack = function (err) {
+    return String(err.stack).split('\n')
+        .filter(function (v, i) {
+        if (i === 0)
+            return true;
+        return match.some(function (r) {
+            return r.test(v);
+        });
+    })
+        .filter(function (v, i) {
+        if (i === 0)
+            return true;
+        return !notMatch.some(function (r) {
+            return r.test(v);
+        });
+    })
+        .join('\n');
+};
 const links = fs.readdirSync(nm).filter(function (v) {
     return deps[v];
 })
@@ -16,7 +37,22 @@ const links = fs.readdirSync(nm).filter(function (v) {
 const getAllPromises = function (links) {
     return Promise.resolve(null).then(function () {
         return Promise.all(links.map(function (l) {
-            return Promise.resolve(require(l).r2gSmokeTest())
+            let mod;
+            try {
+                mod = require(l);
+            }
+            catch (err) {
+                console.error('Could not load your package with path:', l);
+                throw getUsefulStack(err);
+            }
+            try {
+                assert.equal(typeof mod.r2gSmokeTest, 'function');
+            }
+            catch (err) {
+                console.error('Your module must export a function with key "r2gSmokeTest".');
+                throw getUsefulStack(err);
+            }
+            return Promise.resolve(mod.r2gSmokeTest())
                 .then((v) => ({ path: l, result: v }));
         }));
     });
