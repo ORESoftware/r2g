@@ -2,7 +2,7 @@
 
 # r2g
 
-#### Purpose 
+## Purpose 
 
 Allows you to test your package in the published format, without actually having to publish to NPM.
 Everything happens locally. For packages that do some crazier things, might be useful to use a Docker container.
