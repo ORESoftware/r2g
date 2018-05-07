@@ -15,6 +15,9 @@ mkdir -p "$HOME/.r2g/temp"
 cat r2g.sh > "$HOME/.r2g/r2g.sh"
 cat dist/axxel.js > "$HOME/.r2g/node/axxel.js"
 cat dist/find-root.js > "$HOME/.r2g/node/find-root.js"
+cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
+
+. "$HOME/.r2g/r2g.sh"
 
 if [[ -z "$(which prepend)" ]]; then
   npm install -g prepend;
@@ -24,3 +27,6 @@ echo -e "${gmx_green}r2g was installed successfully.${gmx_no_color}";
 echo -e "Add the following line to your .bashrc/.bash_profile files:";
 echo -e "${gmx_cyan}. \"\$HOME/.r2g/r2g.sh\"${gmx_no_color}";
 echo " ";
+
+
+

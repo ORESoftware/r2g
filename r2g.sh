@@ -6,6 +6,7 @@ r2g_get_latest_source(){
 
 r2g(){
 
+
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
     local gmx_cyan='\033[1;36m'
@@ -17,8 +18,9 @@ r2g(){
       npm install -g prepend;
     fi
 
-    mkdir -p "$HOME/.r2g/node"
+
     mkdir -p "$HOME/.r2g/temp"
+    rm -rf "$HOME/.r2g/temp/project";
 
     local my_cwd="$PWD";
 
@@ -28,7 +30,6 @@ r2g(){
          echo -e "${gmx_magenta}You are not within an NPM project.${gmx_no_color}";
          return 1;
        fi
-
     fi
 
     cd "$my_cwd";
@@ -43,24 +44,23 @@ r2g(){
     mkdir -p "$HOME/.r2g/temp/project"
     local dest="$HOME/.r2g/temp/project"
 
-    local copy_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'scripts.r2g-copy-tests')"
-
+    local copy_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.copy-tests')"
     if [[ -z "$copy_test" ]]; then
-        echo -e "${gmx_magenta}No NPM script named 'r2g-copy-tests' in your package.json file.${gmx_no_color}";
-        return 1;
+        echo -e "${gmx_magenta}No NPM script at 'r2g.copy-tests' in your package.json file.${gmx_no_color}";
+#        return 1;
     fi
 
-    local run_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'scripts.r2g-run-tests')";
-
+    local run_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.run-tests')";
     if [[ -z "$run_test" ]]; then
-        echo -e "${gmx_magenta}No NPM script named 'r2g-run-tests' in your package.json file.${gmx_no_color}";
-        return 1;
+        echo -e "${gmx_magenta}No NPM script at 'r2g.run-tests' in your package.json file.${gmx_no_color}";
+#        return 1;
     fi
 
     (
       set -e;
       cd "$dest";
       ( npm init -f ) &> /dev/null;
+      cat "$HOME/.r2g/node/smoke-tester.js" > smoke-tester.js
       npm install --silent "$tgz_path";
     )
 
@@ -69,25 +69,30 @@ r2g(){
       set -o pipefail
 
 #      echo "$copy_test" | bash 2>&1 | prepend "r2g-copy: " "yellow";
-#      echo "$copy_test" | bash 2> >(prepend 'r2g-copy: ' 'red') | prepend "r2g-copy: " "yellow";
-
 #      echo "$copy_test" | bash > >(prepend 'r2g-copying: ' 'yellow') 2> >(prepend 'r2g-copying: ' 'red'  >&2);
 
-      exec 3>&2; {  echo "$copy_test" | bash | prepend 'r2g-copying: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-copying: ' 'magenta'
+      if [[ ! -z "$copy_test" ]]; then
+         echo "Copying r2g smoke test fixtures to '\$HOME/.r2g/temp/project'...";
+         exec 3>&2; {  echo "$copy_test" | bash | prepend 'r2g-copying: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-copying: ' 'magenta'
+      fi
 
       set +o pipefail
     )
 
 
-   ### see: https://unix.stackexchange.com/questions/442240/send-stderr-to-a-different-receiver-in-pipe
-
+   ### see 1: https://unix.stackexchange.com/questions/442240/send-stderr-to-a-different-receiver-in-pipe
+   ### see 2: https://unix.stackexchange.com/questions/442250/stderr-is-being-sent-down-pipeline-but-i-dont-want-that
     (
         # run the tests
         cd "$dest";
         set -o pipefail
 #        echo "$run_test" | bash > >(prepend 'r2g-test: ' 'yellow') 2> >(prepend 'r2g-test: ' 'red'  >&2);
 
-        exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+        if [[ ! -z "$run_test" ]]; then
+            exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+        else
+            exec 3>&2; {   node smoke-tester.js | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+        fi
 
         local exit_code="$?"
         set +o pipefail

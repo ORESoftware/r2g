@@ -3,20 +3,16 @@
   "version": "0.0.101",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
-  "bin": {
-    "xxx-TODO-r2g": "dist/cli.js"
-  },
+  "bin": {},
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "scripts": {
     "postinstall": "./postinstall.sh",
-    "test": "suman test",
-    "r2g-copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
-    "r2g-run-tests": "node test"
+    "test": "suman test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/r2g.git"
+    "url": "git+https://github.com/ORESoftware/r2g.git"
   },
   "keywords": [
     "typescript",
@@ -27,12 +23,16 @@
   "author": "TODO Yo.Mama",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
-    "url": "https://github.com/your-org/r2g/issues"
+    "url": "https://github.com/ORESoftware/r2g/issues"
   },
-  "homepage": "https://github.com/your-org/r2g#readme",
+  "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {},
   "devDependencies": {
     "@types/core-js": "^0.9.46",
     "@types/node": "^9.6.2"
+  },
+  "r2gz": {
+    "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
+    "run-tests": "node test"
   }
 }
