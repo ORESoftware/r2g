@@ -1,0 +1,21 @@
+
+### folders
+node_modules
+scripts
+test
+.idea
+.vscode
+
+### files
+.editorconfig
+.gitattributes
+.gitignore
+.npmignore
+.travis.yml
+
+### matching
+*.log
+*.md
+*.json
+*.DS_Store
+

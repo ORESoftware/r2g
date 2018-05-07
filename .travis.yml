@@ -1,0 +1,21 @@
+language: node_js
+node_js:
+  - '10'
+  - '9'
+  - '8'
+  - '7'
+  - '6'
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
+before_install: './scripts/travis/before_install.sh'
+install: './scripts/travis/install.sh'
+script: './scripts/travis/script.sh'
+after_script: './scripts/travis/after_script.sh'
+
