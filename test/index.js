@@ -10,18 +10,13 @@
 //   console.error('this was caught.', err);
 //   process.exit(0);
 // });
+//
 
 
-process.on('unhandledRejection', function(r,p){
-  console.error('unhandled rejection:', r);
-});
+Object.prototype.getCleanStack = function(){
+   return 'foo';
+};
 
-Promise.all([true].map(async function (l) {
-   throw new Error('balls to you daddy')
-}))
-.then(function(){
-   console.log('got then');
-})
-.catch(function(err){
-  console.error('got caught:', err);
-});
+
+console.log(typeof Object('age').getCleanStack());
+

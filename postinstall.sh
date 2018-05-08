@@ -10,16 +10,18 @@ gmx_green='\033[1;32m'
 gmx_no_color='\033[0m'
 
 mkdir -p "$HOME/.r2g/node"
-mkdir -p "$HOME/.r2g/temp"
+mkdir -p "$HOME/.r2g/temp/project"
 
 cat r2g.sh > "$HOME/.r2g/r2g.sh"
 cat dist/axxel.js > "$HOME/.r2g/node/axxel.js"
 cat dist/find-root.js > "$HOME/.r2g/node/find-root.js"
 cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
 
-. "$HOME/.r2g/r2g.sh"
+cat run.r2g.sh > /usr/local/bin/r2g
+cat run.r2g.sh > "$(npm bin -g)/r2g"
 
-if [[ -z "$(which prepend)" ]]; then
+
+if [[ -z "$(which prepend-with)" ]]; then
   npm install -g prepend;
 fi
 

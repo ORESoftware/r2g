@@ -62,11 +62,11 @@ r2g(){
 
     set -e;
 
-    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
-    exec > >( while read line; do echo "zzz: $line"; done  );
+#    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
+#    exec > >( while read line; do echo "zzz: $line"; done  );
 
 
-    if [[ -z "$(which prepend)" ]]; then
+    if [[ -z "$(which prepend-with)" ]]; then
       npm install -g prepend;
     fi
 
@@ -77,7 +77,7 @@ r2g(){
     if [[ -z "$r2g_multi" ]]; then
         rm -rf "$HOME/.r2g/temp/project";
     else
-       echo "We are keeping the previously installed modules because --keep/--multi was used.";
+       echo "We are keeping the previously installed modules because '--keep' / '--multi' was used.";
     fi
 
     local my_cwd="$PWD";
@@ -102,7 +102,8 @@ r2g(){
     local tgz_path="$my_cwd/$result";
     local dest="$HOME/.r2g/temp/project"
 
-    echo "r2g will install this package: '$tgz_path' to this project: '$dest'..."
+    echo "r2g will install this package: '$tgz_path'"
+    echo "to this project: '$dest'..."
     mkdir -p "$dest"
 
     local copy_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.copy-tests')"
@@ -116,14 +117,13 @@ r2g(){
     fi
 
 
-
     (
       set -e;
       cd "$dest";
       ( npm init --yes ) &> /dev/null || { echo "warning: package.json file already existed in \$HOME/.r2g/temp/project"; }
       cat "$HOME/.r2g/node/smoke-tester.js" > smoke-tester.js;
-      echo "running the following command 'npm install "${tgz_path}"'...";
-      npm install "$tgz_path" --silent # >> "$HOME/.r2g/logs/r2g.log" 2>&1;
+      echo "now running: 'npm install "${tgz_path}"'...";
+      npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
       return 1;
     )
 
@@ -132,8 +132,6 @@ r2g(){
       echo "warning: npm install command failed, to see log, run: r2g_view_log";
       return 1;
     fi
-
- return 0;
 
     (
       # run the user's copy command
