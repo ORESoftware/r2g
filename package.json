@@ -3,7 +3,9 @@
   "version": "0.0.101",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
-  "bin": {},
+  "bin": {
+    "r2g": "run.r2g.internal.sh"
+  },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "scripts": {

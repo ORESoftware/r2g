@@ -34,9 +34,8 @@ r2g_match_arg(){
     return 1;
 }
 
-r2g(){
 
-   echo "foobarbaz: $0"
+r2g_internal(){
 
    local my_args=( "$@" );
    local r2g_keep_temp=$(r2g_match_arg "--keep" "${my_args[@]}");
@@ -64,7 +63,6 @@ r2g(){
 
 #    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
 #    exec > >( while read line; do echo "zzz: $line"; done  );
-
 
     if [[ -z "$(which prepend-with)" ]]; then
       npm install -g prepend;
@@ -124,7 +122,6 @@ r2g(){
       cat "$HOME/.r2g/node/smoke-tester.js" > smoke-tester.js;
       echo "now running: 'npm install "${tgz_path}"'...";
       npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
-      return 1;
     )
 
     exit_code="$?"
@@ -197,9 +194,17 @@ r2g(){
       echo "something experienced an error, to see log, run: r2g_view_log";
       return 1;
     fi
+
 }
 
 
+
+r2g(){
+  r2g_internal "$@" | while read line; do echo "r2g: $line"; done
+}
+
+
+export -f r2g_internal;
 export -f r2g;
 export -f r2g_match_arg;
 export -f r2g_get_latest_source;
