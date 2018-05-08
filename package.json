@@ -4,8 +4,7 @@
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
-    "r2g3": "./run.r2g.internal.sh",
-    "r2g": "./yyy.sh"
+    "r2g": "run.r2g.sh"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",

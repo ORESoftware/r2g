@@ -17,10 +17,14 @@ cat dist/axxel.js > "$HOME/.r2g/node/axxel.js"
 cat dist/find-root.js > "$HOME/.r2g/node/find-root.js"
 cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
 
-cat run.r2g.internal.sh > /usr/local/bin/r2g
-cat run.r2g.internal.sh > "$(npm bin -g)/r2g"
 
-cat xxx.sh > /usr/local/bin/xxxr2g
+rm -rf "/usr/local/bin/r2g" || { echo "could not remove '/usr/local/bin/r2g'"; }
+
+npm_bin="$(npm bin -g)/r2g"
+rm -rf "$npm_bin" || { echo "could not remove '$npm_bin'"; }
+
+cat run.r2g.sh > "/usr/local/bin/r2g" || { echo "could not write to /usr/local/bin/r2g"; }
+cat run.r2g.sh > "$npm_bin" || { echo "could not write to npm global bin dir"; }
 
 
 if [[ -z "$(which prepend)" ]]; then
