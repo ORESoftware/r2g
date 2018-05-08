@@ -5,6 +5,8 @@ scripts
 test
 .idea
 .vscode
+src
+.git
 
 ### files
 .editorconfig

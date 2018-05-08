@@ -1,6 +1,12 @@
+
+### folders
 .idea
 .vscode
 node_modules
 logs
+.nyc_output
+coverage
+
+### matching
 *.log
 *.tgz

@@ -17,8 +17,8 @@ cat dist/axxel.js > "$HOME/.r2g/node/axxel.js"
 cat dist/find-root.js > "$HOME/.r2g/node/find-root.js"
 cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
 
-cat run.r2g.sh > /usr/local/bin/r2g
-cat run.r2g.sh > "$(npm bin -g)/r2g"
+cat run.r2g.internal.sh > /usr/local/bin/r2g
+cat run.r2g.internal.sh > "$(npm bin -g)/r2g"
 
 
 if [[ -z "$(which prepend-with)" ]]; then
