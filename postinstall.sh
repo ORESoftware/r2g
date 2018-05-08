@@ -20,8 +20,10 @@ cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
 cat run.r2g.internal.sh > /usr/local/bin/r2g
 cat run.r2g.internal.sh > "$(npm bin -g)/r2g"
 
+cat xxx.sh > /usr/local/bin/xxxr2g
 
-if [[ -z "$(which prepend-with)" ]]; then
+
+if [[ -z "$(which prepend)" ]]; then
   npm install -g prepend;
 fi
 

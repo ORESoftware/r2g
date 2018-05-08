@@ -57,10 +57,6 @@ r2g_internal(){
     local gmx_no_color='\033[0m'
 
 
-    (
-
-    set -e;
-
 #    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
 #    exec > >( while read line; do echo "zzz: $line"; done  );
 
@@ -185,22 +181,30 @@ r2g_internal(){
       return 1;
     fi
 
-   )
+
 
 #    pkill -P $$
 
-    exit_code="$?"
-    if [[ "$exit_code" != "0" ]]; then
-      echo "something experienced an error, to see log, run: r2g_view_log";
-      return 1;
-    fi
+
 
 }
 
 
 
 r2g(){
-  r2g_internal "$@" | while read line; do echo "r2g: $line"; done
+
+#  r2g_internal "$@" | while read line; do echo "r2g: $line"; done
+
+  (
+      set -e;
+      r2g_internal "$@" 2> >( while read line; do echo "r2g error: $line"; done ) 1> >( while read line; do echo "r2g: $line"; done )
+  )
+
+    exit_code="$?"
+    if [[ "$exit_code" != "0" ]]; then
+        echo "something experienced an error, to see log, run: r2g_view_log";
+        return 1;
+    fi
 }
 
 
