@@ -8,20 +8,32 @@ const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
-
 const match = [/:[0-9]/];
-const notMatch = [/bootstrap_node\.js/, /Function\.Module\.runMain/, /process\._tickCallback/];
+const notMatch = [
+  /bootstrap_node\.js/,
+  /Function\.Module\.runMain/,
+  /process\._tickCallback/,
+  /at Module\._compile/,
+  /\/node_modules\//
+];
 
-const getUsefulStack = function (err: Error) {
-  return String(err.stack).split('\n')
+const getUsefulStack = function (e: Error) {
+  
+  let err = (e && e.stack || e) as string;
+  
+  if (typeof err !== 'string') {
+    err = util.inspect(err, {breakLength: Infinity});
+  }
+  
+  return String(err).split('\n')
   .filter(function (v, i) {
-    if (i === 0) return true;
+    if (i < 2) return true;
     return match.some(function (r) {
       return r.test(v);
     })
   })
   .filter(function (v, i) {
-    if (i === 0) return true;
+    if (i < 2) return true;
     return !notMatch.some(function (r) {
       return r.test(v);
     });
@@ -37,32 +49,30 @@ const links = fs.readdirSync(nm).filter(function (v) {
   return path.join(nm, v);
 });
 
-const getAllPromises = function (links: Array<string>) {
-  return Promise.resolve(null).then(function () {
-    return Promise.all(links.map(function (l) {
-      
-      let mod: any;
-      
-      try {
-        mod = require(l);
-      }
-      catch (err) {
-        console.error('Could not load your package with path:', l);
-        throw getUsefulStack(err);
-      }
-      
-      try {
-        assert.equal(typeof mod.r2gSmokeTest, 'function');
-      }
-      catch (err) {
-        console.error('Your module must export a function with key "r2gSmokeTest".');
-        throw getUsefulStack(err);
-      }
-      
-      return Promise.resolve(mod.r2gSmokeTest())
-      .then((v: any) => ({path: l, result: v}));
-    }));
-  });
+const getAllPromises = async function (links: Array<string>) {
+  return Promise.all(links.map(function (l) {
+    
+    let mod: any;
+    try {
+      mod = require(l);
+    }
+    catch (err) {
+      console.error('Could not load your package with path:', l);
+      throw getUsefulStack(err);
+    }
+    try {
+      assert.equal(typeof mod.r2gSmokeTest, 'function');
+    }
+    catch (err) {
+      console.error('A module failed to export a function from "main" with key "r2gSmokeTest".');
+      console.error('The module missing this export has the following path:');
+      console.error(l);
+      throw getUsefulStack(err);
+    }
+    
+    return Promise.resolve(mod.r2gSmokeTest())
+    .then((v: any) => ({path: l, result: v}));
+  }));
 };
 
 getAllPromises(links)
@@ -82,7 +92,7 @@ getAllPromises(links)
     if (!failure) {
       throw new Error('Missing failure object.');
     }
-    throw new Error(util.inspect(failure));
+    throw new Error(util.inspect(failure, {breakLength: Infinity}));
   }
   
   console.log('r2g smoke test passed');
@@ -92,7 +102,7 @@ getAllPromises(links)
 .catch(function (err) {
   
   console.log('r2g smoke test failed:');
-  console.error((err && err.stack) || (typeof err === 'string' ? err : util.inspect(err)));
+  console.error(getUsefulStack(err));
   process.exit(1);
   
 });

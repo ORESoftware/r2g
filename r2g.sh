@@ -4,8 +4,50 @@ r2g_get_latest_source(){
   . "$HOME/.r2g/r2g.sh"
 }
 
+r2g_home(){
+  echo "$HOME/.r2g"
+}
+
+r2g_project_root(){
+  echo "$HOME/.r2g/temp/project"
+}
+
+r2g_open(){
+  subl $(r2g_project_root)
+}
+
+r2g_view_log(){
+ open "$HOME/.r2g/logs/r2g.log"
+}
+
+r2g_match_arg(){
+    # checks to see if the first arg, is among the remaining args
+    # for example  ql_match_arg --json --json # yes
+    first_item="$1";
+    shift;
+        for var in "$@"; do
+            if [[ "$var" == "$first_item" ]]; then
+              echo "yes";
+              return 0;
+            fi
+        done
+    return 1;
+}
+
 r2g(){
 
+   echo "foobarbaz: $0"
+
+   local my_args=( "$@" );
+   local r2g_keep_temp=$(r2g_match_arg "--keep" "${my_args[@]}");
+   local r2g_multi_temp=$(r2g_match_arg "--multi" "${my_args[@]}");
+
+   local r2g_multi="";
+    if [[ "$r2g_multi_temp" || "$r2g_keep_temp" ]]; then
+       r2g_multi="yes"
+    fi
+
+    local exit_code="";
 
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
@@ -15,13 +57,28 @@ r2g(){
     local gmx_green='\033[1;32m'
     local gmx_no_color='\033[0m'
 
+
+    (
+
+    set -e;
+
+    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
+    exec > >( while read line; do echo "zzz: $line"; done  );
+
+
     if [[ -z "$(which prepend)" ]]; then
       npm install -g prepend;
     fi
 
+    rm -rf "$HOME/.r2g/logs";
+    mkdir -p "$HOME/.r2g/logs"
+    mkdir -p "$HOME/.r2g/temp/project"
 
-    mkdir -p "$HOME/.r2g/temp"
-    rm -rf "$HOME/.r2g/temp/project";
+    if [[ -z "$r2g_multi" ]]; then
+        rm -rf "$HOME/.r2g/temp/project";
+    else
+       echo "We are keeping the previously installed modules because --keep/--multi was used.";
+    fi
 
     local my_cwd="$PWD";
 
@@ -51,56 +108,67 @@ r2g(){
     local copy_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.copy-tests')"
     if [[ -z "$copy_test" ]]; then
         echo -e "${gmx_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${gmx_no_color}";
-#        return 1;
     fi
 
     local run_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.run-tests')";
     if [[ -z "$run_test" ]]; then
         echo -e "${gmx_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${gmx_no_color}";
-#        return 1;
     fi
 
+
+
     (
-#      set -e;
+      set -e;
       cd "$dest";
       ( npm init --yes ) &> /dev/null || { echo "warning: package.json file already existed in \$HOME/.r2g/temp/project"; }
       cat "$HOME/.r2g/node/smoke-tester.js" > smoke-tester.js;
-      echo "running npm install...in the following dir: $dest";
-      mkdir node_modules;
-      npm install "$tgz_path";
-
-      if [[ ! -d node_modules ]]; then
-          echo "warning: node_modules dir does not exist in path: $dest";
-      fi
+      echo "running the following command 'npm install "${tgz_path}"'...";
+      npm install "$tgz_path" --silent # >> "$HOME/.r2g/logs/r2g.log" 2>&1;
+      return 1;
     )
 
-    # run the user's copy command
+    exit_code="$?"
+    if [[ "$exit_code" != "0" ]]; then
+      echo "warning: npm install command failed, to see log, run: r2g_view_log";
+      return 1;
+    fi
+
+ return 0;
+
     (
-      set -o pipefail
+      # run the user's copy command
+      set -eo pipefail
 
 #      echo "$copy_test" | bash 2>&1 | prepend "r2g-copy: " "yellow";
 #      echo "$copy_test" | bash > >(prepend 'r2g-copying: ' 'yellow') 2> >(prepend 'r2g-copying: ' 'red'  >&2);
 
       if [[ ! -z "$copy_test" ]]; then
          echo "Copying r2g smoke test fixtures to '\$HOME/.r2g/temp/project'...";
-         exec 3>&2; {  echo "$copy_test" | bash | prepend 'r2g-copying: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-copying: ' 'magenta'
+         echo "$copy_test" | bash
+#         exec 3>&2; {  echo "$copy_test" | bash | prepend 'r2g-copying: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-copying: ' 'magenta'
       fi
-
     )
 
+    exit_code="$?"
+    if [[ "$exit_code" != "0" ]]; then
+      echo "warning: your copy command failed, to see log, run: r2g_view_log";
+      return 1;
+    fi
 
    ### see 1: https://unix.stackexchange.com/questions/442240/send-stderr-to-a-different-receiver-in-pipe
    ### see 2: https://unix.stackexchange.com/questions/442250/stderr-is-being-sent-down-pipeline-but-i-dont-want-that
     (
         # run the tests
         cd "$dest";
-        set -o pipefail
+        set -eo pipefail
 #        echo "$run_test" | bash > >(prepend 'r2g-test: ' 'yellow') 2> >(prepend 'r2g-test: ' 'red'  >&2);
 
         if [[ ! -z "$run_test" ]]; then
-            exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+#            exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+             echo "$run_test" | bash
         else
-            exec 3>&2; {   node smoke-tester.js | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+#            exec 3>&2; {   node smoke-tester.js | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+            node smoke-tester.js
         fi
 
         local exit_code="$?"
@@ -116,5 +184,28 @@ r2g(){
          return 1;
     )
 
+    exit_code="$?"
+    if [[ "$exit_code" != "0" ]]; then
+      echo "warning: your test command failed, to see log, run: r2g_view_log";
+      return 1;
+    fi
+
+   )
+
+#    pkill -P $$
+
+    exit_code="$?"
+    if [[ "$exit_code" != "0" ]]; then
+      echo "something experienced an error, to see log, run: r2g_view_log";
+      return 1;
+    fi
 }
 
+
+export -f r2g;
+export -f r2g_match_arg;
+export -f r2g_get_latest_source;
+export -f r2g_open;
+export -f r2g_home;
+export -f r2g_project_root;
+export -f r2g_view_log;

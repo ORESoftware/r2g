@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const path = require("path");
@@ -9,18 +17,28 @@ const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
 const match = [/:[0-9]/];
-const notMatch = [/bootstrap_node\.js/, /Function\.Module\.runMain/, /process\._tickCallback/];
-const getUsefulStack = function (err) {
-    return String(err.stack).split('\n')
+const notMatch = [
+    /bootstrap_node\.js/,
+    /Function\.Module\.runMain/,
+    /process\._tickCallback/,
+    /at Module\._compile/,
+    /\/node_modules\//
+];
+const getUsefulStack = function (e) {
+    let err = (e && e.stack || e);
+    if (typeof err !== 'string') {
+        err = util.inspect(err, { breakLength: Infinity });
+    }
+    return String(err).split('\n')
         .filter(function (v, i) {
-        if (i === 0)
+        if (i < 2)
             return true;
         return match.some(function (r) {
             return r.test(v);
         });
     })
         .filter(function (v, i) {
-        if (i === 0)
+        if (i < 2)
             return true;
         return !notMatch.some(function (r) {
             return r.test(v);
@@ -35,7 +53,7 @@ const links = fs.readdirSync(nm).filter(function (v) {
     return path.join(nm, v);
 });
 const getAllPromises = function (links) {
-    return Promise.resolve(null).then(function () {
+    return __awaiter(this, void 0, void 0, function* () {
         return Promise.all(links.map(function (l) {
             let mod;
             try {
@@ -49,7 +67,9 @@ const getAllPromises = function (links) {
                 assert.equal(typeof mod.r2gSmokeTest, 'function');
             }
             catch (err) {
-                console.error('Your module must export a function with key "r2gSmokeTest".');
+                console.error('A module failed to export a function from "main" with key "r2gSmokeTest".');
+                console.error('The module missing this export has the following path:');
+                console.error(l);
                 throw getUsefulStack(err);
             }
             return Promise.resolve(mod.r2gSmokeTest())
@@ -71,13 +91,13 @@ getAllPromises(links)
         if (!failure) {
             throw new Error('Missing failure object.');
         }
-        throw new Error(util.inspect(failure));
+        throw new Error(util.inspect(failure, { breakLength: Infinity }));
     }
     console.log('r2g smoke test passed');
     process.exit(0);
 })
     .catch(function (err) {
     console.log('r2g smoke test failed:');
-    console.error((err && err.stack) || (typeof err === 'string' ? err : util.inspect(err)));
+    console.error(getUsefulStack(err));
     process.exit(1);
 });
