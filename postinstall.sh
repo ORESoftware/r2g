@@ -24,15 +24,13 @@ rm -rf "$r2g_bin" || { echo "could not remove '$r2g_bin'"; }
 npm_bin="$(npm bin -g)/r2g"
 rm -rf "$npm_bin" || { echo "could not remove '$npm_bin'"; }
 
-cat run.r2g.sh > "$r2g_bin" &&
-{ chmod u+x "$r2g_bin"; } || {
-echo "could not write to '$r2g_bin'"; }
+cat run.r2g.sh > "$r2g_bin" &&  { chmod u+x "$r2g_bin"; } || {
+echo "could not write to '$r2g_bin'";
+}
 
-
-cat run.r2g.sh > "$npm_bin" &&
-{ chmod u+x "$npm_bin"; } ||
-{ echo "could not write to npm global bin dir"; }
-
+cat run.r2g.sh > "$npm_bin" && { chmod u+x "$npm_bin"; } || {
+   echo "could not write to npm global bin dir";
+}
 
 if [[ -z "$(which prepend)" ]]; then
   npm install -g prepend;
