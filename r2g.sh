@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [[ "$0" == "/bin/sh" ]]; then
+  echo "/bin/sh tried to source the r2g shell script."
+  return 0;
+fi
+
+
 r2g_get_latest_source(){
   . "$HOME/.r2g/r2g.sh"
 }
@@ -13,7 +19,7 @@ r2g_project_root(){
 }
 
 r2g_open(){
-  subl $(r2g_project_root)
+  subl "$(r2g_project_root)"
 }
 
 r2g_view_log(){
@@ -23,14 +29,13 @@ r2g_view_log(){
 r2g_match_arg(){
     # checks to see if the first arg, is among the remaining args
     # for example  ql_match_arg --json --json # yes
-    first_item="$1";
-    shift;
-        for var in "$@"; do
-            if [[ "$var" == "$first_item" ]]; then
-              echo "yes";
-              return 0;
-            fi
-        done
+    first_item="$1"; shift;
+    for var in "$@"; do
+        if [[ "$var" == "$first_item" ]]; then
+          echo "yes";
+          return 0;
+        fi
+    done
     return 1;
 }
 
@@ -60,7 +65,7 @@ r2g_internal(){
 #    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
 #    exec > >( while read line; do echo "zzz: $line"; done  );
 
-    if [[ -z "$(which prepend-with)" ]]; then
+    if [[ -z "$(which prepend)" ]]; then
       npm install -g prepend;
     fi
 
@@ -190,19 +195,27 @@ r2g_internal(){
 }
 
 
-
 r2g(){
 
-#  r2g_internal "$@" | while read line; do echo "r2g: $line"; done
+    local gmx_gray='\033[1;30m'
+    local gmx_magenta='\033[1;35m'
+    local gmx_cyan='\033[1;36m'
+    local gmx_orange='\033[1;33m'
+    local gmx_yellow='\033[1;33m'
+    local gmx_green='\033[1;32m'
+    local gmx_no_color='\033[0m'
 
   (
       set -e;
-      r2g_internal "$@" 2> >( while read line; do echo "r2g error: $line"; done ) 1> >( while read line; do echo "r2g: $line"; done )
+      set +o posix;
+      r2g_internal "$@"  \
+      2> >( while read line; do echo -e "${gmx_magenta}r2g error:${gmx_no_color} $line"; done ) \
+      1> >( while read line; do echo -e "${gmx_gray}r2g:${gmx_no_color} $line"; done )
   )
 
     exit_code="$?"
     if [[ "$exit_code" != "0" ]]; then
-        echo "something experienced an error, to see log, run: r2g_view_log";
+        echo -e "${gmx_magenta}r2g experienced an error, to see log, run: r2g_view_log${gmx_no_color}";
         return 1;
     fi
 }

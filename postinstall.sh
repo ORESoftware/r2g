@@ -18,13 +18,20 @@ cat dist/find-root.js > "$HOME/.r2g/node/find-root.js"
 cat dist/smoke-tester.js > "$HOME/.r2g/node/smoke-tester.js"
 
 
-rm -rf "/usr/local/bin/r2g" || { echo "could not remove '/usr/local/bin/r2g'"; }
+r2g_bin="/usr/local/bin/r2g"
+rm -rf "$r2g_bin" || { echo "could not remove '$r2g_bin'"; }
 
 npm_bin="$(npm bin -g)/r2g"
 rm -rf "$npm_bin" || { echo "could not remove '$npm_bin'"; }
 
-cat run.r2g.sh > "/usr/local/bin/r2g" || { echo "could not write to /usr/local/bin/r2g"; }
-cat run.r2g.sh > "$npm_bin" || { echo "could not write to npm global bin dir"; }
+cat run.r2g.sh > "$r2g_bin" &&
+{ chmod u+x "$r2g_bin"; } || {
+echo "could not write to '$r2g_bin'"; }
+
+
+cat run.r2g.sh > "$npm_bin" &&
+{ chmod u+x "$npm_bin"; } ||
+{ echo "could not write to npm global bin dir"; }
 
 
 if [[ -z "$(which prepend)" ]]; then

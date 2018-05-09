@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
-r2g_type=`type r2g`;
+### if the user has reached this file
+### it means the bash function is not sourced,
+### because bash functions take precedence
+#### so we source it:
 
-if [[ -z "r2g_type" ]]; then
-   . "$HOME/.r2g/r2g.sh"
+r2g_type=`type -t r2g`;
+
+if [[ "$r2g_type" != "function" ]]; then
+    . "$HOME/.r2g/r2g.sh"
 fi
 
-'r2g' "$@"
+### then run it
+r2g "$@"
