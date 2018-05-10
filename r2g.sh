@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 
-
-
 if [[ "$0" == "/bin/sh" ]]; then
   echo "/bin/sh tried to source the r2g shell script."
   return 0;
@@ -201,19 +199,21 @@ r2g_internal(){
 
 r2g(){
 
+    echo "here is the executable: $0"
 
     if [[ "$0" == "/bin/sh" ]]; then
-    echo "/bin/sh tried to source the r2g shell script."
+         echo "/bin/sh tried to source the r2g shell script."
         return 1;
     fi
 
     set -x;
+
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
-    local gmx_cyan='\033[1;36m'
-    local gmx_orange='\033[1;33m'
-    local gmx_yellow='\033[1;33m'
-    local gmx_green='\033[1;32m'
+#    local gmx_cyan='\033[1;36m'
+#    local gmx_orange='\033[1;33m'
+#    local gmx_yellow='\033[1;33m'
+#    local gmx_green='\033[1;32m'
     local gmx_no_color='\033[0m'
 
   (
