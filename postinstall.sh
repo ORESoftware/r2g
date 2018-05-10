@@ -32,9 +32,9 @@ cat run.r2g.sh > "$npm_bin" && { chmod u+x "$npm_bin"; } || {
    echo "could not write to npm global bin dir";
 }
 
-if [[ -z "$(which prepend)" ]]; then
-  npm install -g prepend;
-fi
+#if [[ -z "$(which prepend)" ]]; then
+#  npm install -g prepend;
+#fi
 
 echo -e "${gmx_green}r2g was installed successfully.${gmx_no_color}";
 echo -e "Add the following line to your .bashrc/.bash_profile files:";
