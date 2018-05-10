@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+
+
+
 if [[ "$0" == "/bin/sh" ]]; then
   echo "/bin/sh tried to source the r2g shell script."
   return 0;
 fi
 
+set -x;
 
 r2g_get_latest_source(){
   . "$HOME/.r2g/r2g.sh"
@@ -197,6 +201,13 @@ r2g_internal(){
 
 r2g(){
 
+
+    if [[ "$0" == "/bin/sh" ]]; then
+    echo "/bin/sh tried to source the r2g shell script."
+        return 1;
+    fi
+
+    set -x;
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
     local gmx_cyan='\033[1;36m'
