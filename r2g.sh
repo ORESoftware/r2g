@@ -3,7 +3,7 @@
 
 if [[ "$0" != "/bin/bash" ]]; then
   echo "/bin/sh tried to source the r2g shell script foo."
-  return 1;
+  return  "$@" | bash;
 fi
 
 #set -x;
@@ -210,7 +210,8 @@ r2g(){
 
     if [[ "$0" != "/bin/bash" ]]; then
          echo "/bin/sh tried to run r2g."
-        return 1;
+         echo "r2g \"$@"\" | bash;
+         return 0;
     fi
 
 #    set -x;
