@@ -19,5 +19,7 @@ install: './scripts/travis/install.sh'
 script: './scripts/travis/script.sh'
 after_script: './scripts/travis/after_script.sh'
 cache:
+  bundler: true
   directories:
-   - /home/travis/.npm
+    - node_modules
+    - /home/travis/.npm
