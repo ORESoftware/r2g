@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ### if the user has reached this file
 ### it means the bash function is not sourced,
@@ -11,6 +11,6 @@ if [[ "$0" != "/bin/bash" ]]; then
   echo "/bin/sh tried to source the run.r2g shell script foo." >&2
 
 else
-    . "$HOME/.r2g/r2g.sh";
+    source "$HOME/.r2g/r2g.sh";
     r2g "$@";
 fi

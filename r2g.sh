@@ -9,7 +9,7 @@ fi
 #set -x;
 
 r2g_get_latest_source(){
-  . "$HOME/.r2g/r2g.sh"
+  source "$HOME/.r2g/r2g.sh"
 }
 
 r2g_home(){
