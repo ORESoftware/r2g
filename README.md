@@ -26,7 +26,7 @@ r2g uses the following NPM utilities to do it's thing:
 
 ### `npm install -g r2g`
 ##### then add the following to your ~/.bashrc and/or ~/.bash_profile files:
-#### `. "$HOME/.r2g/r2g.sh"`
+#### `source "$HOME/.r2g/r2g.sh"`
 
 
 ## Usage

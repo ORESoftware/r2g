@@ -228,7 +228,7 @@ r2g(){
 #      set +o posix;
 
       r2g_internal "$@"  \
-      2> >( while read line; do echo -e "${gmx_magenta}r2g error:${gmx_no_color} $line"; done ) \
+      2> >( while read line; do echo -e "${gmx_magenta}r2g:${gmx_no_color} $line"; done ) \
       1> >( while read line; do echo -e "${gmx_gray}r2g:${gmx_no_color} $line"; done )
   )
 

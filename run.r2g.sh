@@ -9,8 +9,6 @@
 
 if [[ "$0" != "/bin/bash" ]]; then
   echo "/bin/sh tried to source the run.r2g shell script foo." >&2
-
-else
-    source "$HOME/.r2g/r2g.sh";
-    r2g "$@";
 fi
+
+echo "source \"$HOME/.r2g/r2g.sh\"; r2g \"$@"\" | bash;
