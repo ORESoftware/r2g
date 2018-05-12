@@ -2,8 +2,8 @@
 
 
 if [[ "$0" != "/bin/bash" ]]; then
-  echo "/bin/sh tried to source the r2g shell script."
-  return 0;
+  echo "/bin/sh tried to source the r2g shell script foo."
+  return 1;
 fi
 
 #set -x;
@@ -67,9 +67,9 @@ r2g_internal(){
 #    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
 #    exec > >( while read line; do echo "zzz: $line"; done  );
 
-    if [[ -z "$(which prepend)" ]]; then
-      npm install -g prepend;
-    fi
+#    if [[ -z "$(which prepend)" ]]; then
+#      npm install -g prepend;
+#    fi
 
     rm -rf "$HOME/.r2g/logs";
     mkdir -p "$HOME/.r2g/logs"
@@ -192,17 +192,24 @@ r2g_internal(){
 
 #    pkill -P $$
 
-
-
 }
 
+r2g_delete(){
+  hash -d "$(npm bin -g)/r2g"
+  hash -d "/usr/local/bin/r2g"
+  rm "$(npm bin -g)/r2g"
+  rm "/usr/local/bin/r2g"
+  hash -d r2g
+}
 
-r2g4(){
+r2g(){
+
+#   unset -f r2g;
 
     echo "here is the executable: $0"
 
     if [[ "$0" != "/bin/bash" ]]; then
-         echo "/bin/sh tried to source the r2g shell script."
+         echo "/bin/sh tried to run r2g."
         return 1;
     fi
 
@@ -210,15 +217,16 @@ r2g4(){
 
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
-    local gmx_cyan='\033[1;36m'
-    local gmx_orange='\033[1;33m'
-    local gmx_yellow='\033[1;33m'
-    local gmx_green='\033[1;32m'
+#    local gmx_cyan='\033[1;36m'
+#    local gmx_orange='\033[1;33m'
+#    local gmx_yellow='\033[1;33m'
+#    local gmx_green='\033[1;32m'
     local gmx_no_color='\033[0m'
 
   (
       set -e;
-      set +o posix;
+#      set +o posix;
+
       r2g_internal "$@"  \
       2> >( while read line; do echo -e "${gmx_magenta}r2g error:${gmx_no_color} $line"; done ) \
       1> >( while read line; do echo -e "${gmx_gray}r2g:${gmx_no_color} $line"; done )

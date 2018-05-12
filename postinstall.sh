@@ -9,6 +9,8 @@ gmx_orange='\033[1;33m'
 gmx_green='\033[1;32m'
 gmx_no_color='\033[0m'
 
+
+
 mkdir -p "$HOME/.r2g/node"
 mkdir -p "$HOME/.r2g/temp/project"
 
@@ -25,12 +27,13 @@ npm_bin="$(npm bin -g)/r2g"
 rm -rf "$npm_bin" || { echo "could not remove '$npm_bin'"; }
 
 cat run.r2g.sh > "$r2g_bin" &&  { chmod u+x "$r2g_bin"; } || {
-echo "could not write to '$r2g_bin'";
+    echo "could not write to '$r2g_bin'";
 }
 
 cat run.r2g.sh > "$npm_bin" && { chmod u+x "$npm_bin"; } || {
    echo "could not write to npm global bin dir";
 }
+
 
 #if [[ -z "$(which prepend)" ]]; then
 #  npm install -g prepend;
