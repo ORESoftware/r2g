@@ -8,10 +8,9 @@
 #r2g_type=`type -t r2g`;
 
 if [[ "$0" != "/bin/bash" ]]; then
-  echo "/bin/sh tried to source the run.r2g shell script foo."
-  return 1;
+  echo "/bin/sh tried to source the run.r2g shell script foo." >&2
+
+else
+    . "$HOME/.r2g/r2g.sh";
+    r2g "$@";
 fi
-
-
-. "$HOME/.r2g/r2g.sh";
-r2g "$@";

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-
-echo "this is the travis 'install'."
-
-npm install --silent
+set -e;
+echo "this is the travis 'install'.";
+npm install --silent;
 tsc;
