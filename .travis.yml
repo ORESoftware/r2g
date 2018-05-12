@@ -18,4 +18,6 @@ before_install: './scripts/travis/before_install.sh'
 install: './scripts/travis/install.sh'
 script: './scripts/travis/script.sh'
 after_script: './scripts/travis/after_script.sh'
-
+cache:
+  directories:
+   - /home/travis/.npm
