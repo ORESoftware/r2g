@@ -13,7 +13,6 @@ if (!path.isAbsolute(pkg)) {
 }
 
 const pkgJSON = require(pkg);
-
 const keys = String(keyv).split('.').filter(Boolean);
 
 try {
