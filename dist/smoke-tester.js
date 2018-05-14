@@ -17,12 +17,13 @@ process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
-const links = fs.readdirSync(nm).filter(function (v) {
-    return deps[v];
-})
+const links = fs.readdirSync(nm)
     .map(function (v) {
     return path.join(nm, v);
 });
+if (links.length < 1) {
+    throw clean_trace_1.getCleanTrace(new Error('no requireable packages in package.json to smoke test with r2g.'));
+}
 const getAllPromises = function (links) {
     return __awaiter(this, void 0, void 0, function* () {
         return Promise.all(links.map(function (l) {

@@ -9,13 +9,22 @@ const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
 
-const links = fs.readdirSync(nm).filter(function (v) {
-  // return fs.statSync(v).isSymbolicLink();
-  return deps[v];
-})
+const links = fs.readdirSync(nm)
+//   .filter(function (v) {
+//   // return fs.statSync(v).isSymbolicLink();
+//   return deps[v] || (function(){
+//
+//
+//
+//   })();
+// })
 .map(function (v) {
   return path.join(nm, v);
 });
+
+if(links.length < 1){
+  throw getCleanTrace(new Error('no requireable packages in package.json to smoke test with r2g.'));
+}
 
 const getAllPromises = async function (links: Array<string>) {
   return Promise.all(links.map(function (l) {
