@@ -22,6 +22,7 @@ mkdir -p "$HOME/.r2g/temp/project" || {
 
 
 mkdir -p "$HOME/.oresoftware" && {
+
   (
     curl -H 'Cache-Control: no-cache' \
     "https://raw.githubusercontent.com/oresoftware/shell/master/shell.sh?$(date +%s)" \
@@ -29,8 +30,13 @@ mkdir -p "$HOME/.oresoftware" && {
            echo "curl command failed to read shell.sh, now we should try wget..."
     }
   ) &
-}
 
+} || {
+
+  echo "could not create '$HOME/.oresoftware'";
+  exit 1;
+
+}
 
 mkdir -p "$HOME/.oresoftware/bash" && {
     cat r2g.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
