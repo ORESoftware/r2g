@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
-    "@oresoftware/shell": "latest"
+    "gmx": "latest"
   },
   "devDependencies": {
     "@types/core-js": "^0.9.46",
@@ -38,5 +38,6 @@
   "r2gz": {
     "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
     "run-tests": "node test"
-  }
+  },
+  "b3val": 3
 }
