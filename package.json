@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
-    "@oresoftware/oresoftware.package.json": "latest"
+    "@oresoftware/shell": "latest"
   },
   "devDependencies": {
     "@types/core-js": "^0.9.46",

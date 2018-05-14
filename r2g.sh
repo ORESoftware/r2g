@@ -2,14 +2,15 @@
 
 
 if [[ "$0" != "/bin/bash" ]]; then
-  echo "/bin/sh tried to source the r2g shell script foo."
-  return  "$@" | bash;
+  echo "$0 tried to source the r2g shell script foo."
 fi
 
 #set -x;
 
+export r2g_source_home="$HOME/.oresoftware/nodejs/node_modules/r2g";
+
 r2g_get_latest_source(){
-  source "$HOME/.r2g/r2g.sh"
+  . "$HOME/.r2g/r2g.sh"
 }
 
 r2g_home(){
@@ -85,7 +86,7 @@ r2g_internal(){
 
     if [[ ! -f package.json ]]; then
        echo "Could not find a package.json file in your current working directory.";
-       my_cwd="$(node "$HOME/.r2g/node/find-root.js")"
+       my_cwd="$(node "$r2g_source_home/dist/find-root.js")"
        if [[ -z "$my_cwd" ]]; then
          echo -e "${gmx_magenta}You are not within an NPM project.${gmx_no_color}";
          return 1;
@@ -107,12 +108,12 @@ r2g_internal(){
     echo "to this project: '$dest'..."
     mkdir -p "$dest"
 
-    local copy_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.copy-tests')"
+    local copy_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.copy-tests')"
     if [[ -z "$copy_test" ]]; then
         echo -e "${gmx_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${gmx_no_color}";
     fi
 
-    local run_test="$(node "$HOME/.r2g/node/axxel.js" package.json 'r2g.run-tests')";
+    local run_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.run-tests')";
     if [[ -z "$run_test" ]]; then
         echo -e "${gmx_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${gmx_no_color}";
     fi
@@ -122,7 +123,7 @@ r2g_internal(){
       set -e;
       cd "$dest";
       ( npm init --yes ) &> /dev/null || { echo "warning: package.json file already existed in \$HOME/.r2g/temp/project"; }
-      cat "$HOME/.r2g/node/smoke-tester.js" > smoke-tester.js;
+      cat "$r2g_source_home/dist/smoke-tester.js" > smoke-tester.js;
       echo "now running: 'npm install "${tgz_path}"'...";
       npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
     )
@@ -218,10 +219,10 @@ r2g(){
 
     local gmx_gray='\033[1;30m'
     local gmx_magenta='\033[1;35m'
-#    local gmx_cyan='\033[1;36m'
-#    local gmx_orange='\033[1;33m'
-#    local gmx_yellow='\033[1;33m'
-#    local gmx_green='\033[1;32m'
+    local gmx_cyan='\033[1;36m'
+    local gmx_orange='\033[1;33m'
+    local gmx_yellow='\033[1;33m'
+    local gmx_green='\033[1;32m'
     local gmx_no_color='\033[0m'
 
   (
