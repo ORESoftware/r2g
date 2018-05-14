@@ -10,7 +10,7 @@ For now, testing happens in `"$HOME/.r2g/temp/project"`.
 
 What you do: Write some smoke tests that will run after (a) your library is in the published format, and (b) is
 installed in another project as dependency. This serves the two obvious purposes, does it actually install
-properly, and can it be loaded and run with at some basic functionality.
+properly, and can it be loaded and run with at least some basic functionality.
 
 <p>
 

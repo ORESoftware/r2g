@@ -2,44 +2,12 @@ import fs = require('fs');
 import path = require('path');
 import * as util from "util";
 import * as assert from "assert";
+import {getCleanTrace} from 'clean-trace';
 
 process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
-
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
-const match = [/:[0-9]/];
-const notMatch = [
-  /bootstrap_node\.js/,
-  /Function\.Module\.runMain/,
-  /process\._tickCallback/,
-  /at Module\._compile/,
-  /\/node_modules\//
-];
-
-const getUsefulStack = function (e: Error) {
-  
-  let err = (e && e.stack || e) as string;
-  
-  if (typeof err !== 'string') {
-    err = util.inspect(err, {breakLength: Infinity});
-  }
-  
-  return String(err).split('\n')
-  .filter(function (v, i) {
-    if (i < 2) return true;
-    return match.some(function (r) {
-      return r.test(v);
-    })
-  })
-  .filter(function (v, i) {
-    if (i < 2) return true;
-    return !notMatch.some(function (r) {
-      return r.test(v);
-    });
-  })
-  .join('\n')
-};
 
 const links = fs.readdirSync(nm).filter(function (v) {
   // return fs.statSync(v).isSymbolicLink();
@@ -58,7 +26,7 @@ const getAllPromises = async function (links: Array<string>) {
     }
     catch (err) {
       console.error('Could not load your package with path:', l);
-      throw getUsefulStack(err);
+      throw getCleanTrace(err);
     }
     try {
       assert.equal(typeof mod.r2gSmokeTest, 'function');
@@ -67,7 +35,7 @@ const getAllPromises = async function (links: Array<string>) {
       console.error('A module failed to export a function from "main" with key "r2gSmokeTest".');
       console.error('The module missing this export has the following path:');
       console.error(l);
-      throw getUsefulStack(err);
+      throw getCleanTrace(err);
     }
     
     return Promise.resolve(mod.r2gSmokeTest())
@@ -102,7 +70,7 @@ getAllPromises(links)
 .catch(function (err) {
   
   console.log('r2g smoke test failed:');
-  console.error(getUsefulStack(err));
+  console.error(getCleanTrace(err));
   process.exit(1);
   
 });

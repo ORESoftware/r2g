@@ -47,14 +47,14 @@ mkdir -p "$HOME/.oresoftware/bash" && {
 
 mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 
+  (
+
     [ ! -f "$HOME/.oresoftware/nodejs/package.json" ]  && {
-     (
         curl -H 'Cache-Control: no-cache' \
           "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
             --output "$HOME/.oresoftware/nodejs/package.json" 2> /dev/null || {
             echo "curl command failed to read package.json, now we should try wget..."
       }
-     )
     }
 
     (
@@ -69,6 +69,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
         }
       }
     )
+  ) &
 
 } || {
 
@@ -76,12 +77,11 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 }
 
 # wait for background processes to finish
+wait;
 
 if [[ -z "$(which r2g)" ]]; then
    npm install -g r2g
 fi
-
-wait;
 
 
 echo -e "${gmx_green}r2g was installed successfully.${gmx_no_color}";

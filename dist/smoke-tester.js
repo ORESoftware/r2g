@@ -12,40 +12,11 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const assert = require("assert");
+const clean_trace_1 = require("clean-trace");
 process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
-const match = [/:[0-9]/];
-const notMatch = [
-    /bootstrap_node\.js/,
-    /Function\.Module\.runMain/,
-    /process\._tickCallback/,
-    /at Module\._compile/,
-    /\/node_modules\//
-];
-const getUsefulStack = function (e) {
-    let err = (e && e.stack || e);
-    if (typeof err !== 'string') {
-        err = util.inspect(err, { breakLength: Infinity });
-    }
-    return String(err).split('\n')
-        .filter(function (v, i) {
-        if (i < 2)
-            return true;
-        return match.some(function (r) {
-            return r.test(v);
-        });
-    })
-        .filter(function (v, i) {
-        if (i < 2)
-            return true;
-        return !notMatch.some(function (r) {
-            return r.test(v);
-        });
-    })
-        .join('\n');
-};
 const links = fs.readdirSync(nm).filter(function (v) {
     return deps[v];
 })
@@ -61,7 +32,7 @@ const getAllPromises = function (links) {
             }
             catch (err) {
                 console.error('Could not load your package with path:', l);
-                throw getUsefulStack(err);
+                throw clean_trace_1.getCleanTrace(err);
             }
             try {
                 assert.equal(typeof mod.r2gSmokeTest, 'function');
@@ -70,7 +41,7 @@ const getAllPromises = function (links) {
                 console.error('A module failed to export a function from "main" with key "r2gSmokeTest".');
                 console.error('The module missing this export has the following path:');
                 console.error(l);
-                throw getUsefulStack(err);
+                throw clean_trace_1.getCleanTrace(err);
             }
             return Promise.resolve(mod.r2gSmokeTest())
                 .then((v) => ({ path: l, result: v }));
@@ -98,6 +69,6 @@ getAllPromises(links)
 })
     .catch(function (err) {
     console.log('r2g smoke test failed:');
-    console.error(getUsefulStack(err));
+    console.error(clean_trace_1.getCleanTrace(err));
     process.exit(1);
 });

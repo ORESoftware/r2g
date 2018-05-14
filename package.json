@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
-    "clean-trace": "0.0.104",
+    "clean-trace": "latest",
     "gmx": "latest"
   },
   "devDependencies": {
