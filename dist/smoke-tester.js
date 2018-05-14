@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const assert = require("assert");
@@ -17,10 +16,8 @@ process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
-const links = fs.readdirSync(nm)
-    .map(function (v) {
-    return path.join(nm, v);
-});
+const depsOrg = Object.keys(deps).map(v => String(v).split('/')[0]);
+const links = Object.keys(deps);
 if (links.length < 1) {
     throw clean_trace_1.getCleanTrace(new Error('no requireable packages in package.json to smoke test with r2g.'));
 }

@@ -8,19 +8,19 @@ process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
 const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependencies || {});
+// gets the org name
+const depsOrg = Object.keys(deps).map(v => String(v).split('/')[0]);
 
-const links = fs.readdirSync(nm)
+// const links = fs.readdirSync(nm)
 //   .filter(function (v) {
 //   // return fs.statSync(v).isSymbolicLink();
-//   return deps[v] || (function(){
-//
-//
-//
-//   })();
+//   return deps[v] || depsOrg.indexOf(v) > -1;
 // })
-.map(function (v) {
-  return path.join(nm, v);
-});
+// .map(function (v) {
+//   return path.join(nm, v);
+// });
+
+const links = Object.keys(deps);
 
 if(links.length < 1){
   throw getCleanTrace(new Error('no requireable packages in package.json to smoke test with r2g.'));

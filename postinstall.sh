@@ -9,6 +9,12 @@ fi
 
 export r2g_skip_postinstall="yes";
 
+r2g_exec="r2g";
+
+if [[ "$oresoftware_local_dev" == "yes" ]]; then
+     r2g_exec="/Users/alexamil/WebstormProjects/oresoftware/r2g";
+fi
+
 gmx_gray='\033[1;30m'
 gmx_magenta='\033[1;35m'
 gmx_cyan='\033[1;36m'
@@ -58,7 +64,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
     }
 
     (
-      cd "$HOME/.oresoftware/nodejs" && npm install --silent r2g 2> /dev/null || {
+      cd "$HOME/.oresoftware/nodejs" && npm install --silent "$r2g_exec" 2> /dev/null || {
 
         echo "could not install r2g in user home, trying again.";
         mkdir -p "$HOME/.oresoftware/nodejs/node_modules/r2g/dist" && {
@@ -80,7 +86,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 wait;
 
 if [[ -z "$(which r2g)" ]]; then
-   npm install -g r2g
+   npm install -g "$r2g_exec"
 fi
 
 
