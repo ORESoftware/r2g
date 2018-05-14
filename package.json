@@ -1,6 +1,6 @@
 {
   "name": "r2g",
-  "version": "0.0.106",
+  "version": "0.0.107",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
