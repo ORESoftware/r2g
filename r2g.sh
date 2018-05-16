@@ -19,6 +19,18 @@ r2g_project_root(){
   echo "$HOME/.r2g/temp/project"
 }
 
+r2g_uninstall(){
+ npm uninstall -g r2g
+  hash -d r2g
+  rm -rf "$(which r2g)"
+  hash -d r2g
+  rm -rf "$(which r2g)"
+  rm -rf "$(r2g_home)"
+  rm -rf "$(type -P r2g)"
+  hash -d r2g
+
+}
+
 r2g_open(){
   subl "$(r2g_project_root)"
 }
@@ -113,7 +125,15 @@ r2g_internal(){
     (
       set -e;
       cd "$dest";
-      ( npm init --yes ) &> /dev/null || { echo "warning: package.json file already existed in \$HOME/.r2g/temp/project"; }
+       [ ! -f "package.json" ]  && {
+            curl -H 'Cache-Control: no-cache' \
+              "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
+                --output "$dest" 2> /dev/null || {
+                echo "curl command failed to read package.json, now we should try wget..." >&2
+          }
+        } || {
+        echo "warning: package.json file may have already existed in \$HOME/.r2g/temp/project";
+      }
       cat "$r2g_source_home/dist/smoke-tester.js" > smoke-tester.js;
       echo "now running: 'npm install "${tgz_path}"'...";
       npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
@@ -226,6 +246,7 @@ export -f r2g_open;
 export -f r2g_home;
 export -f r2g_project_root;
 export -f r2g_view_log;
+export -f r2g_uninstall;
 
 
 

@@ -26,7 +26,7 @@ r2g uses the following NPM utilities to do it's thing:
 
 ### `npm install -g r2g`
 ##### then add the following to your ~/.bashrc and/or ~/.bash_profile files:
-#### `source "$HOME/.r2g/r2g.sh"`
+#### `source "$HOME/.oresoftware/shell.sh"`
 
 
 ## Usage
@@ -60,3 +60,7 @@ in other words, you won't need to do anything in r2g-copy-tests, so just do this
  
  
 \*(I don't see a strong need to publish tests to NPM, unless perhaps you run tests during preinstall/postinstall?)
+
+
+
+## TBD: Usage in a Docker image/container
