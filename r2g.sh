@@ -208,13 +208,6 @@ r2g(){
 #   unset -f r2g;
 
     echo "here is the executable: $0"
-
-    if [[ "$0" != "/bin/bash" ]]; then
-         echo "/bin/sh tried to run r2g."
-         echo "r2g \"$@"\" | bash;
-         return 0;
-    fi
-
 #    set -x;
 
     local r2g_gray='\033[1;30m'
