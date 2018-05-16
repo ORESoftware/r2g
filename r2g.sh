@@ -10,7 +10,7 @@ fi
 export r2g_source_home="$HOME/.oresoftware/nodejs/node_modules/r2g";
 
 r2g_get_latest_source(){
-  . "$HOME/.r2g/r2g.sh"
+  . "$HOME/.oresoftware/bash/r2g.sh"
 }
 
 r2g_home(){

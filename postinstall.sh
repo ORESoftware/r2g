@@ -92,7 +92,7 @@ fi
 
 echo -e "${gmx_green}r2g was installed successfully.${gmx_no_color}";
 echo -e "Add the following line to your .bashrc/.bash_profile files:";
-echo -e "${gmx_cyan} source \"\$HOME/.r2g/r2g.sh\"${gmx_no_color}";
+echo -e "${gmx_cyan} . \"\$HOME/.oresoftware/shell.sh\"${gmx_no_color}";
 echo " ";
 
 
