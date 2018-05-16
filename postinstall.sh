@@ -8,7 +8,6 @@ if [[ "$r2g_skip_postinstall" == "yes" ]]; then
 fi
 
 export r2g_skip_postinstall="yes";
-
 r2g_exec="r2g";
 
 if [[ "$oresoftware_local_dev" == "yes" ]]; then
@@ -64,16 +63,9 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
     }
 
     (
-      cd "$HOME/.oresoftware/nodejs" && npm install --silent "$r2g_exec" 2> /dev/null || {
-
+      cd "$HOME/.oresoftware/nodejs" && npm install --loglevel=warn "$r2g_exec" 2> /dev/null || {
         echo "could not install r2g in user home, trying again.";
-        mkdir -p "$HOME/.oresoftware/nodejs/node_modules/r2g/dist" && {
-
-        cat dist/axxel.js > "$HOME/.oresoftware/nodejs/node_modules/r2g/dist/axxel.js"
-        cat dist/find-root.js > "$HOME/.oresoftware/nodejs/node_modules/r2g/dist/find-root.js"
-        cat dist/smoke-tester.js > "$HOME/.oresoftware/nodejs/node_modules/r2g/dist/smoke-tester.js"
-        }
-      }
+       }
     )
   ) &
 
