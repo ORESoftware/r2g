@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
 
-if [[ "$0" != "/bin/bash" ]]; then
-  echo "$0 tried to source the r2g shell script foo."
+if [[ "$0" != *"bash"* ]]; then
+  echo "$0 tried to source the r2g shell script."
 fi
-
-#set -x;
 
 export r2g_source_home="$HOME/.oresoftware/nodejs/node_modules/r2g";
 
@@ -64,13 +62,6 @@ r2g_internal(){
     local r2g_green='\033[1;32m'
     local r2g_no_color='\033[0m'
 
-
-#    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
-#    exec > >( while read line; do echo "zzz: $line"; done  );
-
-#    if [[ -z "$(which prepend)" ]]; then
-#      npm install -g prepend;
-#    fi
 
     rm -rf "$HOME/.r2g/logs";
     mkdir -p "$HOME/.r2g/logs"
@@ -136,11 +127,7 @@ r2g_internal(){
 
     (
       # run the user's copy command
-      set -eo pipefail
-
-#      echo "$copy_test" | bash 2>&1 | prepend "r2g-copy: " "yellow";
-#      echo "$copy_test" | bash > >(prepend 'r2g-copying: ' 'yellow') 2> >(prepend 'r2g-copying: ' 'red'  >&2);
-
+      set -eo pipefail;
       if [[ ! -z "$copy_test" ]]; then
          echo "Copying r2g smoke test fixtures to '\$HOME/.r2g/temp/project'...";
          echo "$copy_test" | bash
@@ -188,12 +175,8 @@ r2g_internal(){
       echo "warning: your test command failed, to see log, run: r2g_view_log";
       return 1;
     fi
-
-
-
-#    pkill -P $$
-
 }
+
 
 r2g_delete(){
   hash -d "$(npm bin -g)/r2g"
@@ -243,3 +226,6 @@ export -f r2g_open;
 export -f r2g_home;
 export -f r2g_project_root;
 export -f r2g_view_log;
+
+
+
