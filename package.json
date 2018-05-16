@@ -1,6 +1,6 @@
 {
   "name": "r2g",
-  "version": "0.0.109",
+  "version": "0.0.110",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
@@ -29,8 +29,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
-    "clean-trace": "latest",
-    "gmx": "latest"
+    "clean-trace": "latest"
   },
   "devDependencies": {
     "@types/core-js": "^0.9.46",
