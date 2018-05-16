@@ -36,9 +36,9 @@ To make it work (fulfill the contract):
 1. Add the following scripts to your package.json file:
 
 ```json
- "scripts": {
-    "r2g-copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
-    "r2g-run-tests": "npm test"
+ "r2g": {
+    "copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
+    "run-tests": "npm test"
   },
 
 ```
@@ -51,9 +51,9 @@ in other words, you won't need to do anything in r2g-copy-tests, so just do this
 
 
 ```json
- "scripts": {
-    "r2g-copy-tests": "echo 'copying test no-op'",
-    "r2g-run-tests": "npm test"
+ "r2g": {
+    "copy-tests": "echo 'copying test no-op'",
+    "run-tests": "npm test"
  },
 
 ```
