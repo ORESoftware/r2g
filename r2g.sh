@@ -56,13 +56,13 @@ r2g_internal(){
 
     local exit_code="";
 
-    local gmx_gray='\033[1;30m'
-    local gmx_magenta='\033[1;35m'
-    local gmx_cyan='\033[1;36m'
-    local gmx_orange='\033[1;33m'
-    local gmx_yellow='\033[1;33m'
-    local gmx_green='\033[1;32m'
-    local gmx_no_color='\033[0m'
+    local r2g_gray='\033[1;30m'
+    local r2g_magenta='\033[1;35m'
+    local r2g_cyan='\033[1;36m'
+    local r2g_orange='\033[1;33m'
+    local r2g_yellow='\033[1;33m'
+    local r2g_green='\033[1;32m'
+    local r2g_no_color='\033[0m'
 
 
 #    exec 2> >( while read line; do echo "xxx error/warning: $line"; done );
@@ -88,7 +88,7 @@ r2g_internal(){
        echo "Could not find a package.json file in your current working directory.";
        my_cwd="$(node "$r2g_source_home/dist/find-root.js")"
        if [[ -z "$my_cwd" ]]; then
-         echo -e "${gmx_magenta}You are not within an NPM project.${gmx_no_color}";
+         echo -e "${r2g_magenta}You are not within an NPM project.${r2g_no_color}";
          return 1;
        fi
     fi
@@ -97,7 +97,7 @@ r2g_internal(){
 
     local result="$(npm pack)"
     if [[ -z "$result" ]]; then
-        echo -e "${gmx_magenta}NPM pack command did not appear to yield a .tgz file.${gmx_no_color}";
+        echo -e "${r2g_magenta}NPM pack command did not appear to yield a .tgz file.${r2g_no_color}";
         return 1;
     fi
 
@@ -110,12 +110,12 @@ r2g_internal(){
 
     local copy_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.copy-tests')"
     if [[ -z "$copy_test" ]]; then
-        echo -e "${gmx_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${gmx_no_color}";
+        echo -e "${r2g_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${r2g_no_color}";
     fi
 
     local run_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.run-tests')";
     if [[ -z "$run_test" ]]; then
-        echo -e "${gmx_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${gmx_no_color}";
+        echo -e "${r2g_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${r2g_no_color}";
     fi
 
 
@@ -173,13 +173,13 @@ r2g_internal(){
         local exit_code="$?"
 
         if [[ "$exit_code" == "0" ]]; then
-           echo -e "${gmx_green}r2g tests passed.${gmx_no_color}"
+           echo -e "${r2g_green}r2g tests passed.${r2g_no_color}"
            return 0;
         fi
 
-         echo -e "${gmx_magenta}===============================${gmx_no_color}"
-         echo -e "${gmx_magenta} => Your r2g test(s) have failed.${gmx_no_color}"
-         echo -e "${gmx_magenta}===============================${gmx_no_color}"
+         echo -e "${r2g_magenta}===============================${r2g_no_color}"
+         echo -e "${r2g_magenta} => Your r2g test(s) have failed.${r2g_no_color}"
+         echo -e "${r2g_magenta}===============================${r2g_no_color}"
          return 1;
     )
 
@@ -217,26 +217,26 @@ r2g(){
 
 #    set -x;
 
-    local gmx_gray='\033[1;30m'
-    local gmx_magenta='\033[1;35m'
-    local gmx_cyan='\033[1;36m'
-    local gmx_orange='\033[1;33m'
-    local gmx_yellow='\033[1;33m'
-    local gmx_green='\033[1;32m'
-    local gmx_no_color='\033[0m'
+    local r2g_gray='\033[1;30m'
+    local r2g_magenta='\033[1;35m'
+    local r2g_cyan='\033[1;36m'
+    local r2g_orange='\033[1;33m'
+    local r2g_yellow='\033[1;33m'
+    local r2g_green='\033[1;32m'
+    local r2g_no_color='\033[0m'
 
   (
       set -e;
 #      set +o posix;
 
       r2g_internal "$@"  \
-      2> >( while read line; do echo -e "${gmx_magenta}r2g:${gmx_no_color} $line"; done ) \
-      1> >( while read line; do echo -e "${gmx_gray}r2g:${gmx_no_color} $line"; done )
+      2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
+      1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
   )
 
     exit_code="$?"
     if [[ "$exit_code" != "0" ]]; then
-        echo -e "${gmx_magenta}r2g experienced an error, to see log, run: r2g_view_log${gmx_no_color}";
+        echo -e "${r2g_magenta}r2g experienced an error, to see log, run: r2g_view_log${r2g_no_color}";
         return 1;
     fi
 }
