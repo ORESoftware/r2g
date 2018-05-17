@@ -89,7 +89,8 @@ r2g_internal(){
 
     if [[ ! -f package.json ]]; then
        echo "Could not find a package.json file in your current working directory.";
-       my_cwd="$(node "$r2g_source_home/dist/find-root.js")"
+#       my_cwd="$(node "$r2g_source_home/dist/find-root.js")"
+        my_cwd="$(r2g_find_root)"
        if [[ -z "$my_cwd" ]]; then
          echo -e "${r2g_magenta}You are not within an NPM project.${r2g_no_color}";
          return 1;
@@ -111,12 +112,18 @@ r2g_internal(){
     echo "to this project: '$dest'..."
     mkdir -p "$dest"
 
-    local copy_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.copy-tests')"
+#    local copy_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.copy-tests')"
+
+    local copy_test="$(r2g_axxel package.json 'r2g.copy-tests')"
+
     if [[ -z "$copy_test" ]]; then
         echo -e "${r2g_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${r2g_no_color}";
     fi
 
-    local run_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.run-tests')";
+#    local run_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.run-tests')";
+
+    local run_test="$(r2g_axxel package.json 'r2g.run-tests')";
+
     if [[ -z "$run_test" ]]; then
         echo -e "${r2g_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${r2g_no_color}";
     fi

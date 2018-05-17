@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 import path = require('path');
