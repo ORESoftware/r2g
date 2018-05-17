@@ -1,10 +1,12 @@
 {
   "name": "r2g",
-  "version": "0.0.115",
+  "version": "0.0.116",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
-    "r2g": "run.r2g.sh"
+    "r2g": "run.r2g.sh",
+    "r2g_axxel": "dist/axxel.js",
+    "r2g_find_root": "dist/find-root.js"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
