@@ -63,7 +63,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
     }
 
     (
-      cd "$HOME/.oresoftware/nodejs" && npm install --loglevel=warn "$r2g_exec" 2> /dev/null || {
+      cd "$HOME/.oresoftware/nodejs" && npm install --loglevel=warn "$r2g_exec"  || {
         echo "could not install r2g in user home.";
        }
     )
@@ -77,7 +77,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 # wait for background processes to finish
 wait;
 
-if [[ -z "$(which r2g)" ]]; then
+if [ "$oresoftware_local_dev" == "yes" ] || [ -z "$(which r2g)" ]; then
    npm install -g "$r2g_exec"
 fi
 

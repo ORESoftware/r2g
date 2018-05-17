@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-console.log('there is nothing to see here.');
 exports.x = function foo() {
     return __awaiter(this, void 0, void 0, function* () {
         throw new Error('bam bam bam');
