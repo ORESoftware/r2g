@@ -128,7 +128,7 @@ r2g_internal(){
        [ ! -f "package.json" ]  && {
             curl -H 'Cache-Control: no-cache' \
               "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
-                --output "$dest" 2> /dev/null || {
+                --output "$dest/package.json" 2> /dev/null || {
                 echo "curl command failed to read package.json, now we should try wget..." >&2
           }
         } || {
@@ -220,6 +220,11 @@ r2g(){
     local r2g_yellow='\033[1;33m'
     local r2g_green='\033[1;32m'
     local r2g_no_color='\033[0m'
+
+    if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
+      echo "sh is stealing bash sunshine.";
+      return 1;
+    fi
 
   (
       set -e;

@@ -57,14 +57,14 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
     [ ! -f "$HOME/.oresoftware/nodejs/package.json" ]  && {
         curl -H 'Cache-Control: no-cache' \
           "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
-            --output "$HOME/.oresoftware/nodejs/package.json" 2> /dev/null || {
+            --output "$HOME/.oresoftware/nodejs/package.json" > /dev/null || {
             echo "curl command failed to read package.json, now we should try wget..."
       }
     }
 
     (
       cd "$HOME/.oresoftware/nodejs" && npm install --loglevel=warn "$r2g_exec" 2> /dev/null || {
-        echo "could not install r2g in user home, trying again.";
+        echo "could not install r2g in user home.";
        }
     )
   ) &
