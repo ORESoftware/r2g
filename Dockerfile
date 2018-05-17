@@ -5,34 +5,35 @@ RUN apt-get -y install sudo
 RUN sudo apt-get -y update
 RUN apt-get install -y netcat
 
-RUN sudo echo "newuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN sudo echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-RUN useradd -ms /bin/bash newuser
-USER newuser
-ENV HOME=/home/newuser
-WORKDIR /home/newuser
+USER node
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
 
-RUN mkdir -p "$HOME/.npm-global"
-ENV NPM_CONFIG_PREFIX="$HOME/.npm-global"
-#RUN npm config set prefix "$HOME/.npm-global"
-ENV PATH="$HOME/.npm-global/bin:$PATH"
+RUN sudo chmod -R 777  /home/node
 
-RUN sudo chown -R $(whoami) "$HOME/.npm-global"
+RUN sudo chown -R $(whoami) $(npm config get prefix)/lib
+RUN sudo chown -R $(whoami) $(npm config get prefix)/lib/node_modules
+RUN sudo chown -R $(whoami) $(npm config get prefix)/bin
+RUN sudo chown -R $(whoami) $(npm config get prefix)/share
+RUN sudo chown -R $(whoami) /usr/local/lib
+RUN sudo chown -R $(whoami) /usr/local/etc
+
 RUN  npm install -g typescript
+RUN  npm install -g @oresoftware/modify.json@0.0.102
 
 COPY package.json .
+COPY postinstall.sh .
+COPY r2g.sh .
+COPY run.r2g.sh .
 RUN npm install --loglevel=warn
+COPY . .
 
-#RUN sudo chown -R $(whoami) "$HOME/.npm-global"
-
+RUN sudo chmod -R 777  /home/node
 
 ENV PATH="./node_modules/.bin:${PATH}"
-
-RUN echo "our user is $USER";
-
-COPY . .
 RUN tsc
 
-
 ENTRYPOINT ["./test/index.sh"]
-#ENTRYPOINT ["r2g"]
+

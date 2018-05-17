@@ -141,7 +141,9 @@ r2g_internal(){
         } || {
         echo "warning: package.json file may have already existed in \$HOME/.r2g/temp/project";
       }
-      cat "$r2g_source_home/dist/smoke-tester.js" > smoke-tester.js;
+      cat "$r2g_source_home/dist/smoke-tester.js" > smoke-tester.js  || {
+          r2g_copy_smoke_tester=yes r2g_smoke_tester  > smoke-test.js
+      }
       echo "now running: 'npm install "${tgz_path}"'...";
       npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
     )
