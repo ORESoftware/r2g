@@ -11,7 +11,7 @@ export r2g_skip_postinstall="yes";
 r2g_exec="r2g";
 
 if [[ "$oresoftware_local_dev" == "yes" ]]; then
-     r2g_exec=".";
+#     r2g_exec=".";
 fi
 
 r2g_gray='\033[1;30m'
