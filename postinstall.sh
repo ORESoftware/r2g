@@ -53,7 +53,6 @@ mkdir -p "$HOME/.oresoftware/bash" && {
 
 mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 
-  (
 
     [ ! -f "$HOME/.oresoftware/nodejs/package.json" ]  && {
         curl -H 'Cache-Control: no-cache' \
@@ -68,7 +67,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
         echo "could not install r2g in user home.";
        }
     )
-  ) &
+
 
 } || {
 
@@ -77,11 +76,6 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
 
 # wait for background processes to finish
 wait;
-
-if [ "$oresoftware_local_dev" == "yes" ] || [ -z "$(which r2g)" ]; then
-   npm install -g "$r2g_exec"
-fi
-
 
 echo -e "${r2g_green}r2g was installed successfully.${r2g_no_color}";
 echo -e "Add the following line to your .bashrc/.bash_profile files:";
