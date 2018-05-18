@@ -135,7 +135,7 @@ r2g_internal(){
        [ ! -f "package.json" ]  && {
             curl -H 'Cache-Control: no-cache' \
               "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
-                --output "$dest/package.json" 2> /dev/null || {
+                --output "$dest/package.json" 2>&1 || {
                 echo "curl command failed to read package.json, now we should try wget..." >&2
           }
         } || {

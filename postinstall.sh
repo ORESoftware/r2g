@@ -32,7 +32,7 @@ mkdir -p "$HOME/.oresoftware" && {
   (
     curl -H 'Cache-Control: no-cache' \
     "https://cdn.rawgit.com/ORESoftware/shell/a49dc374/shell.sh?$(date +%s)" \
-    --output "$HOME/.oresoftware/shell.sh" 2> /dev/null || {
+    --output "$HOME/.oresoftware/shell.sh" 2>&1 || {
            echo "curl command failed to read shell.sh, now we should try wget..."
     }
   ) &
@@ -57,7 +57,7 @@ mkdir -p "$HOME/.oresoftware/nodejs/node_modules" && {
     [ ! -f "$HOME/.oresoftware/nodejs/package.json" ]  && {
         curl -H 'Cache-Control: no-cache' \
           "https://cdn.rawgit.com/ORESoftware/shell/a49dc374/assets/package.json?$(date +%s)" \
-            --output "$HOME/.oresoftware/nodejs/package.json" > /dev/null || {
+            --output "$HOME/.oresoftware/nodejs/package.json" 2>&1 || {
             echo "curl command failed to read package.json, now we should try wget..."
       }
     }
