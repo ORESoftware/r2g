@@ -12,7 +12,6 @@ r2g_exec="r2g";
 
 if [[ "$oresoftware_local_dev" == "yes" ]]; then
 #     r2g_exec=".";
-    echo "this is not the fi you were looking for."
 fi
 
 r2g_gray='\033[1;30m'
