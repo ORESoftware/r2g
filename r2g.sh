@@ -147,7 +147,7 @@ r2g_internal(){
           r2g_copy_smoke_tester=yes r2g_smoke_tester  > smoke-test.js
       }
 
-      echo "now running: 'npm install "${tgz_path}"'...";
+      echo "now running: 'npm install --production "${tgz_path}"'...";
       npm install --production "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
     )
 
