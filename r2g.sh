@@ -20,7 +20,7 @@ r2g_project_root(){
 }
 
 r2g_uninstall(){
- npm uninstall -g r2g
+  npm uninstall -g r2g
   hash -d r2g
   rm -rf "$(which r2g)"
   hash -d r2g
@@ -28,7 +28,14 @@ r2g_uninstall(){
   rm -rf "$(r2g_home)"
   rm -rf "$(type -P r2g)"
   hash -d r2g
+}
 
+r2g_delete(){
+  hash -d "$(npm bin -g)/r2g"
+  hash -d "/usr/local/bin/r2g"
+  rm "$(npm bin -g)/r2g"
+  rm "/usr/local/bin/r2g"
+  hash -d r2g
 }
 
 r2g_open(){
@@ -74,7 +81,6 @@ r2g_internal(){
     local r2g_green='\033[1;32m'
     local r2g_no_color='\033[0m'
 
-
     rm -rf "$HOME/.r2g/logs";
     mkdir -p "$HOME/.r2g/logs"
     mkdir -p "$HOME/.r2g/temp/project"
@@ -89,8 +95,7 @@ r2g_internal(){
 
     if [[ ! -f package.json ]]; then
        echo "Could not find a package.json file in your current working directory.";
-#       my_cwd="$(node "$r2g_source_home/dist/find-root.js")"
-        my_cwd="$(r2g_find_root)"
+       my_cwd="$(r2g_find_root)"
        if [[ -z "$my_cwd" ]]; then
          echo -e "${r2g_magenta}You are not within an NPM project.${r2g_no_color}";
          return 1;
@@ -112,15 +117,11 @@ r2g_internal(){
     echo "to this project: '$dest'..."
     mkdir -p "$dest"
 
-#    local copy_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.copy-tests')"
-
     local copy_test="$(r2g_axxel package.json 'r2g.copy-tests')"
-
     if [[ -z "$copy_test" ]]; then
         echo -e "${r2g_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${r2g_no_color}";
     fi
 
-#    local run_test="$(node "$r2g_source_home/dist/axxel.js" package.json 'r2g.run-tests')";
 
     local run_test="$(r2g_axxel package.json 'r2g.run-tests')";
 
@@ -147,7 +148,7 @@ r2g_internal(){
       }
 
       echo "now running: 'npm install "${tgz_path}"'...";
-      npm install "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
+      npm install --production "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
     )
 
     exit_code="$?"
@@ -209,13 +210,7 @@ r2g_internal(){
 }
 
 
-r2g_delete(){
-  hash -d "$(npm bin -g)/r2g"
-  hash -d "/usr/local/bin/r2g"
-  rm "$(npm bin -g)/r2g"
-  rm "/usr/local/bin/r2g"
-  hash -d r2g
-}
+
 
 r2g(){
 
