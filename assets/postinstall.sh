@@ -7,6 +7,13 @@ if [[ "$r2g_skip_postinstall" == "yes" ]]; then
   exit 0;
 fi
 
+
+if [[ "$docker_r2g_in_container" == "yes" ]]; then
+  echo "skipping r2g postinstall routine because we are in a docker image/container.";
+  exit 0;
+fi
+
+
 export r2g_skip_postinstall="yes";
 r2g_exec="r2g";
 
