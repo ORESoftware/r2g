@@ -144,7 +144,7 @@ r2g_internal(){
       }
 
       cat "$r2g_source_home/dist/smoke-tester.js" > smoke-tester.js  || {
-          r2g_copy_smoke_tester=yes r2g_smoke_tester  > smoke-test.js
+          r2g_copy_smoke_tester=yes r2g_smoke_tester  > smoke-tester.js
       }
 
       echo "now running: 'npm install --production "${tgz_path}"'...";
@@ -183,11 +183,13 @@ r2g_internal(){
 
         if [[ ! -z "$run_test" ]]; then
 #            exec 3>&2; {  echo "$run_test" | bash | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+             echo "Running the following test command: '$run_test'...";
              echo "$run_test" | bash
-        else
-#            exec 3>&2; {   node smoke-tester.js | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
-            node smoke-tester.js
         fi
+#            exec 3>&2; {   node smoke-tester.js | prepend 'r2g-test: ' 'cyan'; } 2>&1 1>&3 | prepend 'r2g-test: ' 'magenta'
+
+        echo "now running smoke test (the r2gSmokeTest function in your index file)."
+        node smoke-tester.js
 
         local exit_code="$?"
 
