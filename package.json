@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
+    "@oresoftware/shell": "latest",
     "clean-trace": "latest"
   },
   "devDependencies": {

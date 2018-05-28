@@ -96,8 +96,7 @@ fi
     echo "warning: package.json file may have already existed in \$HOME/.r2g/temp/project";
   }
 
-
-  r2g_copy_smoke_tester=yes r2g_smoke_tester  > smoke-tester.js
+  r2g_copy_smoke_tester="yes" r2g_smoke_tester  > smoke-tester.js
 
   echo "now running: 'npm install --production "${tgz_path}"'...";
   npm install --production "$tgz_path" # --silent >> "$HOME/.r2g/logs/r2g.log" 2>&1;
