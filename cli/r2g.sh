@@ -28,7 +28,8 @@ if [ "$cmd" == "run" ]; then
 
 elif [ "$cmd" == "home" ]; then
 
-  trbl_init "$@"
+  echo "no subcommand was recognized."
+  exit 1;
 
 else
 
@@ -37,9 +38,7 @@ else
 
 fi
 
-
 exit_code="$?"
-
 if [[ "$exit_code" != "0" ]]; then
     echo -e "${r2g_magenta}r2g experienced an error, to see log, run: r2g_view_log${r2g_no_color}";
     exit 1;
