@@ -1,6 +1,6 @@
 {
   "name": "@oresoftware/r2g",
-  "version": "0.0.129",
+  "version": "0.0.130",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
