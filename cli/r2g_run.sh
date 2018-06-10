@@ -86,6 +86,14 @@ if [[ "$exit_code" != "0" ]]; then
 fi
 
 
+if [ -z "$(which read_json)" ]; then
+  npm install -g "@oresoftware/read.json" || {
+     echo "Could not install read.json.";
+     exit 1;
+  }
+fi
+
+
 result="$(npm pack --loglevel=warn)"
 if [[ -z "$result" ]]; then
     echo -e "${r2g_magenta}NPM pack command did not appear to yield a .tgz file.${r2g_no_color}";
@@ -97,13 +105,13 @@ echo "r2g will install this package: '$tgz_path'"
 echo "to this project: '$dest'..."
 mkdir -p "$dest"
 
-copy_test="$(r2g_axxel package.json 'r2g.copy-tests')"
+copy_test="$(read_json package.json 'r2g.copy-tests')"
 if [[ -z "$copy_test" ]]; then
     echo -e "${r2g_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${r2g_no_color}";
 fi
 
 
-run_test="$(r2g_axxel package.json 'r2g.run-tests')";
+run_test="$(read_json package.json 'r2g.run-tests')";
 
 if [[ -z "$run_test" ]]; then
     echo -e "${r2g_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${r2g_no_color}";
@@ -142,7 +150,7 @@ fi
   set -eo pipefail;
   if [[ -n "$copy_test" ]]; then
      echo "Copying r2g smoke test fixtures to '\$HOME/.r2g/temp/project'...";
-     echo "$copy_test" | bash
+     echo "$copy_test" | bash;
   fi
 )
 

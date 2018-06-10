@@ -6,7 +6,6 @@
   "bin": {
     "r2g": "cli/r2g.sh",
     "r2g_run": "cli/r2g_run.sh",
-    "r2g_axxel": "dist/axxel.js",
     "r2g_find_root": "dist/find-root.js",
     "r2g_smoke_tester": "dist/smoke-tester.js"
   },
