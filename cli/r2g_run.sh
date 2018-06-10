@@ -87,7 +87,7 @@ fi
 
 
 if [ -z "$(which read_json)" ]; then
-  npm install -g "@oresoftware/read.json" || {
+  npm install -g "/home/oleg/WebstormProjects/oresoftware/read.json" || {
      echo "Could not install read.json.";
      exit 1;
   }
@@ -105,13 +105,13 @@ echo "r2g will install this package: '$tgz_path'"
 echo "to this project: '$dest'..."
 mkdir -p "$dest"
 
-copy_test="$(read_json package.json 'r2g.copy-tests')"
+copy_test="$( read_json package.json 'r2g.copy-tests' --ignore-missing )"
 if [[ -z "$copy_test" ]]; then
     echo -e "${r2g_yellow}No NPM script at 'r2g.copy-tests' in your package.json file.${r2g_no_color}";
 fi
 
 
-run_test="$(read_json package.json 'r2g.run-tests')";
+run_test="$( read_json package.json 'r2g.run-tests' --ignore-missing )";
 
 if [[ -z "$run_test" ]]; then
     echo -e "${r2g_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${r2g_no_color}";
