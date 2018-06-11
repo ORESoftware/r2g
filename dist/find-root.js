@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const path = require("path");
-const fs = require("fs");
-const cwd = process.cwd();
-const down = [];
-let found = false, p, cd;
-const stat = function (p) {
+var path = require("path");
+var fs = require("fs");
+var cwd = process.cwd();
+var down = [];
+var found = false, p, cd;
+var stat = function (p) {
     try {
         return fs.statSync(p).isFile();
     }
