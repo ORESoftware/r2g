@@ -86,13 +86,15 @@ if [[ "$exit_code" != "0" ]]; then
 fi
 
 
+file="https://raw.githubusercontent.com/oresoftware/tarballs/master/tgz/oresoftware/read.json.tgz?$(date +%s)";
+file="@oresoftware/read.json"
+
 if [ -z "$(which read_json)" ]; then
-  npm install -g "@oresoftware/read.json" || {
+  npm install -g "$file" || {
      echo "Could not install read.json.";
      exit 1;
   }
 fi
-
 
 result="$(npm pack --loglevel=warn)"
 if [[ -z "$result" ]]; then
