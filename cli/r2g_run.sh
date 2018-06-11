@@ -52,7 +52,7 @@ mkdir -p "$dest" || {
 
 (
     file="@oresoftware/read.json"
-    
+
     if [ -z "$(which read_json)" ]; then
       npm install -g "$file" || {
          echo "Could not install '$file'.";
