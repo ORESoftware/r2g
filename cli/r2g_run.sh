@@ -87,7 +87,7 @@ fi
 
 
 if [ -z "$(which read_json)" ]; then
-  npm install -g "/home/oleg/WebstormProjects/oresoftware/read.json" || {
+  npm install -g "@oresoftware/read.json" || {
      echo "Could not install read.json.";
      exit 1;
   }
