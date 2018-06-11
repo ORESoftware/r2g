@@ -21,6 +21,13 @@ r2g_green='\033[1;32m'
 r2g_no_color='\033[0m'
 
 
+if [ -z "$(which read_json)" ]; then
+  npm install -g "@oresoftware/read.json" || {
+     echo "Could not install read.json.";
+     exit 1;
+  }
+fi
+
 mkdir -p "$HOME/.r2g/temp/project" || {
   echo "could not create directory => '$HOME/.r2g/temp/project'...";
 }
@@ -37,15 +44,27 @@ cat assets/r2g.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
   exit 1;
 }
 
+
 (
 
-    cat "node_modules/@oresoftware/shell/assets/shell.sh" > "$HOME/.oresoftware/shell.sh" && {
+    shell_file="node_modules/@oresoftware/shell/assets/shell.sh";
+    [ -f "$shell_file" ] && cat "$shell_file" > "$HOME/.oresoftware/shell.sh" && {
         echo "Successfully copied @oresoftware/shell/assets/shell.sh to $HOME/.oresoftware/shell.sh";
         exit 0;
     }
 
-    echo 'Could not copy @oresoftware/shell/assets/shell.sh to $HOME/.oresoftware/shell.sh';
-    exit 1;
+    shell_file="../shell/assets/shell.sh";
+    [ -f "$shell_file" ] &&  cat "../shell/assets/shell.sh" > "$HOME/.oresoftware/shell.sh" && {
+        echo "Successfully copied @oresoftware/shell/assets/shell.sh to $HOME/.oresoftware/shell.sh";
+        exit 0;
+    }
+
+    curl -H 'Cache-Control: no-cache' \
+         "https://raw.githubusercontent.com/oresoftware/shell/master/assets/shell.sh?$(date +%s)" \
+          --output "$HOME/.oresoftware/shell.sh" 2> /dev/null || {
+           echo "curl command failed to read shell.sh";
+           exit 1;
+    }
 )
 
 
