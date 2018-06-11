@@ -7,9 +7,7 @@ if [[ "$r2g_skip_postinstall" == "yes" ]]; then
   exit 0;
 fi
 
-
 export r2g_skip_postinstall="yes";
-r2g_exec="r2g";
 
 if [[ "$oresoftware_local_dev" == "yes" ]]; then
     echo "Running the r2g postinstall script in oresoftware local development env."
@@ -41,7 +39,7 @@ cat assets/r2g.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
 
 (
 
-    cat "./node_modules/@oresoftware/shell/assets/shell.sh" > "$HOME/.oresoftware/shell.sh" && {
+    cat "node_modules/@oresoftware/shell/assets/shell.sh" > "$HOME/.oresoftware/shell.sh" && {
         echo "Successfully copied @oresoftware/shell/assets/shell.sh to $HOME/.oresoftware/shell.sh";
         exit 0;
     }

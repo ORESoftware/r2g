@@ -6,9 +6,11 @@ test
 .idea
 .vscode
 src
-.git
+.docker.r2g
+.circleci
 
 ### files
+.dockerignore
 .editorconfig
 .gitattributes
 .gitignore
@@ -16,9 +18,10 @@ src
 .travis.yml
 
 ### matching
+Dockerfile*
 *.log
 *.md
-*.json
+tsconfig*.json
 *.DS_Store
 *.tgz
 

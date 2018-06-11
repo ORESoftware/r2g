@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-
-if [[ "$0" != *"bash"* ]]; then
-  echo "$0 tried to source the r2g shell script."
-fi
+echo "$0 is sourcing the r2g shell script."
 
 r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
