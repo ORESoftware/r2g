@@ -20,15 +20,6 @@ r2g_orange='\033[1;33m'
 r2g_green='\033[1;32m'
 r2g_no_color='\033[0m'
 
-file="https://raw.githubusercontent.com/oresoftware/tarballs/master/tgz/oresoftware/read.json.tgz?$(date +%s)";
-file="@oresoftware/read.json"
-
-if [ -z "$(which read_json)" ]; then
-  npm install -g  "$file" || {
-     echo "Could not install read.json.";
-     exit 1;
-  }
-fi
 
 mkdir -p "$HOME/.r2g/temp/project" || {
   echo "could not create directory => '$HOME/.r2g/temp/project'...";

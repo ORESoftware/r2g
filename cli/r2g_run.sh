@@ -49,11 +49,51 @@ mkdir -p "$dest" || {
   exit 1;
 }
 
+
+(
+    file="@oresoftware/read.json"
+    
+    if [ -z "$(which read_json)" ]; then
+      npm install -g "$file" || {
+         echo "Could not install '$file'.";
+         exit 1;
+      }
+    fi
+) &
+
+
+(
+    file="residence"
+
+    if [ -z "$(which residence_find_proj_root)" ]; then
+      npm install -g "$file" || {
+         echo "Could not install '$file'.";
+         exit 1;
+      }
+    fi
+) &
+
+
+(
+    file="@oresoftware/r2g"
+
+    if [ -z "$(which r2g_copy_smoke_tester)" ]; then
+      npm install -g "$file" || {
+         echo "Could not install '$file'.";
+         exit 1;
+      }
+    fi
+) &
+
+
+wait;
+
+
 my_cwd="$PWD";
 
 if [[ ! -f package.json ]]; then
    echo "Could not find a package.json file in your current working directory.";
-   my_cwd="$(r2g_find_root)"
+   my_cwd="$(residence_find_proj_root)"
    if [[ -z "$my_cwd" ]]; then
      echo -e "${r2g_magenta}You are not within an NPM project.${r2g_no_color}";
      exit 1;
@@ -85,16 +125,6 @@ if [[ "$exit_code" != "0" ]]; then
   exit 1;
 fi
 
-
-file="https://raw.githubusercontent.com/oresoftware/tarballs/master/tgz/oresoftware/read.json.tgz?$(date +%s)";
-file="@oresoftware/read.json"
-
-if [ -z "$(which read_json)" ]; then
-  npm install -g "$file" || {
-     echo "Could not install read.json.";
-     exit 1;
-  }
-fi
 
 result="$(npm pack --loglevel=warn)"
 if [[ -z "$result" ]]; then
@@ -133,7 +163,7 @@ fi
     echo "warning: package.json file may have already existed in \$HOME/.r2g/temp/project";
   }
 
-  r2g_copy_smoke_tester="yes" r2g_smoke_tester  > smoke-tester.js
+  r2g_copy_smoke_tester  > smoke-tester.js
 
   cmd="npm install --loglevel=warn --production $tgz_path";
   echo "now running: '$cmd'...";

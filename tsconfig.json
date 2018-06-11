@@ -6,7 +6,7 @@
     "skipLibCheck": true,
     "declaration": true,
     "baseUrl": ".",
-    "target": "es5",
+    "target": "es6",
     "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
