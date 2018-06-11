@@ -50,7 +50,7 @@ r2g(){
  local loc="$(command -v r2g)";
 
  if [ -z "$loc" ]; then
-    npm install -g "@oresoftware/r2g" || {
+    npm install -g "@oresoftware/r2g@latest" || {
       return 1;
     }
  fi
