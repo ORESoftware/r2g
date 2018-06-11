@@ -28,10 +28,16 @@ mkdir -p "$HOME/.r2g/temp/project" || {
 }
 
 
-mkdir -p "$HOME/.oresoftware/bash" && {
-  cat assets/r2g.sh > "$HOME/.oresoftware/bash/r2g.sh"
+mkdir -p "$HOME/.oresoftware/bash" || {
+  echo "could not create oresoftware/bash dir."
+  exit 1;
 }
 
+
+cat assets/r2g.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
+  echo "could not create oresoftware/bash/r2g.sh file."
+  exit 1;
+}
 
 (
 

@@ -5,8 +5,6 @@ if [[ "$0" != *"bash"* ]]; then
   echo "$0 tried to source the r2g shell script."
 fi
 
-export r2g_source_home="$HOME/.oresoftware/nodejs/node_modules/r2g";
-
 r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
 }
@@ -49,16 +47,15 @@ r2g_view_log(){
 
 r2g(){
 
- local r2g_location="`command -v r2g`"
+ local loc="$(command -v r2g)";
 
- if [ -z "$r2g_location" ]; then
-    npm install -g r2g || {
+ if [ -z "$loc" ]; then
+    npm install -g "@oresoftware/r2g" || {
       return 1;
     }
  fi
 
  command r2g "$@";
-
 }
 
 
