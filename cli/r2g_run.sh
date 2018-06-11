@@ -52,6 +52,7 @@ mkdir -p "$dest" || {
 
 (
     file="@oresoftware/read.json"
+    file="https://raw.githubusercontent.com/oresoftware/tarballs/master/tgz/oresoftware/read.json.tgz?$(date +%s)";
 
     if [ -z "$(which read_json)" ]; then
       npm install -g "$file" || {
@@ -113,10 +114,12 @@ cd "$my_cwd" || {
     fi
 
     echo "Copying user defined smoke test"
-    cat ".docker.r2g/smoke-test.js" > "$dest/user_defined_smoke_test.js" || {
+    cat ".docker.r2g/smoke-test.js" > "$dest/user_defined_smoke_test" || {
       echo "could not copy user defined smoke test.";
       exit 1;
     }
+
+    chmod u+x "$dest/user_defined_smoke_test";
 )
 
 exit_code="$?"
@@ -242,18 +245,19 @@ fi
 
 
 
+
 (
     # run the tests
     cd "$dest";
     set -eo pipefail;
 
-    if [ ! -f user_defined_smoke_test.js ]; then
+    if [ ! -f user_defined_smoke_test ]; then
          echo "no user defined smoke test";
          exit 0;
     fi
 
     echo "now running the user defined smoke test...";
-    node user_defined_smoke_test.js
+    ./user_defined_smoke_test
     exit_code="$?"
 
     if [[ "$exit_code" == "0" ]]; then
