@@ -174,7 +174,7 @@ fi
 
   r2g_copy_smoke_tester  > smoke-tester.js
 
-  cmd="npm install --loglevel=warn --production $tgz_path";
+  cmd="npm install --loglevel=warn --cache-min 9999999 --production $tgz_path";
   echo "now running: '$cmd'...";
   echo "$cmd" | bash;
 
