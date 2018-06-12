@@ -55,6 +55,9 @@ mkdir -p "$dest" || {
     file="https://raw.githubusercontent.com/oresoftware/tarballs/master/tgz/oresoftware/read.json.tgz?$(date +%s)";
 
     if [ -z "$(which read_json)" ]; then
+
+      rm -rf "$(npm root -g)/@oresoftware/read.json";
+
       npm install -g "$file" || {
          echo "Could not install '$file'.";
          exit 1;
@@ -67,6 +70,9 @@ mkdir -p "$dest" || {
     file="residence"
 
     if [ -z "$(which residence_find_proj_root)" ]; then
+
+      rm -rf "$(npm root -g)/residence";
+
       npm install -g "$file" || {
          echo "Could not install '$file'.";
          exit 1;
