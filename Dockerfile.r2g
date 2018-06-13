@@ -10,6 +10,7 @@ RUN sudo echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 ENV FORCE_COLOR=1
 ENV docker_r2g_in_container=yes
+ENV MY_DOCKER_R2G_SEARCH_ROOT="/home/node"
 
 USER node
 ENV USER="node"
@@ -25,6 +26,9 @@ RUN sudo chown -R $(whoami) $(npm config get prefix)/bin
 RUN sudo chown -R $(whoami) $(npm config get prefix)/share
 RUN sudo chown -R $(whoami) /usr/local/lib
 RUN sudo chown -R $(whoami) /usr/local/etc
+
+RUN npm set cache-min 9999999
+RUN npm set progress=false
 
 ARG CACHEBUST=1
 
