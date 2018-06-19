@@ -55,8 +55,36 @@ r2g(){
  command r2g "$@";
 }
 
+r2g_init(){
+
+ local loc="$(command -v r2g_init)";
+
+ if [ -z "$loc" ]; then
+    npm install -g "@oresoftware/r2g@latest" || {
+      return 1;
+    }
+ fi
+
+ command r2g_init "$@";
+}
+
+r2g_run(){
+
+ local loc="$(command -v r2g_run)";
+
+ if [ -z "$loc" ]; then
+    npm install -g "@oresoftware/r2g@latest" || {
+      return 1;
+    }
+ fi
+
+ command r2g_run "$@";
+}
+
 
 export -f r2g;
+export -f r2g_run;
+export -f r2g_init;
 export -f r2g_get_latest;
 export -f r2g_open;
 export -f r2g_home;

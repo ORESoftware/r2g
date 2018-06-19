@@ -6,7 +6,7 @@ test
 .idea
 .vscode
 src
-.docker.r2g
+.r2g
 .circleci
 
 ### files

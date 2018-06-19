@@ -19,23 +19,14 @@ shift 1;
 
 if [ "$cmd" == "run" ]; then
 
-  (
-    set -e;
     r2g_run "$@"  \
         2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
         1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
-   )
+
 
 elif [ "$cmd" == "init" ]; then
 
-  if [ -z "$(which dkr2g)" ]; then
-    npm install -g "@oresoftware/docker.r2g" || {
-      echo "Could not install docker.r2g, exiting.";
-      exit 1;
-    }
-  fi
-
-  dkr2g exec "$@"
+  r2g_init "$@"
 
 elif [ "$cmd" == "docker" ]; then
 

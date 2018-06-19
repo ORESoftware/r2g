@@ -114,13 +114,13 @@ cd "$my_cwd" || {
 
 
 (
-    if [ ! -f ".docker.r2g/smoke-test.js" ]; then
-        echo "no user defined smoke-test.js in .docker.r2g dir.";
+    if [ ! -f ".r2g/smoke-test.js" ]; then
+        echo "no user defined smoke-test.js in .r2g dir.";
         exit 0;
     fi
 
     echo "Copying user defined smoke test"
-    cat ".docker.r2g/smoke-test.js" > "$dest/user_defined_smoke_test" || {
+    cat ".r2g/smoke-test.js" > "$dest/user_defined_smoke_test" || {
       echo "could not copy user defined smoke test.";
       exit 1;
     }
