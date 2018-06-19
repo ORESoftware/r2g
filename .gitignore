@@ -6,7 +6,12 @@ node_modules
 logs
 .nyc_output
 coverage
+dist/*
+
 
 ### matching
 *.log
 *.tgz
+
+### negation
+!dist/README.md
