@@ -1,11 +1,12 @@
 {
   "name": "@oresoftware/r2g",
-  "version": "0.0.132",
+  "version": "0.0.133",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
     "r2g": "cli/r2g.sh",
     "r2g_run": "cli/r2g_run.sh",
+    "r2g_init": "cli/r2g_init.sh",
     "r2g_copy_smoke_tester": "assets/copy_smoke_tester.sh"
   },
   "types": "dist/index.d.ts",
