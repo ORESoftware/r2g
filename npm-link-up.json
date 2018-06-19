@@ -1,0 +1,11 @@
+{
+  "searchRoots":[
+    "$HOME/WebstormProjects/oresoftware"
+  ],
+  "ignore":[],
+  "comments":[],
+  "list":[
+    "clean-trace",
+    "@oresoftware/shell"
+  ]
+}

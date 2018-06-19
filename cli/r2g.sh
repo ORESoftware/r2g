@@ -26,10 +26,27 @@ if [ "$cmd" == "run" ]; then
         1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
    )
 
-elif [ "$cmd" == "home" ]; then
+elif [ "$cmd" == "init" ]; then
 
-  echo "no subcommand was recognized."
-  exit 1;
+  if [ -z "$(which dkr2g)" ]; then
+    npm install -g "@oresoftware/docker.r2g" || {
+      echo "Could not install docker.r2g, exiting.";
+      exit 1;
+    }
+  fi
+
+  dkr2g exec "$@"
+
+elif [ "$cmd" == "docker" ]; then
+
+  if [ -z "$(which dkr2g)" ]; then
+    npm install -g "@oresoftware/docker.r2g" || {
+      echo "Could not install docker.r2g, exiting.";
+      exit 1;
+    }
+  fi
+
+  dkr2g exec "$@"
 
 else
 
