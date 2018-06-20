@@ -41,7 +41,7 @@ elif [ "$cmd" == "docker" ]; then
 
 else
 
-  echo "no subcommand was recognized."
+  echo "r2g error: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
   exit 1;
 
 fi

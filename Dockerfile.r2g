@@ -1,4 +1,6 @@
-FROM node:10
+
+ARG base_image="node:10"
+FROM $base_image
 
 RUN apt-get -y update
 RUN apt-get -y install sudo
