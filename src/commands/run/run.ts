@@ -225,7 +225,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
         log.info('Running "npm pack" against your project ...');
 
-        const k = cp.spawn('bash');
+        const k = cp.spawn('bash', [], {
+          cwd: copyProject
+        });
+
         k.stdin.end(`npm pack --loglevel=warn;`);
         let stdout = '';
         k.stdout.on('data', d => {
@@ -263,12 +266,14 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCallback) {
         // runNpmPack is the path to .tgz file
 
-        log.info(`Running npm install in "${r2gProject}" ...`);
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`;
+        log.info(`Running the following command via this dir: "${r2gProject}" ...`);
+        log.info(chalk.blueBright(cmd));
 
         const k = cp.spawn('bash', [], {
           cwd: r2gProject
         });
-        k.stdin.end(`npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`);
+        k.stdin.end(cmd);
         k.stderr.pipe(process.stderr);
         k.once('exit', cb);
       },
