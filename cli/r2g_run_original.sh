@@ -153,7 +153,6 @@ fi
 
 
 run_test="$( read_json package.json 'r2g.run-tests' --ignore-missing )";
-
 if [[ -z "$run_test" ]]; then
     echo -e "${r2g_yellow}No NPM script at 'r2g.run-tests' in your package.json file.${r2g_no_color}";
 fi

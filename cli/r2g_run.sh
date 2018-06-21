@@ -21,4 +21,14 @@ if [ -z "$(which rsync)" ]; then
   exit 1;
 fi
 
+if [ -z "$(which curl)" ]; then
+  echo >&2 "You need to install 'curl' for r2g to work its magic.";
+  exit 1;
+fi
+
+. "$HOME/.oresoftware/bash/r2g.sh" || {
+  echo >&2 "Could not source r2g bash functions from .oresoftware/bash/r2g.sh.";
+  exit 1;
+}
+
 node "$commands/run" $@

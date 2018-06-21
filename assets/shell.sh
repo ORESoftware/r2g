@@ -82,6 +82,52 @@ r2g_run(){
 }
 
 
+r2g_copy_package_json(){
+
+  local dest="$1"
+  local keep="$2"
+
+  (
+      set -e;
+      cd "$dest";
+      if [  -f "package.json" ] && [ -z "$keep" ]; then
+         exit 0;
+      fi
+
+
+      curl -H 'Cache-Control: no-cache' \
+              "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
+                --output "$dest/package.json" 2>&1 || {
+                echo "curl command failed to read package.json, now we should try wget..." >&2
+      }
+  )
+}
+
+r2g_copy_user_defined_test(){
+
+    local dest="$1";
+
+    (
+        set -e;
+        cd "$dest";
+        if [ ! -f ".r2g/smoke-test.js" ]; then
+            echo "no user defined smoke-test.js in .r2g dir.";
+            exit 0;
+        fi
+
+        echo "Copying user defined smoke test"
+        cat ".r2g/smoke-test.js" > "$dest/user_defined_smoke_test" || {
+          echo "could not copy user defined smoke test.";
+          exit 1;
+        }
+
+        chmod u+x "$dest/user_defined_smoke_test";
+    )
+
+}
+
+
+
 export -f r2g;
 export -f r2g_run;
 export -f r2g_init;

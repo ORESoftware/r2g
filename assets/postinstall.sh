@@ -32,7 +32,7 @@ mkdir -p "$HOME/.oresoftware/bash" || {
 }
 
 
-cat assets/r2g.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
+cat assets/shell.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
   echo "could not create oresoftware/bash/r2g.sh file."
   exit 1;
 }

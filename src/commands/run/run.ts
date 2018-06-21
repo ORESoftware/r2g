@@ -16,12 +16,13 @@ import {EVCallback} from "../../index";
 
 const r2gProject = path.resolve(process.env.HOME + '/.r2g/temp/project');
 const r2gProjectCopy = path.resolve(process.env.HOME + '/.r2g/temp/copy');
+const smokeTester = require.resolve('../../smoke-tester.js');
 
 export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   async.autoInject({
 
-      removeExistingProject: function (cb: EVCallback) {
+      removeExistingProject (cb: EVCallback) {
 
         if (opts.keep || opts.multi) {
           log.info("We are keeping the previously installed modules because '--keep' / '--multi' was used.");
@@ -34,7 +35,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      mkdirpProject: function (removeExistingProject: any, cb: EVCallback) {
+      mkdirpProject (removeExistingProject: any, cb: EVCallback) {
 
         const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
@@ -46,7 +47,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      copyProject: function (mkdirpProject: any, cb: EVCallback) {
+      copyProject (mkdirpProject: any, cb: EVCallback) {
 
         if(process.env.is_r2g_docker){
           log.info('We are not copying the project since we are using r2g.docker');
@@ -63,7 +64,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runNpmPack: function (copyProject: string, cb: EVCallback) {
+      runNpmPack (copyProject: string, cb: EVCallback) {
 
         const k = cp.spawn('bash');
         k.stdin.end(`npm pack --loglevel=warn;`);
@@ -74,9 +75,35 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stderr.pipe(process.stderr);
         k.once('exit', function(code){
           if(code > 0) log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
-          cb(code, stdout);
+          cb(code, path.resolve(copyProject + '/' + stdout));
         });
-      }
+      },
+
+      copySmokeTester(mkdirpProject: any, cb: EVCallback){
+
+        fs.createReadStream(smokeTester)
+        .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
+        .once('error',cb)
+        .once('end',cb);
+      },
+
+      runNpmInstall(runNpmPack: string, cb: EVCallback){
+        // runNpmPack is the path to .tgz file
+         const k = cp.spawn('bash', [], {
+           cwd: r2gProject
+         });
+         k.stdin.end(`npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`);
+         k.stderr.pipe(process.stderr);
+         k.once('exit', cb);
+      },
+
+       r2gSmokeTest(){
+         const k = cp.spawn('bash', [], {
+           cwd: r2gProject
+         });
+         k.stderr.pipe(process.stderr);
+         k.stdin.end(`node smoke-tester.js;`);
+       }
 
     },
 
