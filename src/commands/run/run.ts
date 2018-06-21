@@ -49,7 +49,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   pkgName = String(pkgName).replace(/[^0-9a-z]/gi, '_');
 
-  if(pkgName.startsWith('_')){
+  if (pkgName.startsWith('_')) {
     pkgName = pkgName.slice(1);
   }
 
@@ -104,7 +104,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const allDeps = deps.reduce(Object.assign, {});
 
-
   Object.keys(packages).forEach(function (k) {
     if (!allDeps[k]) {
       log.warn(chalk.gray('You have the following packages key in your .r2g/config.js file:'), chalk.magentaBright(k));
@@ -117,6 +116,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       return (a[b] = fn.call(ctx || null, b, obj[b])), a;
     }, {});
   };
+
+  const depsDir = path.resolve(process.env.HOME + `/.r2g/temp/deps`);
 
   async.autoInject({
 
@@ -134,17 +135,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      getMap (cb: EVCallback) {
-
-        if(!opts.full){
-          return process.nextTick(cb, null, {});
-        }
-
-        getFSMap(opts, searchRoot, packages, cb);
-      },
-
-
-
       mkdirpProject(removeExistingProject: any, cb: EVCallback) {
 
         log.info('Making sure the right folders exist using mkdir -p ...');
@@ -157,6 +147,41 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
 
       },
+
+      rimrafDeps(mkdirpProject: any, cb: EVCallback) {
+
+        log.info('Removing existing files within "$HOME/.r2g.temp"...');
+        const k = cp.spawn('bash');
+        k.stdin.end(`rm -rf "${depsDir}"`);
+        k.once('exit', cb);
+
+      },
+
+      mkdirDeps(rimrafDeps: any, cb: EVCallback) {
+
+        log.info('Removing existing files within "$HOME/.r2g.temp"...');
+        const k = cp.spawn('bash');
+        k.stdin.end(`mkdir -p "${depsDir}"`);
+        k.once('exit', cb);
+
+      },
+
+      getMap(cb: EVCallback) {
+
+        if (!opts.full) {
+          log.info('we are not creating a deps map since the --full option was not used.');
+          return process.nextTick(cb, null, {});
+        }
+
+        if (process.env.r2g_is_docker === 'yes') {
+          log.info('we are not creating a deps map since we are using docker.r2g');
+          return process.nextTick(cb, null, {});
+        }
+
+        getFSMap(opts, searchRoot, packages, cb);
+      },
+
+
 
       copyProject(mkdirpProject: any, cb: EVCallback) {
 
