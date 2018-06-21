@@ -92,7 +92,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         fs.createReadStream(smokeTester)
         .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
         .once('error', cb)
-        .once('end', cb);
+        .once('finish', cb);
       },
 
       copyPackageJSON(mkdirpProject: any, cb: EVCallback) {
@@ -120,7 +120,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', cb);
       },
 
-      r2gSmokeTest(runNpmInstall: any, cb: EVCallback) {
+      r2gSmokeTest(runNpmInstall: any, copySmokeTester: any, cb: EVCallback) {
 
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
 
@@ -150,7 +150,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runUserDefinedTests(copyUserDefinedTests: any, runNpmInstall: any, cb: EVCallback) {
+      runUserDefinedTests(copyUserDefinedTests: any, r2gSmokeTest: any, runNpmInstall: any, cb: EVCallback) {
 
         log.info(`Running user defined tests in "${r2gProject}" ...`);
 

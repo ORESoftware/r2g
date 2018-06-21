@@ -56,13 +56,13 @@ getAllPromises(links).then(function (results) {
     throw new Error(util.inspect(failures, {breakLength: Infinity}));
   }
 
-  console.log('r2g smoke test passed');
+  console.log('Your exported r2gSmokeTest functions have all passed');
   process.exit(0);
 
 })
 .catch(function (err) {
 
-  console.log('r2g smoke test failed:');
+  console.error('At least one export r2gSmokeTest function failed:');
   console.error(err);
   process.exit(1);
 

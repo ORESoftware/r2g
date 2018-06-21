@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-
+export FORCE_COLOR=1;
 
 dir_name="$(dirname "$0")"
 read_link="$(readlink "$0")";
