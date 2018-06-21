@@ -3,8 +3,10 @@
 import options from './cli-options';
 const dashdash = require('dashdash');
 import residence = require('residence');
+import chalk from "chalk";
 
-const parser = dashdash.createParser({options});
+const allowUnknown = process.argv.indexOf('--allow-unknown') > 0;
+const parser = dashdash.createParser({options, allowUnknown});
 
 let opts: any;
 
@@ -29,6 +31,12 @@ if (opts.version) {
 
 const cwd = process.cwd();
 const projectRoot = residence.findProjectRoot(cwd);
+
+if(!projectRoot){
+  throw chalk.magenta('Could not find a project root given your current working directory => ') + chalk.magenta.bold(cwd);
+}
+
+
 export {opts, cwd, projectRoot};
 
 

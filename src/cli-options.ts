@@ -18,28 +18,24 @@ export default [
     help: 'Verbosity level, 1-3 inclusive.'
   },
   {
-    names: ['init',],
+    names: ['pack'],
     type: 'bool',
-    help: 'Initialize docker.r2g in your project',
-    helpArg: 'FILE'
+    help: 'Pack dependencies before installing them.',
   },
   {
-    names: ['run',],
+    names: ['allow-unknown'],
     type: 'bool',
-    help: 'Run docker.r2g against your project',
-    helpArg: 'FILE'
+    help: 'Pack dependencies before installing them.',
   },
   {
-    names: ['exec',],
+    names: ['full'],
     type: 'bool',
-    help: 'Run docker.r2g against your project',
-    helpArg: 'FILE'
+    help: 'Pack dependencies before installing them.',
   },
   {
-    names: ['file', 'f'],
-    type: 'string',
-    help: 'File to process',
-    helpArg: 'FILE'
+    names: ['keep', 'multi'],
+    type: 'bool',
+    help: 'Do not remove previous installations before installing the new/next one.',
   }
 
 ]
