@@ -11,6 +11,9 @@ exports.default = {
 
   searchRoot: path.resolve(process.env.MY_DOCKER_R2G_SEARCH_ROOT),
   tests: '',
-  packages: {}
+  packages: {
+    'clean-trace': true,
+    'residence': true
+  }
 
 };

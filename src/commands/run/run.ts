@@ -13,6 +13,8 @@ import log from '../../logger';
 import chalk from "chalk";
 import {EVCallback} from "../../index";
 import {getFSMap} from "./get-fs-map";
+import {renameDeps} from "./rename-deps";
+import {installDeps} from "./copy-deps";
 
 ///////////////////////////////////////////////
 
@@ -181,7 +183,24 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         getFSMap(opts, searchRoot, packages, cb);
       },
 
+      copyProjectsInMap: function (getMap: any, cb: EVCallback) {
 
+        if(Object.keys(getMap).length < 1){
+          return process.nextTick(cb, null, {});
+        }
+
+        installDeps(getMap, dependenciesToInstall, opts, cb);
+      },
+
+      renamePackagesToAbsolute: function (copyProjectsInMap: any, copyProject: any, cb: EVCallback) {
+
+        if(Object.keys(copyProjectsInMap).length < 1){
+          return process.nextTick(cb, null, {});
+        }
+
+        const pkgJSONPath = path.resolve(copyProject + '/package.json');
+        renameDeps(copyProjectsInMap, pkgJSONPath, cb);
+      },
 
       copyProject(mkdirpProject: any, cb: EVCallback) {
 
