@@ -12,6 +12,7 @@ import * as assert from 'assert';
 import log from '../../logger';
 import chalk from "chalk";
 import {EVCallback} from "../../index";
+import {getFSMap} from "./get-fs-map";
 
 ///////////////////////////////////////////////
 
@@ -132,6 +133,17 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', cb);
 
       },
+
+      getMap (cb: EVCallback) {
+
+        if(!opts.full){
+          return process.nextTick(cb, null, {});
+        }
+
+        getFSMap(opts, searchRoot, packages, cb);
+      },
+
+
 
       mkdirpProject(removeExistingProject: any, cb: EVCallback) {
 

@@ -37,7 +37,8 @@
     "chalk": "^2.4.1",
     "clean-trace": "latest",
     "dashdash": "^1.14.1",
-    "residence": "0.0.209"
+    "residence": "0.0.209",
+    "shortid": "^2.2.8"
   },
   "devDependencies": {
     "@types/async": "^2.0.49",
