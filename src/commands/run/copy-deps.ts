@@ -30,7 +30,7 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
 
       const k = cp.spawn('bash');
       const id = shortid.generate();
-      const dest = path.resolve(`${process.env.HOME}/.docker_r2g_cache/${id}`);
+      const dest = path.resolve(process.env.HOME + `/.r2g/temp/deps/${id}`);
       const basename = path.basename(c);
       const depRoot = path.resolve(dest + '/' + basename);
 
@@ -103,40 +103,7 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
     },
 
     function (err) {
-
       process.nextTick(cb, err, finalMap);
-
-      /*     if (err) {
-             return cb(err);
-           }
-
-           const k = cp.spawn('bash');
-
-           const getMap = function () {
-             return results.filter(Boolean).map(function (v) {
-               return `"${v.dest}/${v.basename}"`
-             })
-             .join(' ');
-           };
-
-           const cmd = `npm install --loglevel=warn ${getMap()} `;
-           log.info('now running the following command:', chalk.green.bold(cmd));
-           k.stdin.end(cmd);
-
-           k.stderr.pipe(process.stderr);
-
-           k.once('exit', function (code) {
-
-             if (code < 1) {
-               cb(null, finalMap);
-             }
-             else {
-               cb(new Error('npm install process exitted with code greater than 0.'));
-             }
-
-           });
-
-         });*/
     });
 
 };
