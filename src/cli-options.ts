@@ -18,9 +18,14 @@ export default [
     help: 'Verbosity level, 1-3 inclusive.'
   },
   {
+    names: ['search-root','search'],
+    type: 'string',
+    help: 'Search root path on your fs, to look for local dependencies.',
+  },
+  {
     names: ['pack'],
     type: 'bool',
-    help: 'Pack dependencies (with npm pack) before installing them.',
+    help: 'Pack dependencies (with npm pack) before installing them; this option is only active if --full is used.',
   },
   {
     names: ['allow-unknown'],
@@ -31,6 +36,7 @@ export default [
     names: ['full'],
     type: 'bool',
     help: 'Install local copies of select dependencies, instead of using NPM.',
+    default: false
   },
   {
     names: ['keep', 'multi'],
