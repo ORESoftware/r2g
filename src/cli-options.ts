@@ -20,17 +20,17 @@ export default [
   {
     names: ['pack'],
     type: 'bool',
-    help: 'Pack dependencies before installing them.',
+    help: 'Pack dependencies (with npm pack) before installing them.',
   },
   {
     names: ['allow-unknown'],
     type: 'bool',
-    help: 'Pack dependencies before installing them.',
+    help: 'Allow unknown arguments to the command line.',
   },
   {
     names: ['full'],
     type: 'bool',
-    help: 'Pack dependencies before installing them.',
+    help: 'Install local copies of select dependencies, instead of using NPM.',
   },
   {
     names: ['keep', 'multi'],
