@@ -204,7 +204,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       copyProject(mkdirpProject: any, cb: EVCallback) {
 
-        if (process.env.r2g_is_docker) {
+        if (process.env.r2g_is_docker === 'yes') {
           log.info('We are not copying the project since we are using r2g.docker');
           return process.nextTick(cb, null, projectRoot);
         }
