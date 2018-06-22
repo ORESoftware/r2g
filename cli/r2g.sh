@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-r2g_gray='\033[1;30m'
-r2g_magenta='\033[1;35m'
-r2g_cyan='\033[1;36m'
-r2g_orange='\033[1;33m'
-r2g_yellow='\033[1;33m'
-r2g_green='\033[1;32m'
-r2g_no_color='\033[0m'
+export r2g_gray='\033[1;30m'
+export r2g_magenta='\033[1;35m'
+export r2g_cyan='\033[1;36m'
+export r2g_orange='\033[1;33m'
+export r2g_yellow='\033[1;33m'
+export r2g_green='\033[1;32m'
+export r2g_no_color='\033[0m'
 
 if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
     echo "sh is stealing bash sunshine.";
