@@ -1,5 +1,5 @@
 
-# r2g  / @oresoftware/r2g
+# r2g (@oresoftware/r2g)
 
 ### Installation
 
@@ -10,7 +10,7 @@ npm i -g @oresoftware/r2g
 Optionally, you can then add the following to your ~/.bashrc and/or ~/.bash_profile files:
 
 ```bash
-. "$HOME/.oresoftware/shell.sh"`
+. "$HOME/.oresoftware/shell.sh"
 ```
 
 <br>
@@ -27,9 +27,9 @@ properly, and can it be loaded and run with at least some basic functionality.
 
 There are 3 main benefits:
 
-* Uses `npm pack` which will convert the project into published format which help avoid problems overly-aggressive .npmignore files
+* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files
 * Tests your dependency in the actual format, which is as a dependency residing in node_modules of another project X.
-* Uses the --production flag, as in `npm install --production`, when it installs your package to X.
+* Uses the `--production` flag, as in `npm install --production`, when it installs your package to X.
 
 <p>
 
@@ -48,7 +48,7 @@ So your project would be installed here: "$HOME/.r2g/temp/project/node_modules/x
 
 To make it work (fulfill the contract):
 
-1. Add the following scripts to your package.json file:
+1. Add the following scripts to your `package.json` file:
 
 ```json
  "r2g": {
@@ -57,6 +57,7 @@ To make it work (fulfill the contract):
   },
 
 ```
+
 In the above, we don't publish the test directory to NPM, but we want to test our tarballed contents,
 so we have to copy the test directory over.
 
