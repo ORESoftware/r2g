@@ -1,10 +1,16 @@
 
-# r2g  / '@oresoftware/r2g'
+# r2g  / @oresoftware/r2g
 
 ### Installation
 
 ```bash
 npm i -g @oresoftware/r2g
+```
+
+Optionally, you can then add the following to your ~/.bashrc and/or ~/.bash_profile files:
+
+```bash
+. "$HOME/.oresoftware/shell.sh"`
 ```
 
 <br>
@@ -29,19 +35,14 @@ There are 3 main benefits:
 
 ## How it works
 
-r2g uses the following NPM utilities to do it's thing:
+r2g uses the following steps to do its thing:
 
-1. Copies your project to "~/.r2g/temp/copy" with `rsync -r`
-2. For the local project being tested: `npm pack`
-3. In another local project: `npm install /path/to/tarball.tgz`
+1. Copies your project to "$HOME/.r2g/temp/copy" with `rsync -r`
+2. For the local project being directly tested: `npm pack`
+3. Then in a testbed project we run: `npm install --production /path/to/tarball.tgz`
 
-
-### Installation
-
-### `npm install -g r2g`
-##### then add the following to your ~/.bashrc and/or ~/.bash_profile files:
-#### `source "$HOME/.oresoftware/shell.sh"`
-
+The testbed project is located here: "$HOME/.r2g/temp/project".
+So your project would be installed here: "$HOME/.r2g/temp/project/node_modules/x"
 
 ## Usage
 
