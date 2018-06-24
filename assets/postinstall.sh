@@ -13,13 +13,6 @@ if [[ "$oresoftware_local_dev" == "yes" ]]; then
     echo "Running the r2g postinstall script in oresoftware local development env."
 fi
 
-r2g_gray='\033[1;30m'
-r2g_magenta='\033[1;35m'
-r2g_cyan='\033[1;36m'
-r2g_orange='\033[1;33m'
-r2g_green='\033[1;32m'
-r2g_no_color='\033[0m'
-
 
 mkdir -p "$HOME/.r2g/temp/project" || {
   echo "could not create directory => '$HOME/.r2g/temp/project'...";

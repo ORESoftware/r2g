@@ -55,7 +55,6 @@ To make it work (fulfill the contract):
     "copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
     "run-tests": "npm test"
   },
-
 ```
 
 In the above, we don't publish the test directory to NPM, but we want to test our tarballed contents,

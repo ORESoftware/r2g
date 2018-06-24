@@ -52,42 +52,24 @@ r2g_view_log(){
 
 r2g(){
 
- local loc="$(command -v r2g)";
+  if ! type -f r2g &> /dev/null || ! which r2g &> /dev/null; then
 
- if [ -z "$loc" ]; then
-    npm install -g "@oresoftware/r2g@latest" || {
+    echo -e "Installing the '@oresoftware/r2g' NPM package globally..." >&2;
+
+    npm i -s -g '@oresoftware/r2g' || {
+
+      echo -e "Could not install the '@oresoftware/r2g' NPM package globally." >&2;
+      echo -e "Check your user permissions to install global NPM packages." >&2;
       return 1;
+
     }
+
  fi
 
- command r2g "$@";
+ command r2g $@;
+
 }
 
-r2g_init(){
-
- local loc="$(command -v r2g_init)";
-
- if [ -z "$loc" ]; then
-    npm install -g "@oresoftware/r2g@latest" || {
-      return 1;
-    }
- fi
-
- command r2g_init "$@";
-}
-
-r2g_run(){
-
- local loc="$(command -v r2g_run)";
-
- if [ -z "$loc" ]; then
-    npm install -g "@oresoftware/r2g@latest" || {
-      return 1;
-    }
- fi
-
- command r2g_run "$@";
-}
 
 
 r2g_copy_package_json(){
