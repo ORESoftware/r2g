@@ -55,10 +55,9 @@ cat assets/shell.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
 
 
 
-echo -e "${r2g_green}r2g was installed successfully.${r2g_no_color}";
+echo; echo -e "${r2g_green}r2g was installed successfully.${r2g_no_color}";
 echo -e "Add the following line to your .bashrc/.bash_profile files:";
-echo -e "${r2g_cyan} . \"\$HOME/.oresoftware/shell.sh\"${r2g_no_color}";
-echo " ";
+echo -e "${r2g_cyan} . \"\$HOME/.oresoftware/shell.sh\"${r2g_no_color}"; echo;
 
 
 

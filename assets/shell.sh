@@ -148,8 +148,6 @@ r2g_run_user_defined_tests(){
 }
 
 export -f r2g;
-export -f r2g_run;
-export -f r2g_init;
 export -f r2g_get_latest;
 export -f r2g_open;
 export -f r2g_home;
