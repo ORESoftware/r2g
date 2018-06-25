@@ -2,14 +2,6 @@
 
 echo "$0 is sourcing the r2g shell script."
 
-export r2g_gray='\033[1;30m'
-export r2g_magenta='\033[1;35m'
-export r2g_cyan='\033[1;36m'
-export r2g_orange='\033[1;33m'
-export r2g_yellow='\033[1;33m'
-export r2g_green='\033[1;32m'
-export r2g_no_color='\033[0m'
-
 r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
 }
