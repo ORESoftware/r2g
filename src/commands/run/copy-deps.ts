@@ -18,7 +18,7 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
     return process.nextTick(cb, null, finalMap);
   }
 
-  const c = opts.pack ? 2 : 3;
+  const c = opts.pack ? 4 : 4;
 
   async.eachLimit(dependenciesToInstall, c, function (dep, cb) {
 
