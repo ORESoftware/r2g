@@ -221,7 +221,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runNpmPack(copyProject: string, cb: EVCallback) {
+      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCallback) {
 
         log.info('Running "npm pack" against your project ...');
 

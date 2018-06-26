@@ -18,7 +18,9 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
     return process.nextTick(cb, null, finalMap);
   }
 
-  async.eachLimit(dependenciesToInstall, 3, function (dep, cb) {
+  const c = opts.pack ? 2 : 3;
+
+  async.eachLimit(dependenciesToInstall, c, function (dep, cb) {
 
       if (!createProjectMap[dep]) {
         log.info('dependency is not in the local map:', dep);
@@ -48,9 +50,9 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
         });
 
         const cmd = [
-          `npm pack --loglevel=warn`,
+          `npm pack --loglevel=warn;`,
         ]
-        .join('; ');
+        .join(' ');
 
 
         log.info(`Running the following command: '${chalk.cyan.bold(cmd)}', in this directory: "${depRoot}".`);
@@ -60,7 +62,7 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
         k.stdout.on('data', function (d) {
           stdout+= String(d).trim();
         });
-        k.stdin.end(cmd + '\n');
+        k.stdin.end(cmd);
         k.stderr.pipe(process.stderr);
         k.once('exit', function (code) {
 
@@ -78,14 +80,14 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
       const cmd = [
         `set -e`,
         `mkdir -p "${dest}"`,
-        `rsync -r --exclude="node_modules" "${c}" "${dest}"`,
+        `rsync -r --exclude="node_modules" "${c}" "${dest}";`,
         // `npm install --loglevel=warn "${dest}/${basename}";`
       ]
       .join('; ');
 
       log.info(`About to run the following command: '${chalk.cyan.bold(cmd)}'`);
 
-      k.stdin.end(cmd + '\n');
+      k.stdin.end(cmd);
       k.stderr.pipe(process.stderr);
 
       k.once('exit', function (code) {

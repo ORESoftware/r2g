@@ -21,22 +21,6 @@ docker rm "$container" || echo "no container with name $container could be remov
 
 tag="docker_r2g_image/$name";
 
-export zmx_gray='\033[1;30m'
-export zmx_magenta='\033[1;35m'
-export zmx_cyan='\033[1;36m'
-export zmx_orange='\033[1;33m'
-export zmx_yellow='\033[1;33m'
-export zmx_green='\033[1;32m'
-export zmx_no_color='\033[0m'
-
-zmx(){
-    local v1="$1"; local v2="$2"; "$@"  \
-        2> >( while read line; do echo -e "${zmx_magenta}[${v1} ${v2}] ${zmx_no_color} $line"; done ) \
-        1> >( while read line; do echo -e "${zmx_gray}[${v1} ${v2}] ${zmx_no_color} $line"; done )
-}
-
-export -f zmx;
-
 docker build \
     -f Dockerfile.r2g \
     -t "$tag" \

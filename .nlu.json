@@ -1,11 +1,13 @@
 {
-  "searchRoots":[
+  "npm-link-up": true,
+  "searchRoots": [
     "$HOME/WebstormProjects/oresoftware"
   ],
-  "ignore":[],
-  "comments":[],
-  "list":[
+  "ignore": [],
+  "comments": [],
+  "list": [
     "clean-trace",
-    "@oresoftware/shell"
+    "@oresoftware/shell",
+    "residence"
   ]
 }
