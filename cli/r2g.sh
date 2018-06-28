@@ -15,7 +15,17 @@ if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
 fi
 
 
+export FORCE_COLOR=1;
 cmd="$1";
+
+
+r2g_zmx(){
+ "$@"  \
+      2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
+      1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
+}
+
+export -f r2g_zmx;
 
 
 if [ "$cmd" == "run" ]; then
@@ -29,7 +39,7 @@ if [ "$cmd" == "run" ]; then
 elif [ "$cmd" == "init" ]; then
 
   shift 1;
-  r2g_init "$@"
+  r2g_zmx r2g_init "$@"
 
 elif [ "$cmd" == "docker" ]; then
 
@@ -48,7 +58,7 @@ elif [ "$cmd" == "docker" ]; then
 else
 
   echo "r2g error: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
-  r2g_basic "$@"
+  r2g_zmx r2g_basic "$@"
 fi
 
 exit_code="$?"

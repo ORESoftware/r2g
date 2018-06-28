@@ -19,12 +19,7 @@ try {
 
 if (opts.help) {
   let help = parser.help({includeEnv: true}).trimRight();
-  console.log('usage: node foo.js [OPTIONS]\n' + 'options:\n' + help);
-  process.exit(0);
-}
-
-if (opts.version) {
-  console.log('version:', 'foo');
+  console.log('usage: r2g run [OPTIONS]\n' + 'options:\n' + help);
   process.exit(0);
 }
 

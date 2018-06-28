@@ -3,11 +3,6 @@
 export default [
 
   {
-    name: 'version',
-    type: 'bool',
-    help: 'Print tool version and exit.'
-  },
-  {
     names: ['help', 'h'],
     type: 'bool',
     help: 'Print this help and exit.'
