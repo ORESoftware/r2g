@@ -33,7 +33,11 @@ RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/read.json.tgz?$(date
 RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/r2g.tgz?$(date +%s)"
 RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/docker.r2g.tgz?$(date +%s)"
 
+ARG NODE_ENV
+ENV NODE_ENV ${NODE_ENV:-production}
+
 COPY . .
+
 
 RUN sudo chmod -R 777  /home/node
 
