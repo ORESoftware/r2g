@@ -273,3 +273,100 @@ user    0m2.124s
 sys     0m0.332s
 
 ```
+
+
+If we run `r2g run --full --pack` we get:
+
+```bash
+
+r2g: /home/oleg/.nvm/versions/node/v10.5.0/bin/r2g_run is sourcing the r2g shell script.
+r2g: [r2g info] Removing existing files within "$HOME/.r2g/temp"...
+r2g: [r2g info] Making sure the right folders exist using mkdir -p ...
+r2g: [r2g info] added the following package name to the map: clean-trace
+r2g: [r2g info] Removing existing files within "$HOME/.r2g.temp"...
+r2g: [r2g info] Copying your project to "$HOME/.r2g/temp/copy" using rsync ...
+r2g: [r2g info] Copying the smoke-tester.js file to "/home/oleg/.r2g/temp/project" ...
+r2g: [r2g info] Copying a "blank" package.json file to "/home/oleg/.r2g/temp/project" ...
+r2g: [r2g info] Removing existing files within "$HOME/.r2g.temp"...
+r2g: copying new package.json file to: /home/oleg/.r2g/temp/project
+r2g: [r2g info] Copying your user defined tests to: "/home/oleg/.r2g/temp/project" ...
+r2g: Copying user defined smoke test
+r2g: [r2g warn] unexpected non-file here: /home/oleg/WebstormProjects/oresoftware/quicklock/test/xxx
+r2g: [r2g info] added the following package name to the map: residence
+r2g: [r2g info] About to run the following command: 'set -e; mkdir -p "/home/oleg/.r2g/temp/deps/r1uUFZMzQ"; rsync -r --exclude="node_modules" "/home/oleg/WebstormProjects/oresoftware/clean-trace" "/home/oleg/.r2g/temp/deps/r1uUFZMzQ";'
+r2g: [r2g info] About to run the following command: 'set -e; mkdir -p "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ"; rsync -r --exclude="node_modules" "/home/oleg/WebstormProjects/oresoftware/residence" "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ";'
+r2g: [r2g info] Running the following command: 'npm pack --loglevel=warn;', in this directory: "/home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace".
+r2g: [r2g info] Running the following command: 'npm pack --loglevel=warn;', in this directory: "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence".
+r2g: [r2g info] here is the project map now:
+r2g: [r2g info] residence '/home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence/residence-0.0.210.tgz'
+r2g: [r2g info] clean-trace '/home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace/clean-trace-0.0.104.tgz'
+r2g: [r2g info] here is updated the package.json file: {
+r2g: "name": "@oresoftware/r2g",
+r2g: "version": "0.0.134",
+r2g: "description": "Semver-oriented TypeScript library skeleton.",
+r2g: "main": "dist/index.js",
+r2g: "bin": {
+r2g: "r2g": "cli/r2g.sh",
+r2g: "r2g_run": "cli/r2g_run.sh",
+r2g: "r2g_init": "cli/r2g_init.sh",
+r2g: "r2g_basic": "cli/r2g_basic.sh"
+r2g: },
+r2g: "types": "dist/index.d.ts",
+r2g: "typings": "dist/index.d.ts",
+r2g: "scripts": {
+r2g: "postinstall": "./assets/postinstall.sh",
+r2g: "test": "suman test"
+r2g: },
+r2g: "repository": {
+r2g: "type": "git",
+r2g: "url": "git+https://github.com/ORESoftware/r2g.git"
+r2g: },
+r2g: "keywords": [
+r2g: "typescript",
+r2g: "library",
+r2g: "skeleton",
+r2g: "scaffold"
+r2g: ],
+r2g: "author": "TODO Yo.Mama",
+r2g: "license": "SEE LICENSE IN LICENSE.md",
+r2g: "bugs": {
+r2g: "url": "https://github.com/ORESoftware/r2g/issues"
+r2g: },
+r2g: "homepage": "https://github.com/ORESoftware/r2g#readme",
+r2g: "dependencies": {
+r2g: "@oresoftware/shell": "latest",
+r2g: "async": "^2.6.1",
+r2g: "chalk": "^2.4.1",
+r2g: "clean-trace": "file:///home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace/clean-trace-0.0.104.tgz",
+r2g: "dashdash": "^1.14.1",
+r2g: "residence": "file:///home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence/residence-0.0.210.tgz",
+r2g: "shortid": "^2.2.8"
+r2g: },
+r2g: "devDependencies": {
+r2g: "@types/async": "^2.0.49",
+r2g: "@types/core-js": "^0.9.46",
+r2g: "@types/node": "^9.6.2",
+r2g: "@types/shortid": "0.0.29"
+r2g: },
+r2g: "r2gz": {
+r2g: "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
+r2g: "run-tests": "node test"
+r2g: },
+r2g: "b3val": 3
+r2g: }
+r2g: [r2g info] Running "npm pack" against your project ...
+r2g: [r2g info] Running the following command via this dir: "/home/oleg/.r2g/temp/project" ...
+r2g: [r2g info] npm install --loglevel=warn --cache-min 9999999 --production "/home/oleg/.r2g/temp/copy/r2g/oresoftware-r2g-0.0.134.tgz";
+r2g: [r2g info] Running your exported r2gSmokeTest function(s) in "/home/oleg/.r2g/temp/project" ...
+r2g: This many packages were tested: 1
+r2g: Your exported r2gSmokeTest functions have all passed
+r2g: [r2g info] Running user defined tests in "/home/oleg/.r2g/temp/project" ...
+r2g: Now running the user defined smoke test...
+r2g: r2g user defined smoke test passed.
+r2g: [r2g info] Successfully ran r2g.
+
+real    0m3.092s
+user    0m3.832s
+sys     0m0.980s
+
+```
