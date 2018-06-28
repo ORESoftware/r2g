@@ -20,6 +20,7 @@ ________________________________________________________________________________
 * This tool is only proven on MacOS/*nix, not tested on Windows.
 * Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 * If you use the `--full` option, the local deps of your package will copied to: `"$HOME/.r2g/temp/deps"`
+* You can and should put your regular tests in .npmignore, but your .r2g folder should not be in .npmignore
 
 <b>To make this README as clear and concise as possible:</b>
 
@@ -30,11 +31,7 @@ ________________________________________________________________________________
 * The package.json file for X is simply referred to as `X-package.json`.
 * Your index.js file (whatever "main" points to in X-package.json), is referred to as `X-main`
 
-When X is tested with r2g, it will be installed to:
-`$HOME/.r2g/temp/project/node_modules/X`
-
-which is of course the same as:
-`T/node_modules/X`
+When X is tested with r2g, it will be installed to: `$HOME/.r2g/temp/project/node_modules/X` which is of course the same as: `T/node_modules/X`
 
 <br>
 
@@ -121,8 +118,8 @@ To add more sophisticated tests, run:
 r2g init
 ```
 
-this will add a folder to your project called `.r2g`. (Running `r2g init` is safe, it will not overwrite any existing files).
-The `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
+this will add a folder to your project called `.r2g`. Your `.r2g` folder should never be in `.npmignore`. (Running `r2g init` is safe, it will not overwrite any existing files).
+Your new `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
 
 <br>
 
@@ -177,12 +174,12 @@ If you execute `r2g run --full --pack`, then this awesomeness happens:
 }
 ```
 
-So using `r2g run --full` => we install local deps instead of the deps from NPM.
-And using `r2g run --full --pack` => we pack the local deps before installing them
+So using `r2g run --full` => we install local deps instead of the deps from NPM. <br>
+And using `r2g run --full --pack` => we pack the local deps before installing them. <br>
 
 Awesome.
 
-<b>To read more about using local deps for testing instead of installing your local deps from NPM, see:</b> => `docs/r2g-using-local-deps.md`
+<b>To read more about using local deps for testing instead of installing your local deps from NPM, see:</b> <br> => `docs/r2g-using-local-deps.md`
 
 <br>
 
@@ -192,7 +189,7 @@ First, make sure you have Docker installed on your local machine. See standard i
 Run this in the root of your project:
 
 ```bash
-$ r2g init
+$ r2g init   # you only need to run this once per project, but won't hurt if you do it more than once
 ```
 
 Then run this:
