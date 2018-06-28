@@ -18,7 +18,7 @@ ________________________________________________________________________________
 ### Important Info
 
 * This tool is only proven on MacOS/*nix, not tested on Windows.
-* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and testing happens there.
+* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 
 <b>To make this README as clear and concise as possible:</b>
 
@@ -50,9 +50,12 @@ The above things are why you need to take some extra pre-cautions before publish
 And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
 to *prove* that X works in its final format.
 
+* There is a secret feature which is extremely badass - install other locally developed projects which are dependencies of X, as part of r2g testing.
+See "Linking with existing local dependencies" below.
+
 ## A Better Workflow
 
-One nice thing about testing locally instead of on a CI/CD server, is you don't have to leave your IDE, and therefore you won't get distracted by the internet lol.
+One nice thing about testing locally instead of on a remote CI/CD server, is you don't have to leave your IDE, and therefore you won't get distracted by the internet lol.
 You can run this tool <b>before</b> pushing to a Git remote. r2g will smoke test your library in about as much time as it takes to `npm install --production` your project.
 <b>If r2g smoke tests do not pass, it means your package is not publishable!</b>
 
@@ -62,13 +65,7 @@ This tool allows you to test your package in the published format, without actua
 Everything happens locally. For packages that do more complex/system things, it will be useful to use a Docker container. <br>
 For use in a Docker container, see: https://github.com/ORESoftware/docker.r2g
 
-<br>
-
-Using r2g, testing happens in `"$HOME/.r2g/temp/project"`.
-
-<br>
-
-What you do: Write some smoke tests that will run after (a) your library is in the published format, and (b) is
+*What you do:* Write some smoke tests that will run after (a) your library is in the published format, and (b) is
 installed in another project as dependency. This serves the two obvious purposes: 1. does it actually install
 properly when --production is used?, and 2. can it be loaded and run with at least some basic functionality <i>by another package</i>?
 
@@ -104,7 +101,7 @@ exports.r2gSmokeTest = function(){  // this function can be async
 };
 ```
 
-the above function is called with `Promise.resolve(r2gSmokeTest())`, and in order to pass it must return `true` (not just truthy). <br>
+the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must return `true` (not just truthy). <br>
 
 To read more about this testing function, see:
 #### `docs/r2g-smoke-test-exported-main-function.md`
@@ -128,7 +125,7 @@ The `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
 
 Now when `r2g run` executes, it will run `.r2g/smoke-test.js`,  *but* it will run this test in the context of the main project, meaning it will copy: <br>
 
- `$HOME/.r2g/temp/project/node_modules/your_package/.r2g/smoke-test.js` -->  `$HOME/.r2g/temp/project/smoke-test.js`
+ `$HOME/.r2g/temp/project/node_modules/X/.r2g/smoke-test.js` -->  `$HOME/.r2g/temp/project/smoke-test.js`
 
 <br>
 
@@ -146,23 +143,48 @@ exports.default = {
   // ...
 
   packages: {
-     // local packages will be installed to your project, using: npm pack x && npm install x --production
-     'your-local-package-a: true,
-     'your-local-package-b: true
+     // local packages will be installed to your project --> test your local dependencies instead of installing from NPM
+     'your-local-package-a': true,
+     'your-local-package-b': true
    }
 }
 ```
 
+If you execute `r2g run --full` these packages (a,b) will be *discovered* on your local fs, and copied to `"$HOME/.r2g/temp/deps/*"`, and then X's package.json will look like this:
+
+```json
+{
+  "dependencies": {
+   "your-local-package-a": "file:///home/user/.r2g/temp/deps/your-local-package-a",
+    "your-local-package-b": "file:///home/user/.r2g/temp/deps/your-local-package-b",
+  }
+}
+```
+
+If you execute `r2g run --full --pack`, then this awesomeness happens:
+
+
+```json
+{
+  "dependencies": {
+   "your-local-package-a": "file:///home/user/.r2g/temp/deps/your-local-package-a.tgz",
+   "your-local-package-b": "file:///home/user/.r2g/temp/deps/your-local-package-b.tgz",
+  }
+}
+```
+
+So using `r2g run --full` => we install local deps instead of the deps from NPM.
+And using `r2g run --full --pack` => we pack the local deps before installing them
+
+Awesome.
+
+To read more about using local deps for testing instead of installing your local deps from NPM, see: <br>
+`docs/r2g-using-local-deps.md`
 
 
 ## Usage in a Docker image/container
 
-<br>
-
 First, make sure you have Docker installed on your local machine. See standard installation instructions for MacOS/*nix.
-
-<br>
-
 Run this in the root of your project:
 
 ```bash
