@@ -18,11 +18,11 @@ ________________________________________________________________________________
 ### Important Info
 
 * This tool is only proven on MacOS/*nix, not tested on Windows.
-* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`.
+* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`
 
 <b>To make this README as clear and concise as possible:</b>
 
-* Your NPM package is referred to as `X`. X is the name of the package you publish to NPM, which is the "name" field of package.json.
+* Your NPM package is referred to as `X`. X is the name of the package you publish to NPM, which is the "name" field of your package.json.
 * `T` is the r2g test project directory => `"$HOME/.r2g/temp/project"`
 * The package.json file for X is simply referred to as `X-package.json`.
 * Your index.js file (whatever "main" points to in X-package.json), is referred to as `X-main`
@@ -39,21 +39,20 @@ ________________________________________________________________________________
 
 ## Purpose
 
-This tool <i>complements</i> your standard CI/CD testing for NPM libraries. You might already be using Travis, CircleCI, etc, to test your library <br>
-when you do a `git push`. Keep doing that. The reason why that is likely to be insufficient is because:
+This tool <i>complements</i> your standard CI/CD testing for NPM libraries. You might already be using Travis, CircleCI, etc, to test your library
+when you do a `git push`. Keep doing that. <i>However, the reason why what you are already doing is likely to be insufficient is because:</i>
 
 1. You install using `npm install` instead of `npm install --production`, because you need your devDependencies for your tests. (whoops!).
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`.
-3. You are not using `npm pack` to package your project before testing it.  Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild.
+3. You are not using `npm pack` to package your project before testing it. Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild.
 
-The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think we have all had .npmignore files that accidentally ignored files we need.
+The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think we have all had `.npmignore` files that accidentally ignored files we need.
 And we have all had dependencies in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the two motivations for using this tool,
 to *prove* that X works in its final format.
 
-## A better workflow
+## A Better Workflow
 
-One nice thing about testing locally instead of on a CI/CD server, is you don't have to leave your IDE, and you don't get distracted by the internet lol.
-
+One nice thing about testing locally instead of on a CI/CD server, is you don't have to leave your IDE, and therefore you won't get distracted by the internet lol.
 You can run this tool <b>before</b> pushing to a Git remote. r2g will smoke test your library in about as much time as it takes to `npm install --production` your project.
 <b>If r2g smoke tests do not pass, it means your package is not publishable!</b>
 
@@ -70,18 +69,18 @@ Using r2g, testing happens in `"$HOME/.r2g/temp/project"`.
 <br>
 
 What you do: Write some smoke tests that will run after (a) your library is in the published format, and (b) is
-installed in another project as dependency. This serves the two obvious purposes, 1. does it actually install
+installed in another project as dependency. This serves the two obvious purposes: 1. does it actually install
 properly when --production is used?, and 2. can it be loaded and run with at least some basic functionality <i>by another package</i>?
 
-<b> There are 3 main benefits of using r2g in combination with your existing CI/CD test process: </b>
+<b> To re-iterate: here are the 3 big benefits of using r2g in combination with your existing CI/CD test process: </b>
 
 * Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files
 * Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i> another </i> project X.
 * Uses the `--production` flag, as in `npm install --production`, when it installs your package to X.
 
-<p>
+<br>
 
-## Basic usage / Getting started
+# Basic usage / Getting started
 
 All you have to do is execute this in a shell at the root of your project:
 
