@@ -18,7 +18,7 @@ ________________________________________________________________________________
 ### Important Info
 
 * This tool is only proven on MacOS/*nix, not tested on Windows.
-* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`
+* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and testing happens there.
 
 <b>To make this README as clear and concise as possible:</b>
 
@@ -46,8 +46,8 @@ when you do a `git push`. Keep doing that. <i>However, the reason why what you a
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`.
 3. You are not using `npm pack` to package your project before testing it. Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild.
 
-The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think we have all had `.npmignore` files that accidentally ignored files we need.
-And we have all had dependencies in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the two motivations for using this tool,
+The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think everyone has had an `.npmignore` file that accidentally ignored files we need in production.
+And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
 to *prove* that X works in its final format.
 
 ## A Better Workflow
@@ -77,6 +77,13 @@ properly when --production is used?, and 2. can it be loaded and run with at lea
 * Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files
 * Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i> another </i> project X.
 * Uses the `--production` flag, as in `npm install --production`, when it installs your package to X.
+
+<br>
+
+
+### How it works in detail
+To learn more about how r2g works in detail, see:
+`docs/r2g-runtime-steps.md`
 
 <br>
 
@@ -203,13 +210,4 @@ in other words, you won't need to do anything in r2g-copy-tests, so just do this
 ```
 
 
-## How it works in detail
 
-r2g uses the following steps to do its thing:
-
-1. Copies your project to "$HOME/.r2g/temp/copy" with `rsync -r`
-2. For the local project being directly tested: `npm pack`
-3. Then in a testbed project we run: `npm install --production /path/to/tarball.tgz`
-
-The testbed project is located here: "$HOME/.r2g/temp/project".
-So your project would be installed here: "$HOME/.r2g/temp/project/node_modules/x"
