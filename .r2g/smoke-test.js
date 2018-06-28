@@ -30,7 +30,6 @@ const fs = require('fs');
 const EE = require('events');
 
 
-console.error('smoke this bitch.');
 process.exit(0);
 
 // your test goes here
