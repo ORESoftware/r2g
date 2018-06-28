@@ -71,7 +71,7 @@ properly when --production is used?, and 2. can it be loaded and run with at lea
 
 <b> To re-iterate: here are the 3 big benefits of using r2g in combination with your existing CI/CD test process: </b>
 
-* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files
+* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files, or an overly-passive "files" property in X-package.json
 * Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i> another </i> project Y.
 * Uses the `--production` flag, as in `npm install --production`, when it installs your package to Y.
 
@@ -79,8 +79,7 @@ properly when --production is used?, and 2. can it be loaded and run with at lea
 
 
 ### How it works in detail
-To learn more about how r2g works in detail, see:
-`docs/r2g-runtime-steps.md`
+To learn more about how r2g works in detail, see: `docs/r2g-runtime-steps.md`
 
 <br>
 

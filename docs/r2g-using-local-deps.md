@@ -13,14 +13,12 @@ your_projects/
    c/package.json
 ```
 
-say we want to test package a.
-
-package `a` has this in package.json:
+say we want to test package `a`. package `a` has this in package.json:
 
 ```json
 {
   "dependencies":{
-    "b":"latest"
+    "b":"latest",
     "c":"latest"
   }
 }
@@ -32,9 +30,7 @@ so normally, when we run this for package a:
 r2g run
 ```
 
-the above command will install `b` and `c` via NPM cache or registry
-
-however, if we do this:
+the above command will install `b` and `c` via NPM cache or registry. boring. however, if we do this:
 
 ```bash
 r2g run --full
@@ -49,9 +45,7 @@ And if we do this:
 r2g run --full --pack
 ```
 
-then `b` and `c` will be tarballed first with `npm pack` before being installed.
-
-So how do we accomplish this?
+then `b` and `c` will themselves be tarballed with `npm pack` before being installed. So how do we accomplish this?
 
 In project/package `a`, run `r2g init`..then in `a/.r2g/config.js`, add:
 
