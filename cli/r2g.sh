@@ -43,8 +43,8 @@ elif [ "$cmd" == "docker" ]; then
 
   shift 1;
 
-  if [ -z "$(which dkr2g)" ]; then
-    npm install -g "@oresoftware/docker.r2g" || {
+  if ! which dkr2g; then
+    npm install -g '@oresoftware/docker.r2g' || {
       echo "Could not install docker.r2g, exiting.";
       exit 1;
     }
@@ -60,6 +60,7 @@ else
 fi
 
 exit_code="$?"
+
 if [[ "$exit_code" != "0" ]]; then
     echo -e "${r2g_magenta}Your r2g test process is exiting with 1.${r2g_no_color}";
     exit 1;

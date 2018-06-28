@@ -14,6 +14,8 @@ exports.r2gSmokeTest = () => {
 ```
 
 The purpose of the above function is to run some simple statements to make sure basic functionality is met.
+If you need to troubleshoot this further, see: `docs/r2g-type-a-troubleshooting.md`.
+
 
 ### More details
 

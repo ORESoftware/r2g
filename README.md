@@ -17,11 +17,11 @@ ________________________________________________________________________________
 
 ### Important Info
 
-* This tool is only proven on MacOS/*nix, not tested on Windows.
+* This tool is only proven on MacOS/*nix, not tested on Windows. If you do Windows and want a fun project - fork this and make it work for Windows - it won't be hard.
 * You can use r2g with zero-config, or with some sophisticated config, depending on what you want to do.
 * Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 * If you use the `--full` option, the local deps of your package will copied to: `"$HOME/.r2g/temp/deps"`
-* You can and should put your regular tests in .npmignore, but your .r2g folder should not be in .npmignore
+* You can and should put your regular tests in `.npmignore`, but your .r2g folder should not be in `.npmignore`
 
 <b>To make this README as clear and concise as possible:</b>
 
@@ -41,7 +41,7 @@ ________________________________________________________________________________
 ## Purpose
 
 This tool <i>complements</i> your standard CI/CD testing for NPM libraries. You might already be using Travis, CircleCI, etc, to test your library
-when you do a `git push`. Keep doing that. <i>However, the reason why what you are already doing is likely to be insufficient is because:</i>
+when you do a `git push`. Keep doing that. <i>However, what you are already doing is likely to be insufficient because:</i>
 
 1. You install using `npm install` instead of `npm install --production`, because you need your devDependencies for your tests. (whoops!).
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`, and for example, your postinstall routine may behave differently here.
@@ -65,18 +65,22 @@ This tool allows you to test your package in the published format, without actua
 Everything happens locally. For packages that do more complex/system things, it will be useful to use a Docker container. <br>
 <b> To use r2g in a Docker container</b>, see: https://github.com/ORESoftware/docker.r2g
 
+Running tests in local Docker containers has some advantages, but you can also run r2g as part of your regular test suite on CI/CD servers,
+just make sure you have write access to `"$HOME/.r2g"`
+
+How you use this tool locally:
+
 *What you do:* Write some smoke tests that will run after (a) your library is in the published format, and (b) is
 installed in another project as dependency. This provides the answer to two important questions: 1. does it actually install
 properly when --production is used?, and 2. can it be loaded and run with at least some basic functionality <i>by another package</i>?
 
 <b> To re-iterate: here are the 3 big benefits of using r2g in combination with your existing CI/CD test process: </b>
 
-* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files, or an overly-passive "files" property in X-package.json
-* Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i> another </i> project Y.
+* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files, or an overly-passive `"files"` property in X-package.json
+* Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i>another</i> project Y.
 * Uses the `--production` flag, as in `npm install --production`, when it installs your package to Y.
 
 <br>
-
 
 ### How it works in detail
 To learn more about how r2g works in detail, see: `docs/r2g-runtime-steps.md`
@@ -93,7 +97,7 @@ $ r2g run
 ```
 
 This command will then fail. That's expected. <br>
-To get your tests to pass, add this to X-main (your package's index file, whatever "main" in package.json points to):
+To get your test to pass, add this to X-main (your package's index file, whatever "main" in package.json points to):
 
 ```js
 exports.r2gSmokeTest = function(){  // this function can be async
