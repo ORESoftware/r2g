@@ -105,7 +105,7 @@ export const renameDeps = function (projectMap: any, pkgJSONPath: string, cb: an
             return cb(err, null);
           }
 
-          log.info(chalk.bold('here is updated the package.json file:'), data);
+          log.info(chalk.bold('here is the updated package.json file:'), data);
           cb(null, null);
 
         });

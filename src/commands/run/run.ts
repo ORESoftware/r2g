@@ -179,7 +179,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       mkdirDeps(rimrafDeps: any, cb: EVCallback) {
 
-        log.info('Removing existing files within "$HOME/.r2g.temp"...');
+        log.info('Re-creating folders "$HOME/.r2g/temp"...');
         const k = cp.spawn('bash');
         k.stdin.end(`mkdir -p "${depsDir}"`);
         k.once('exit', cb);
