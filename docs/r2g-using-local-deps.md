@@ -71,11 +71,31 @@ now run this from project `a`:
 r2g run --full
 ```
 
-or
+Project `a's` package.json will be tested in this format:
+
+```json
+ "dependencies": {
+   "b": "file:///home/oleg/.r2g/temp/deps/b",
+   "c": "file:///home/oleg/.r2g/temp/deps/c",
+ },
+```
+
+or if you do this:
 
 ```bash
 r2g run --full --pack
 ```
+
+then project `a's` package will be installed with this package.json:
+
+
+```json
+ "dependencies": {
+   "b": "file:///home/oleg/.r2g/temp/deps/b-x.y.z.tgz",
+   "c": "file:///home/oleg/.r2g/temp/deps/c-x.y.z.tgz",
+ },
+```
+
 
 Now you can test multiple projects together as dependencies of each other.
 
