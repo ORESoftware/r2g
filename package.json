@@ -6,7 +6,8 @@
   "bin": {
     "r2g": "cli/r2g.sh",
     "r2g_run": "cli/r2g_run.sh",
-    "r2g_init": "cli/r2g_init.sh"
+    "r2g_init": "cli/r2g_init.sh",
+    "r2g_basic": "cli/r2g_basic.sh"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",

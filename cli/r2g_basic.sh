@@ -9,4 +9,4 @@ basic_path="$(cd $(dirname ${my_path}) && pwd)/$(basename ${my_path})"
 commands="$basic_path/dist/commands"
 
 
-node "$commands/init" "$@"
+node "$commands/basic" "$@"

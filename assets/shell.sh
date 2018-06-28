@@ -78,7 +78,7 @@ r2g_copy_package_json(){
       fi
 
 
-        echo >&2 "copying new package.json file to: $dest";
+      echo >&2 "copying new package.json file to: $dest";
 
       curl -H 'Cache-Control: no-cache' \
               "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \

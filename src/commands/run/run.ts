@@ -71,7 +71,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     docker2gConf = docker2gConf.default || docker2gConf;
 
     process.once('exit', code => {
-      log.warn(chalk.magentaBright('Note that during this run, r2g could not read your .r2g/config.js file.'))
+      if(code < 1){
+        log.warning(chalk.yellow.bold('Note that during this run, r2g could not read your .r2g/config.js file.'))
+      }
     });
 
   }
