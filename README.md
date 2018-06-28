@@ -13,33 +13,42 @@ npm i -g @oresoftware/r2g
 . "$HOME/.oresoftware/shell.sh"
 ```
 
-<br>
+_____________________________________________________________________________________________
+
 ### Important Info
 
-To make this README as clear and concise as possible:
+* This tool is only proven on MacOS/*nix, not tested on Windows.
+* Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`.
+
+<b>To make this README as clear and concise as possible:</b>
 
 * Your NPM package is referred to as `X`. X is the name of the package you publish to NPM, which is the "name" field of package.json.
 * `T` is the r2g test project directory => `"$HOME/.r2g/temp/project"`
-* Your index.js file (whatever "main" points to in your package.json file), is referred to as "X-main"
+* The package.json file for X is simply referred to as `X-package.json`.
+* Your index.js file (whatever "main" points to in X-package.json), is referred to as `X-main`
 
 When X is tested with r2g, it will be installed to:
 `$HOME/.r2g/temp/project/node_modules/X`
 
-which is of course:
+which is of course the same as:
 `T/node_modules/X`
 
 <br>
 
+______________________________________________________________________________________________
+
 ## Purpose
 
-This tool <i>complements</i> your standard CI/CD testing for NPM libraries. You might already be using Travis, CircleCI, etc, to test your library
+This tool <i>complements</i> your standard CI/CD testing for NPM libraries. You might already be using Travis, CircleCI, etc, to test your library <br>
 when you do a `git push`. Keep doing that. The reason why that is likely to be insufficient is because:
 
 1. You install using `npm install` instead of `npm install --production`, because you need your devDependencies for your tests. (whoops!).
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`.
 3. You are not using `npm pack` to package your project before testing it.  Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild.
 
-The above things are why you need to take some extra pre-cautions before publishing NPM packages.
+The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think we have all had .npmignore files that accidentally ignored files we need.
+And we have all had dependencies in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the two motivations for using this tool,
+to *prove* that X works in its final format.
 
 ## A better workflow
 
@@ -55,7 +64,9 @@ Everything happens locally. For packages that do more complex/system things, it 
 For use in a Docker container, see: https://github.com/ORESoftware/docker.r2g
 
 <br>
+
 Using r2g, testing happens in `"$HOME/.r2g/temp/project"`.
+
 <br>
 
 What you do: Write some smoke tests that will run after (a) your library is in the published format, and (b) is
@@ -93,9 +104,10 @@ To read more about this testing function, see:
 #### `docs/r2g-smoke-test-exported-main-function.md`
 
 This exported function `r2gSmokeTest` allows you to smoke test your package. When this function is run you <i>may</i> use the production dependencies declared in your project.
+
 <br>
 
-## Adding more tests beyond `r2gSmokeTest`
+## Adding more tests beyond the `r2gSmokeTest` function
 
 To add more sophisticated tests, run:
 
@@ -110,9 +122,11 @@ The `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
 
 Now when `r2g run` executes, it will run `.r2g/smoke-test.js`,  *but* it will run this test in the context of the main project, meaning it will copy: <br>
 
- `$HOME/.r2g/temp/project/node_modules/your_package/.r2g/smoke-test.js` ->  `$HOME/.r2g/temp/project/smoke-test.js`
+ `$HOME/.r2g/temp/project/node_modules/your_package/.r2g/smoke-test.js` -->  `$HOME/.r2g/temp/project/smoke-test.js`
 
-The above is very important to understand, because it means that this smoke test cannot include any dependencies from your package.json file.
+<br>
+
+The above is very important to understand, because it means that this smoke test *should not include any dependencies* from X-package.json.
 
 <br>
 
@@ -121,7 +135,7 @@ The above is very important to understand, because it means that this smoke test
 In your .r2g/config.js file, add local package names to the packages property:
 
 ```js
-export.default = {
+exports.default = {
 
   // ...
 
@@ -138,7 +152,9 @@ export.default = {
 ## Usage in a Docker image/container
 
 <br>
-First, make sure you have Docker installed on your local machine.
+
+First, make sure you have Docker installed on your local machine. See standard installation instructions for MacOS/*nix.
+
 <br>
 
 Run this in the root of your project:
