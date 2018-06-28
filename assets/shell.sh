@@ -123,7 +123,7 @@ r2g_run_user_defined_tests(){
              exit 0;
         fi
 
-        echo "Now running the user defined smoke test...";
+        echo "Now running the user defined smoke test located here: $HOME/.r2g/temp/project/user_defined_smoke_test";
         ./user_defined_smoke_test
 
         if [[ "$?" == "0" ]]; then

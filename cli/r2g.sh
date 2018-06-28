@@ -31,9 +31,7 @@ export -f r2g_zmx;
 if [ "$cmd" == "run" ]; then
 
    shift 1;
-   r2g_run "$@"  \
-        2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
-        1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
+   r2g_zmx r2g_run "$@"
 
 
 elif [ "$cmd" == "init" ]; then

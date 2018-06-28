@@ -148,7 +148,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           return process.nextTick(cb);
         }
 
-        log.info('Removing existing files within "$HOME/.r2g.temp"...');
+        log.info('Removing existing files within "$HOME/.r2g/temp"...');
         const k = cp.spawn('bash');
         k.stdin.end(`rm -rf "$HOME/.r2g/temp"`);
         k.once('exit', cb);
@@ -344,14 +344,14 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     function (err: any, results) {
 
       if (err && err.OK) {
-        log.warn(chalk.blueBright('r2g may have run with some problems.'));
+        log.warn(chalk.blueBright(' => r2g may have run with some problems.'));
         log.warn(util.inspect(err));
       }
       else if (err) {
         throw getCleanTrace(err);
       }
       else {
-        log.info(chalk.green('Successfully ran r2g/docker.r2g'))
+        log.info(chalk.green('Successfully ran r2g.'))
       }
 
       process.exit(0);
