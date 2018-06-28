@@ -2,6 +2,9 @@
 
 ## Exporting the r2gSmokeTest() function from main
 
+You might be here, because you saw the following error in your console:
+`r2g smoke test failed => one of your exported r2gSmokeTest function calls failed to resolve to true`
+
 Your project has an index file, which is designated by
 
 ```json

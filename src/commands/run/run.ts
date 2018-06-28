@@ -307,7 +307,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stdout.pipe(process.stdout);
         k.stdin.end(`node smoke-tester.js;`);
         k.once('exit', code => {
-          if (code > 0) log.error('r2g smoke test failed.');
+          if (code > 0) {
+            log.error('r2g smoke test failed => one of your exported r2gSmokeTest function calls failed to resolve to true.');
+            log.error(chalk.magenta('for help fixing this error, see: https://github.com/ORESoftware/r2g/blob/master/docs/r2g-smoke-test-exported-main-fn-type-a.md'));
+          }
           cb(code);
         });
       },
