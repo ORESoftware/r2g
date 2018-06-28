@@ -18,6 +18,7 @@ ________________________________________________________________________________
 ### Important Info
 
 * This tool is only proven on MacOS/*nix, not tested on Windows.
+* You can use r2g with zero-config, or with some sophisticated config, depending on what you want to do.
 * Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 * If you use the `--full` option, the local deps of your package will copied to: `"$HOME/.r2g/temp/deps"`
 * You can and should put your regular tests in .npmignore, but your .r2g folder should not be in .npmignore
@@ -26,7 +27,7 @@ ________________________________________________________________________________
 
 * Your NPM package is referred to as `X`. X is the name of the package you publish to NPM, which is the "name" field of your package.json.
 * `T` is the r2g test project directory => `"$HOME/.r2g/temp/project"`
-* When X is tested, it will be installed as a dependency of Y. So it will be T/node_modules/X.
+* When X is tested, it will be installed as a dependency of Y. So it will be `T/node_modules/X`.
 * Y is the package name of the package in T
 * The package.json file for X is simply referred to as `X-package.json`.
 * Your index.js file (whatever "main" points to in X-package.json), is referred to as `X-main`
@@ -44,7 +45,8 @@ when you do a `git push`. Keep doing that. <i>However, the reason why what you a
 
 1. You install using `npm install` instead of `npm install --production`, because you need your devDependencies for your tests. (whoops!).
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`, and for example, your postinstall routine may behave differently here.
-3. You are not using `npm pack` to package your project before testing it. Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild.
+3. You are not using `npm pack` to package your project before testing it. Your `.npmignore`  file could mean you will be missing files, when someone goes to use your package in the wild. Likewise, if
+the "files" property in X-package.json is too passive, you might be missing files as well. Using `npm pack` before testing solves that.
 
 The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think everyone has had an `.npmignore` file that accidentally ignored files we need in production.
 And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
@@ -84,7 +86,8 @@ To learn more about how r2g works in detail, see:
 
 # Basic usage / Getting started
 
-All you have to do is execute this in a shell at the root of your project:
+You can use r2g with zero-config - you just need to implement a single function. <br>
+To start, execute this in a shell at the root of your project:
 
 ```bash
 $ r2g run
@@ -99,20 +102,21 @@ exports.r2gSmokeTest = function(){  // this function can be async
 };
 ```
 
-the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must return `true` (not just truthy). <br>
+the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must resolve to `true` (not just truthy). <br>
 
-<b>To read more about this testing function, see:</b> `docs/r2g-smoke-test-exported-main-function.md`
+<b>To read more about the exported r2gSmokeTest function, see:</b> `docs/r2g-smoke-test-exported-main-function.md`
 
 <br>
 
-This exported function `r2gSmokeTest` allows you to smoke test your package. When this function is run you <i>may</i> use the production dependencies declared in your project.
-However, for other r2g tests, you may *not* directly use the dependencies declared in X-package.json, *you may only require X itself*.
+Note: the exported function `r2gSmokeTest` allows you to smoke test your package. When this function is run you <i>may</i> use the production dependencies declared in your project.
+<i> However, for other r2g tests, you may *not* directly use the dependencies declared in X-package.json, *you may only require X itself*. </i>
 
 <br>
 
 ## Adding more tests beyond the `r2gSmokeTest` function
 
-To add more sophisticated tests, run:
+To do more sophisticated tests, we add some configuration in a folder called .r2g in the root of your project. <br>
+To do this, run:
 
 ```bash
 r2g init
