@@ -240,7 +240,7 @@ in other words, you won't need to do anything in r2g-copy-tests, so just do this
 
 ## Sample output
 
-r2g is setup for this project itself, so we run `r2g run` against this codebase:
+r2g is setup for this project itself, so we run `r2g run` against this codebase. 
 
 ```bash
 
@@ -266,7 +266,7 @@ r2g: Your exported r2gSmokeTest functions have all passed
 r2g: [r2g info] Running user defined tests in "/home/oleg/.r2g/temp/project" ...
 r2g: Now running the user defined smoke test...
 r2g: r2g user defined smoke test passed.
-r2g: [r2g info] Successfully ran r2g/docker.r2g
+r2g: [r2g info] Successfully ran r2g.
 
 real    0m2.144s
 user    0m2.124s
