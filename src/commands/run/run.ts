@@ -339,7 +339,13 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stdout.pipe(process.stdout);
         k.stderr.pipe(process.stderr);
         k.stdin.end(`r2g_run_user_defined_tests;`);
-        k.once('exit', cb);
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('an r2g test failed => the file here failed to exit with code 0:', path.resolve(process.env.HOME + '/.r2g/temp/project/user_defined_smoke_test'));
+            log.error(chalk.magenta('for help fixing this error, see: https://github.com/ORESoftware/r2g/blob/master/docs/r2g-smoke-test-exported-main-fn-type-a.md'));
+          }
+          cb(code);
+        });
       }
 
     },
