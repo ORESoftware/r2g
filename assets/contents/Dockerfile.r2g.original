@@ -8,7 +8,7 @@ ENV FORCE_COLOR=1
 ENV docker_r2g_in_container=yes
 ENV MY_DOCKER_R2G_SEARCH_ROOT="/home/node"
 
-RUN  curl -sS -o- "$ores_bash_utils/master/assets/install-basics.sh" | bash
+RUN curl -sS -o- "$ores_bash_utils/master/assets/install-basics.sh" | bash
 RUN sudo echo "node ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 USER node
@@ -37,7 +37,6 @@ ARG NODE_ENV
 ENV NODE_ENV ${NODE_ENV:-production}
 
 COPY . .
-
 
 RUN sudo chmod -R 777  /home/node
 

@@ -58,23 +58,39 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
   try {
     docker2gConf = require(projectRoot + '/.r2g/config.js');
     docker2gConf = docker2gConf.default || docker2gConf;
-    packages = docker2gConf.packages;
-    searchRoot = path.resolve(docker2gConf.searchRoot);
   }
   catch (err) {
-    log.error(chalk.magentaBright('Could not read your .r2g/config.js file.'));
-    throw getCleanTrace(err);
+
+    log.warn(chalk.magentaBright('Could not read your .r2g/config.js file.'));
+
+    if (process.env.r2g_is_docker === 'yes') {
+      throw getCleanTrace(err);
+    }
+
+    docker2gConf = require('../../../assets/default.r2g.config.js');
+    docker2gConf = docker2gConf.default || docker2gConf;
+
+    process.once('exit', code => {
+      log.warn(chalk.magentaBright('Note that during this run, r2g could not read your .r2g/config.js file.'))
+    });
+
   }
 
+  packages = docker2gConf.packages;
+  searchRoot = path.resolve(docker2gConf.searchRoot || '');
+
   if (!(packages && typeof packages === 'object')) {
+    log.error(docker2gConf);
     throw new Error('You need a property called "packages" in your .r2g/config.js file.');
   }
 
   if (!(searchRoot && typeof searchRoot === 'string')) {
+    log.error(docker2gConf);
     throw new Error('You need a property called "searchRoot" in your .r2g/config.js file.');
   }
 
   if (!path.isAbsolute(searchRoot)) {
+    log.error(docker2gConf);
     throw new Error('Your "searchRoot" property in your .r2g/config.js file, needs to be an absolute path.');
   }
 
@@ -185,7 +201,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       copyProjectsInMap: function (getMap: any, cb: EVCallback) {
 
-        if(Object.keys(getMap).length < 1){
+        if (Object.keys(getMap).length < 1) {
           return process.nextTick(cb, null, {});
         }
 
@@ -194,7 +210,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       renamePackagesToAbsolute: function (copyProjectsInMap: any, copyProject: any, cb: EVCallback) {
 
-        if(Object.keys(copyProjectsInMap).length < 1){
+        if (Object.keys(copyProjectsInMap).length < 1) {
           return process.nextTick(cb, null, {});
         }
 
