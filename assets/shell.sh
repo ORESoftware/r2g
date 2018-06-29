@@ -6,11 +6,15 @@ r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
 }
 
-r2g_home(){
+r2g_get_home_dir(){
   echo "$HOME/.r2g"
 }
 
-r2g_project_root(){
+r2g_get_temp_dir(){
+  echo "$HOME/.r2g/temp"
+}
+
+r2g_get_project_dir(){
   echo "$HOME/.r2g/temp/project"
 }
 
@@ -20,7 +24,7 @@ r2g_uninstall(){
   rm -rf "$(which r2g)"
   hash -d r2g
   rm -rf "$(which r2g)"
-  rm -rf "$(r2g_home)"
+  rm -rf "$(r2g_get_home_dir)"
   rm -rf "$(type -P r2g)"
   hash -d r2g
 }
@@ -33,8 +37,16 @@ r2g_delete(){
   hash -d r2g
 }
 
-r2g_open(){
-  subl "$(r2g_project_root)"
+r2g_open_project_dir(){
+  subl "$(r2g_get_project_dir)"
+}
+
+r2g_open_temp_dir(){
+  subl "$(r2g_get_temp_dir)"
+}
+
+r2g_open_home_dir(){
+  subl "$(r2g_get_home_dir)"
 }
 
 r2g_view_log(){
@@ -141,9 +153,16 @@ r2g_run_user_defined_tests(){
 
 export -f r2g;
 export -f r2g_get_latest;
-export -f r2g_open;
-export -f r2g_home;
-export -f r2g_project_root;
+
+export -f r2g_open_home_dir;
+export -f r2g_open_temp_dir;
+export -f r2g_open_project_dir;
+
+
+export -f r2g_get_home_dir;
+export -f r2g_get_project_dir;
+export -f r2g_get_temp_dir;
+
 export -f r2g_view_log;
 export -f r2g_uninstall;
 export -f r2g_copy_package_json;

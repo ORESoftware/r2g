@@ -39,6 +39,11 @@ elif [ "$cmd" == "init" ]; then
   shift 1;
   r2g_zmx r2g_init "$@"
 
+elif [ "$cmd" == "symlink" ] || [ "$cmd" == "link" ]; then
+
+  shift 1;
+  r2g_zmx r2g_symlink "$@"
+
 elif [ "$cmd" == "docker" ]; then
 
   shift 1;
