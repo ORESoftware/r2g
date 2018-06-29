@@ -46,6 +46,9 @@
     "@types/node": "^9.6.2",
     "@types/shortid": "0.0.29"
   },
+  "r2g":{
+    "test":"echo 'this is great'"
+  },
   "r2gz": {
     "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
     "run-tests": "node test"

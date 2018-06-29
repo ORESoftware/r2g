@@ -28,6 +28,11 @@ export default [
     help: 'Allow unknown arguments to the command line.',
   },
   {
+    names: ['z'],
+    type: 'bool',
+    help : 'Test your package using r2g.test or npm test, after linking project to itself after npm pack.'
+  },
+  {
     names: ['full'],
     type: 'bool',
     help: 'Install local copies of select dependencies, instead of using NPM.',

@@ -30,13 +30,15 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const userHome = path.resolve(process.env.HOME);
 
-  let pkgJSON = null, docker2gConf = null, packages: Packages = null, searchRoot = '', pkgName = '';
+  let pkgJSON = null, docker2gConf = null,
+    packages: Packages = null, searchRoot = '', pkgName = '', cleanPackageName = '', zTest = 'npm test';
 
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
 
   try {
     pkgJSON = require(pkgJSONPth);
     pkgName = pkgJSON.name;
+    cleanPackageName = pkgJSON.name || '';
   }
   catch (err) {
     log.error(chalk.magentaBright('Could not read your projects package.json file.'));
@@ -48,6 +50,17 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       'Your package.json file does not appear to have a proper name field. Here is the file:\n' + util.inspect(pkgJSON)
     );
   }
+
+  try {
+    zTest = pkgJSON.r2g.test;
+  }
+  catch (err) {
+    if (opts.z) {
+      log.info('using "npm test" to run z-test.');
+    }
+  }
+
+  assert(typeof zTest === 'string', 'z-test is not a string => check the r2g.test property in your package.json.');
 
   pkgName = String(pkgName).replace(/[^0-9a-z]/gi, '_');
 
@@ -71,7 +84,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     docker2gConf = docker2gConf.default || docker2gConf;
 
     process.once('exit', code => {
-      if(code < 1){
+      if (code < 1) {
         log.warning(chalk.yellow.bold('Note that during this run, r2g could not read your .r2g/config.js file.'))
       }
     });
@@ -241,13 +254,14 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCallback) {
 
-        log.info('Running "npm pack" against your project ...');
+        const cmd = `npm pack --loglevel=warn;`;
+        log.info(chalk.bold('Running the following command from your project copy:'), chalk.cyan.bold(cmd));
 
         const k = cp.spawn('bash', [], {
           cwd: copyProject
         });
 
-        k.stdin.end(`npm pack --loglevel=warn;`);
+        k.stdin.end(cmd);
         let stdout = '';
         k.stdout.on('data', d => {
           stdout += String(d || '').trim();
@@ -256,6 +270,103 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', function (code) {
           if (code > 0) log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
           cb(code, path.resolve(copyProject + '/' + stdout));
+        });
+      },
+
+      linkPackage(runNPMInstallInCopy: any, copyProject: string, cb: EVCallback) {
+
+        if (!opts.z) {
+          return process.nextTick(cb);
+        }
+
+        const cmd = [
+          `mkdir -p "${copyProject}/node_modules/${cleanPackageName}"`,
+          `rm -rf "${copyProject}/node_modules/${cleanPackageName}"`,
+          `ln -sf "${r2gProject}/node_modules/${cleanPackageName}" "${copyProject}/node_modules/${cleanPackageName}"`
+        ]
+        .join('; ');
+
+
+        const cwd = String(copyProject).slice(0);
+        log.info(chalk.bold(`Running the following command from "${cwd}":`), chalk.bold.cyan(cmd));
+
+        const k = cp.spawn('bash', [], {
+          cwd
+        });
+
+        k.stderr.pipe(process.stderr);
+        k.stdin.end(cmd);
+
+        k.once('exit', code => {
+          if (code > 0) log.error('Could not link from project to copy.');
+          cb(code);
+        });
+
+      },
+
+      runNPMInstallInCopy(runNpmInstall: any, copyProject: string, cb: EVCallback) {
+
+        if (!opts.z) {
+          return process.nextTick(cb);
+        }
+
+        const cmd = `npm install --cache-min 9999999 --loglevel=warn`;
+        log.info(`Running "${cmd}" in project copy.`);
+
+        const k = cp.spawn('bash', [], {
+          cwd: copyProject
+        });
+
+        k.stderr.pipe(process.stderr);
+        k.stdin.end(cmd);
+
+        k.once('exit', code => {
+          if (code > 0) log.error('Could not link from project to copy.');
+          cb(code);
+        });
+
+      },
+
+      runZTest(linkPackage: any, copyProject: string, cb: EVCallback) {
+
+        if (!opts.z) {
+          return process.nextTick(cb);
+        }
+
+        const cmd = String(zTest).slice(0);
+
+        log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
+
+        const k = cp.spawn('bash', [], {
+          cwd: copyProject
+        });
+
+        k.stdin.end(`${cmd}`);
+        k.stdout.pipe(process.stdout);
+        k.stderr.pipe(process.stderr);
+
+        k.once('exit', code => {
+          if (code > 0) log.error(`Could not run your z-test command: ${cmd}`);
+          cb(code);
+        });
+
+      },
+
+      runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCallback) {
+        // runNpmPack is the path to .tgz file
+
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`;
+        log.info(`Running the following command via this dir: "${r2gProject}" ...`);
+        log.info(chalk.blueBright(cmd));
+
+        const k = cp.spawn('bash', [], {
+          cwd: r2gProject
+        });
+        k.stdin.end(cmd);
+        k.stderr.pipe(process.stderr);
+        k.once('exit', code => {
+          if (code > 0) log.error(`Could not run the following command: ${cmd}.`);
+          cb(code);
         });
       },
 
@@ -281,22 +392,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', cb);
       },
 
-      runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCallback) {
-        // runNpmPack is the path to .tgz file
-
-        const cmd = `npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`;
-        log.info(`Running the following command via this dir: "${r2gProject}" ...`);
-        log.info(chalk.blueBright(cmd));
-
-        const k = cp.spawn('bash', [], {
-          cwd: r2gProject
-        });
-        k.stdin.end(cmd);
-        k.stderr.pipe(process.stderr);
-        k.once('exit', cb);
-      },
-
-      r2gSmokeTest(runNpmInstall: any, copySmokeTester: any, cb: EVCallback) {
+      r2gSmokeTest(runZTest: any, runNpmInstall: any, copySmokeTester: any, cb: EVCallback) {
 
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
 
