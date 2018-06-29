@@ -51,7 +51,7 @@ elif [ "$cmd" == "docker" ]; then
   fi
 
 
-  dkr2g exec "$@"
+  dkr2g exec --allow-unknown "$@"
 
 else
 
