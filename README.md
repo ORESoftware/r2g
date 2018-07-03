@@ -10,7 +10,7 @@
 
 ### Installation
 
-```shell
+```console
 npm i -g @oresoftware/r2g
 ```
 
@@ -29,31 +29,31 @@ r2g run
 ````
 
 >
-> * Copies your package to "$HOME/.r2g/temp/copy", npm pack it, and install it as a dependency of a temp package in "$HOME/.r2g/temp/project"
+> * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install it as a dependency of a temp package in `"$HOME/.r2g/temp/project"`
 > * Runs smoke tests
 >
 
-```shell
+```console
 r2g run -z
-````
+```
 
-> * Copies your package to "$HOME/.r2g/temp/copy", npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
+> * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
 
-```shell
+```console
 r2g run --full
-````
+```
 
-> * Installs other locally developed dependencies to your main package, defined by .r2g/config.js, and tests everything together
+> * Installs other locally developed dependencies to your main package, defined by `.r2g/config.js`, and tests everything together
 
-```shell
+```console
 r2g run --full --pack
-````
+```
 
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
 
-```shell
+```console
 r2g run --full --pack -z
-````
+```
 
 > * This will do all of the above.
 
@@ -61,7 +61,7 @@ r2g run --full --pack -z
 ### Important Info
 
 * This tool is only proven on MacOS/*nix, not tested on Windows. If you do Windows and want something to do - fork this and make it work for Windows - it won't be hard.
-* You can use r2g with zero-config, or with some sophisticated config, depending on what you want to do.
+* You can use r2g with zero-config, depending on what you want to do.
 * Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 * If you use the `--full` option, the local deps of your package will copied to: `"$HOME/.r2g/temp/deps"`
 * You can and should put your regular tests in `.npmignore`, but your .r2g folder should not be in `.npmignore`
