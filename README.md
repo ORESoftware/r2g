@@ -3,7 +3,7 @@
 
 >
 > This tool allows you to test your package in the published format, without actually having to publish to NPM. <br>
-> Everything happens locally. For packages that do more complex/system things, it will be useful to use a Docker container. <br>
+> Everything happens locally. For packages that do more complex/system things, it will be useful to use a Docker container.
 > <b> To use r2g in a Docker container</b>, see: https://github.com/ORESoftware/docker.r2g
 >
 
