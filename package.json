@@ -8,7 +8,8 @@
     "r2g_run": "cli/r2g_run.sh",
     "r2g_init": "cli/r2g_init.sh",
     "r2g_basic": "cli/r2g_basic.sh",
-    "r2g_symlink": "cli/r2g_symlink.sh"
+    "r2g_symlink": "cli/r2g_symlink.sh",
+    "r2g_get_project_root": "cli/r2g_get_project_root.js"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",

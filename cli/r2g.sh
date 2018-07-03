@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+
+
+
+if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
+    echo "sh is stealing bash sunshine.";
+    exit 1;
+fi
+
+
 export r2g_gray='\033[1;30m'
 export r2g_magenta='\033[1;35m'
 export r2g_cyan='\033[1;36m'
@@ -8,11 +17,21 @@ export r2g_yellow='\033[1;33m'
 export r2g_green='\033[1;32m'
 export r2g_no_color='\033[0m'
 
+my_args=( "$@" );
 
-if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
-    echo "sh is stealing bash sunshine.";
-    exit 1;
-fi
+r2g_match_arg(){
+    # checks to see if the first arg, is among the remaining args
+    # for example  ql_match_arg --json --json # yes
+    first_item="$1"; shift;
+    for var in "$@"; do
+        if [[ "$var" == "$first_item" ]]; then
+          return 0;
+        fi
+    done
+    return 1;
+}
+
+export -f r2g_match_arg;
 
 
 export FORCE_COLOR=1;
