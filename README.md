@@ -26,7 +26,7 @@ ________________________________________________________________________________
 
 ```console
 $ r2g run
-````
+```
 
 >
 > * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install it as a dependency of a temp package in `"$HOME/.r2g/temp/project"`
