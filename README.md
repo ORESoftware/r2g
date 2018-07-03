@@ -10,13 +10,13 @@
 
 ### Installation
 
-```bash
+```shell
 npm i -g @oresoftware/r2g
 ```
 
 <i>Optionally</i>, you can add the following to your ~/.bashrc and/or ~/.bash_profile files:
 
-```bash
+```shell
 . "$HOME/.oresoftware/shell.sh"
 ```
 
@@ -24,7 +24,7 @@ ________________________________________________________________________________
 
 #### Quick reference
 
-```bash
+```shell
 r2g run
 ````
 
@@ -33,25 +33,25 @@ r2g run
 > * Runs smoke tests
 >
 
-```bash
+```shell
 r2g run -z
 ````
 
 > * Copies your package to "$HOME/.r2g/temp/copy", npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
 
-```bash
+```shell
 r2g run --full
 ````
 
 > * Installs other locally developed dependencies to your main package, defined by .r2g/config.js, and tests everything together
 
-```bash
+```shell
 r2g run --full --pack
 ````
 
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
 
-```bash
+```shell
 r2g run --full --pack -z
 ````
 
