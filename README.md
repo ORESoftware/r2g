@@ -11,7 +11,7 @@
 ### Installation
 
 ```console
-npm i -g @oresoftware/r2g
+$ npm i -g @oresoftware/r2g
 ```
 
 <i>Optionally</i>, you can add the following to your ~/.bashrc and/or ~/.bash_profile files:
@@ -24,8 +24,8 @@ ________________________________________________________________________________
 
 #### Quick reference
 
-```shell
-r2g run
+```console
+$ r2g run
 ````
 
 >
@@ -34,25 +34,25 @@ r2g run
 >
 
 ```console
-r2g run -z
+$ r2g run -z
 ```
 
 > * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
 
 ```console
-r2g run --full
+$ r2g run --full
 ```
 
 > * Installs other locally developed dependencies to your main package, defined by `.r2g/config.js`, and tests everything together
 
 ```console
-r2g run --full --pack
+$ r2g run --full --pack
 ```
 
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
 
 ```console
-r2g run --full --pack -z
+$ r2g run --full --pack -z
 ```
 
 > * This will do all of the above.
