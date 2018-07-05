@@ -104,10 +104,6 @@ One nice thing about testing locally instead of on a remote CI/CD server, is you
 You can run this tool <b>before</b> pushing to a Git remote. r2g will smoke test your library in about as much time as it takes to `npm install --production` your project.
 <b>If r2g smoke tests do not pass, it means your package is not publishable!</b> <br>
 
-This tool allows you to test your package in the published format, without actually having to publish to NPM. <br>
-Everything happens locally. For packages that do more complex/system things, it will be useful to use a Docker container. <br>
-<b> To use r2g in a Docker container</b>, see: https://github.com/ORESoftware/docker.r2g
-
 Running tests in local Docker containers has some advantages, but you can also run r2g as part of your regular test suite on CI/CD servers,
 just make sure you have write access to `"$HOME/.r2g"`
 
