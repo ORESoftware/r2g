@@ -2,7 +2,6 @@
 
 import cp = require('child_process');
 import path = require("path");
-import fs = require('fs');
 import async = require('async');
 import log from "../../logger";
 import chalk from "chalk";

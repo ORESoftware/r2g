@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 
+
+
 import chalk from 'chalk';
 import log from '../../logger';
+
+process.once('exit', code => {
+  log.info('r2g is exiting with code =>', code);
+});
+
 import {opts, projectRoot, cwd} from './parse-cli-opts';
 
 log.info('Your project root:', projectRoot);
