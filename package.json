@@ -55,5 +55,8 @@
     "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
     "run-tests": "node test"
   },
+  "npp":{
+    "publishable": true
+  },
   "b3val": 3
 }

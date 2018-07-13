@@ -30,5 +30,11 @@ const fs = require('fs');
 const EE = require('events');
 
 
+process.on('unhandledRejection', (reason, p) => {
+  // unless we force process to exit with 1, process may exit with 0 upon an unhandledRejection
+  console.error(reason);
+  process.exit(1);
+});
+
 
 // your test goes here

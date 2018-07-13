@@ -26,11 +26,16 @@ export interface Packages {
   [key: string]: boolean | string
 }
 
+interface BinFieldObject {
+  [key: string]: string
+}
+
 export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const userHome = path.resolve(process.env.HOME);
 
-  let pkgJSON = null, docker2gConf = null,
+
+  let pkgJSON : any = null, docker2gConf = null,
     packages: Packages = null, searchRoot = '', pkgName = '', cleanPackageName = '', zTest = 'npm test';
 
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
@@ -278,12 +283,38 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           return process.nextTick(cb);
         }
 
+
+        const getBinMap = function (bin: string | BinFieldObject, path: string, name: string) {
+
+          if (!bin) {
+            return '';
+          }
+
+          if (typeof bin === 'string') {
+            return ` mkdir -p "node_modules/.bin" && ln -s "${path}/${bin}" "node_modules/.bin/${name}" `
+          }
+
+          const keys = Object.keys(bin);
+
+          if (keys.length < 1) {
+            return '';
+          }
+
+          return  keys.map(function (k) {
+            return ` mkdir -p node_modules/.bin && ln -sf "${path}/${bin[k]}" "node_modules/.bin/${k}" `
+          })
+          .join(' && ');
+        };
+
         const cmd = [
-          `mkdir -p "${copyProject}/node_modules/${cleanPackageName}"`,
-          `rm -rf "${copyProject}/node_modules/${cleanPackageName}"`,
-          `ln -sf "${r2gProject}/node_modules/${cleanPackageName}" "${copyProject}/node_modules/${cleanPackageName}"`
+          `mkdir -p "node_modules/${cleanPackageName}"`,
+          `rm -rf "node_modules/${cleanPackageName}"`,
+          `ln -sf "${r2gProject}/node_modules/${cleanPackageName}" "node_modules/${cleanPackageName}"`,
+          // `rsync -r "${r2gProject}/node_modules/${cleanPackageName}" "node_modules"`,
+          getBinMap(pkgJSON.bin, `${copyProject}/node_modules/${cleanPackageName}`, cleanPackageName)
         ]
-        .join('; ');
+        .join(' && ');
+
 
 
         const cwd = String(copyProject).slice(0);
@@ -337,7 +368,11 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
 
         const k = cp.spawn('bash', [], {
-          cwd: copyProject
+
+          cwd: copyProject,
+          env: Object.assign(process.env, {}, {
+            PATH: path.resolve(copyProject + '/node_modules/.bin') + ':' + process.env.PATH
+          })
         });
 
         k.stdin.end(`${cmd}`);
@@ -396,8 +431,12 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
 
         const k = cp.spawn('bash', [], {
-          cwd: r2gProject
+          cwd: r2gProject,
+          env: Object.assign(process.env, {}, {
+            PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
+          })
         });
+
         k.stderr.pipe(process.stderr);
         k.stdout.pipe(process.stdout);
         k.stdin.end(`node smoke-tester.js;`);
@@ -429,10 +468,15 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         log.info(`Running user defined tests in "${r2gProject}" ...`);
 
         const k = cp.spawn('bash', [], {
-          cwd: r2gProject
+          cwd: r2gProject,
+          env: Object.assign(process.env, {}, {
+            PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
+          })
         });
+
         k.stdout.pipe(process.stdout);
         k.stderr.pipe(process.stderr);
+
         k.stdin.end(`r2g_run_user_defined_tests;`);
         k.once('exit', code => {
           if (code > 0) {
