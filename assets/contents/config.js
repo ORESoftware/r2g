@@ -1,9 +1,6 @@
 'use strict';
 
-// NOTE : only include dependencies in this file, which are:
-// 1. core modules
-// 2. in your project's package.json file as dependencies (not devDependencies)
-
+// NOTE : the only dependencies you should import here are core/built-in modules
 const path = require('path');
 
 const searchRoot = path.resolve(process.env.MY_DOCKER_R2G_SEARCH_ROOT || process.env.HOME || '');
