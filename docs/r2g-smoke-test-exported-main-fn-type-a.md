@@ -1,6 +1,23 @@
 
 
-## Exporting the r2gSmokeTest() function from main
+## Exporting a r2gSmokeTest() function from main
+
+You might be here, because you saw the following error in your console:
+`r2g smoke test failed => one of your exported r2gSmokeTest function calls failed to resolve to true`
+
+If you got the above error, it's most likely because you haven't added a function that looks like this to your main:
+
+```
+exports.r2gSmokeTest = () => {
+  return true;
+};
+```
+
+The purpose of the above function is to run some simple statements to make sure basic functionality is met.
+If you need to troubleshoot this further, see: `docs/r2g-type-a-troubleshooting.md`.
+
+
+### More details
 
 Your project has an index file, which is designated by
 

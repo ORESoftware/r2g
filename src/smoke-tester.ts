@@ -23,6 +23,7 @@ const getAllPromises = async function (links: Array<string>) {
 
     let mod: any;
     try {
+      console.log('loading the following module:', l);
       mod = require(l);
     }
     catch (err) {
@@ -40,7 +41,11 @@ const getAllPromises = async function (links: Array<string>) {
     }
 
     return Promise.resolve(mod.r2gSmokeTest())
-    .then((v: any) => ({path: l, result: v}));
+    .then((v: any) => {
+      console.log('resolved result for:', l);
+      console.log('result is:',v);
+      return {path: l, result: v};
+    });
   }));
 };
 
@@ -49,10 +54,11 @@ getAllPromises(links).then(function (results) {
   console.log('This many packages were tested:', results.length);
 
   const failures = results.filter(function (v) {
-    return !v.result;
+    return v.result !== true;
   });
 
-  if (failures.length > 1) {
+  if (failures.length > 0) {
+    console.error('At least one exported "r2gSmokeTest" function failed.');
     throw new Error(util.inspect(failures, {breakLength: Infinity}));
   }
 
@@ -62,7 +68,6 @@ getAllPromises(links).then(function (results) {
 })
 .catch(function (err) {
 
-  console.error('At least one export r2gSmokeTest function failed:');
   console.error(err);
   process.exit(1);
 

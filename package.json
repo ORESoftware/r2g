@@ -1,13 +1,15 @@
 {
   "name": "@oresoftware/r2g",
-  "version": "0.0.134",
+  "version": "0.1.016",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
     "r2g": "cli/r2g.sh",
     "r2g_run": "cli/r2g_run.sh",
     "r2g_init": "cli/r2g_init.sh",
-    "r2g_basic": "cli/r2g_basic.sh"
+    "r2g_basic": "cli/r2g_basic.sh",
+    "r2g_symlink": "cli/r2g_symlink.sh",
+    "r2g_get_project_root": "cli/r2g_get_project_root.js"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -46,9 +48,15 @@
     "@types/node": "^9.6.2",
     "@types/shortid": "0.0.29"
   },
+  "r2g": {
+    "test": "echo 'this is great'"
+  },
   "r2gz": {
     "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
     "run-tests": "node test"
+  },
+  "npp":{
+    "publishable": true
   },
   "b3val": 3
 }

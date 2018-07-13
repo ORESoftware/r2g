@@ -8,6 +8,9 @@ logs
 coverage
 dist/*
 
+### files
+path
+assert
 
 ### matching
 *.log
