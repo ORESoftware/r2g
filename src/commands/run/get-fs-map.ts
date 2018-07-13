@@ -19,6 +19,10 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
     fs.readdir(dir, function (err, items) {
 
       if (err) {
+        log.warn('Could not read directory at path:', dir);
+        if(String(err.message || err).match(/permission denied/)){
+          return cb(null);
+        }
         return cb(err);
       }
 
@@ -63,12 +67,13 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
             return searchDir(item, cb);
           }
 
-          if (!stats.isFile()) {
-            log.warn('unexpected non-file here:', item);
+
+          if (!item.endsWith('/package.json')) {
             return cb(null);
           }
 
-          if (!item.endsWith('/package.json')) {
+          if (!stats.isFile()) {
+            log.warn('unexpected non-file here:', item);
             return cb(null);
           }
 
@@ -78,7 +83,7 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
               return cb(err);
             }
 
-            let parsed = null;
+            let parsed = null, linkable = null;
 
             try {
               parsed = JSON.parse(String(data));
@@ -88,6 +93,18 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
               log.error(err.message || err);
               return cb(err);
             }
+
+            try{
+               linkable = parsed.r2g.linkable;
+            }
+            catch(err){
+
+            }
+
+            if(linkable === false){
+              return cb(null);
+            }
+
 
             if (parsed && parsed.name) {
 
@@ -100,7 +117,7 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
                 log.warn('new place => ', chalk.blueBright(item));
 
                 return cb(
-                  new Error('The following requested package name exists in more than 1 location on disk, and docker.r2g does not know which one to use ... ' +
+                  new Error('The following requested package name exists in more than 1 location on disk, and r2g does not know which one to use ... ' +
                     chalk.magentaBright.bold(util.inspect({name: nm, locations: [map[nm], item]})))
                 )
               }
