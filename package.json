@@ -51,7 +51,7 @@
   "r2g": {
     "test": "echo 'this is great'"
   },
-  "npp":{
+  "npp": {
     "publishable": true
   },
   "b3val": 3
