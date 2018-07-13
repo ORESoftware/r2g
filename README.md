@@ -24,38 +24,58 @@ ________________________________________________________________________________
 
 #### Quick reference
 
-```console
-$ r2g run
-```
+<br>
 
+>
+>```console
+>$ r2g run
+>```
 >
 > * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install it as a dependency of a temp package in `"$HOME/.r2g/temp/project"`
 > * Runs smoke tests
 >
 
-```console
-$ r2g run -z
-```
+<br>
 
+>
+>```console
+>$ r2g run -z
+>```
+>
 > * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
+>
 
-```console
-$ r2g run --full
-```
+<br>
 
+>
+>```console
+>$ r2g run --full
+>```
+>
 > * Installs other locally developed dependencies to your main package, defined by `.r2g/config.js`, and tests everything together
+>
 
-```console
-$ r2g run --full --pack
-```
+<br>
 
+>
+>```console
+>$ r2g run --full --pack
+>```
+>
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
+>
 
-```console
-$ r2g run --full --pack -z
-```
+<br>
 
+>
+>```console
+>$ r2g run --full --pack -z
+>```
+>
 > * This will do all of the above.
+>
+
+<br>
 
 
 ### Important Info
