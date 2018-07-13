@@ -9,12 +9,12 @@ if [ "$current_branch" == "master" ] || [ "$current_branch" == "dev" ]; then
     exit 1;
 fi
 
-time_millis=`node -e 'console.log(Date.now())'`;
+time_seconds=`node -e 'console.log(String(Date.now()).slice(-3))'`;
 git fetch origin
 
 git add .
 git add -A
-git commit --allow-empty -am "merge_at:${time_millis}"
+git commit --allow-empty -am "merge_at:${time_seconds}"
 
 
 git merge -Xignore-space-change --no-ff "origin/dev" # use --no-ff to force a new commit
