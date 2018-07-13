@@ -25,8 +25,8 @@ if ! contains "$branch_type" "${arr[@]}"; then
     exit 1;
 fi
 
-git fetch origin
 git checkout dev
+git fetch origin
 git merge -Xignore-space-change origin/dev
 git push origin dev
 
