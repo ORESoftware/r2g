@@ -3,7 +3,6 @@
 set -e;
 
 branch_type="${1:-feature}";
-
 arr=( 'feature' 'bugfix' 'release' );
 
 contains() {
