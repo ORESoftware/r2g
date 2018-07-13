@@ -30,11 +30,10 @@ git fetch origin
 git merge -Xignore-space-change origin/dev
 git push origin dev
 
-time_millis=`node -e 'console.log(Date.now())'`;
-
+time_seconds=`node -e 'console.log(String(Date.now()).slice(0,-3))'`;
 
 echo "You are checking out a new $branch_type branch from the dev branch"
-new_branch="${USER}/${branch_type}/${time_millis}"
+new_branch="${USER}/${branch_type}/${time_seconds}"
 
 echo "New branch name: $new_branch";
 
