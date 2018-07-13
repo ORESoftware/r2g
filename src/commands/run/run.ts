@@ -34,8 +34,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const userHome = path.resolve(process.env.HOME);
 
-
-  let pkgJSON : any = null, docker2gConf = null,
+  let pkgJSON: any = null, docker2gConf = null,
     packages: Packages = null, searchRoot = '', pkgName = '', cleanPackageName = '', zTest = 'npm test';
 
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
@@ -283,11 +282,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           return process.nextTick(cb);
         }
 
-
         const getBinMap = function (bin: string | BinFieldObject, path: string, name: string) {
 
           if (!bin) {
-            return '';
+            return ` echo "no bin items in package.json for ${name}" `;
           }
 
           if (typeof bin === 'string') {
@@ -297,10 +295,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           const keys = Object.keys(bin);
 
           if (keys.length < 1) {
-            return '';
+            return ` echo "no bin items in package.json for ${name}" `;
           }
 
-          return  keys.map(function (k) {
+          return keys.map(function (k) {
             return ` mkdir -p node_modules/.bin && ln -sf "${path}/${bin[k]}" "node_modules/.bin/${k}" `
           })
           .join(' && ');
@@ -314,8 +312,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           getBinMap(pkgJSON.bin, `${copyProject}/node_modules/${cleanPackageName}`, cleanPackageName)
         ]
         .join(' && ');
-
-
 
         const cwd = String(copyProject).slice(0);
         log.info(chalk.bold(`Running the following command from "${cwd}":`), chalk.bold.cyan(cmd));
@@ -458,14 +454,20 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
         k.stdout.pipe(process.stdout);
         k.stderr.pipe(process.stderr);
-        k.stdin.end(`r2g_copy_user_defined_tests "${r2gProject}";`);
+        k.stdin.end([
+          `mkdir -p .r2g/tests`,
+          `mkdir -p .r2g/fixtures`,
+          `rsync -r .r2g/tests "${r2gProject}"`,
+          `rsync -r .r2g/fixtures "${r2gProject}"`
+        ].join(' && '));
+
         k.once('exit', cb);
 
       },
 
       runUserDefinedTests(copyUserDefinedTests: any, r2gSmokeTest: any, runNpmInstall: any, cb: EVCallback) {
 
-        log.info(`Running user defined tests in "${r2gProject}" ...`);
+        log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
 
         const k = cp.spawn('bash', [], {
           cwd: r2gProject,
@@ -477,7 +479,27 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stdout.pipe(process.stdout);
         k.stderr.pipe(process.stderr);
 
-        k.stdin.end(`r2g_run_user_defined_tests;`);
+        const tests = path.resolve(r2gProject + '/tests');
+
+        fs.readdir(tests, (err, items) => {
+
+          if (err) {
+            return cb(err);
+          }
+
+          try{
+            const cmd = items
+            .filter(v => fs.lstatSync(tests + '/' + v).isFile())
+            .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `).concat(' exit "$?" ').join(' ');
+
+            k.stdin.end(`${cmd}`);
+          }
+          catch(err){
+            return cb(err);
+          }
+
+        });
+
         k.once('exit', code => {
           if (code > 0) {
             log.error('an r2g test failed => the file here failed to exit with code 0:', path.resolve(process.env.HOME + '/.r2g/temp/project/user_defined_smoke_test'));

@@ -38,11 +38,16 @@ export FORCE_COLOR=1;
 cmd="$1";
 
 
-r2g_zmx(){
- "$@"  \
-      2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
-      1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
+#r2g_zmx(){
+# "$@"  \
+#      2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
+#      1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
+#}
+
+r2g_zmx() {
+    "$@" 2>&1 | sed 's/^/r2g: /'
 }
+
 
 export -f r2g_zmx;
 

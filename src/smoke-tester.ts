@@ -62,7 +62,7 @@ getAllPromises(links).then(function (results) {
     throw new Error(util.inspect(failures, {breakLength: Infinity}));
   }
 
-  console.log('Your exported r2gSmokeTest functions have all passed');
+  console.log('Your exported r2gSmokeTest function(s) have all passed');
   process.exit(0);
 
 })

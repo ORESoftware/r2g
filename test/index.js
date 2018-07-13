@@ -13,10 +13,14 @@
 //
 
 
-Object.prototype.getCleanStack = function(){
-   return 'foo';
-};
+// Object.prototype.getCleanStack = function(){
+//    return 'foo';
+// };
+//
+//
+// console.log(typeof Object('age').getCleanStack());
 
+const d = Date.now();
 
-console.log(typeof Object('age').getCleanStack());
-
+console.log(d);
+console.log(String(d).slice(0,-3));
