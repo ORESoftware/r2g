@@ -285,7 +285,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         const getBinMap = function (bin: string | BinFieldObject, path: string, name: string) {
 
           if (!bin) {
-            return ` echo "no bin items in package.json for ${name}" `;
+            return ` echo "no bin items in package.json for package with name: ${name}" `;
           }
 
           if (typeof bin === 'string') {
@@ -295,7 +295,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           const keys = Object.keys(bin);
 
           if (keys.length < 1) {
-            return ` echo "no bin items in package.json for ${name}" `;
+            return ` echo "no bin items in package.json for package with name: ${name}" `;
           }
 
           return keys.map(function (k) {
@@ -502,7 +502,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
         k.once('exit', code => {
           if (code > 0) {
-            log.error('an r2g test failed => the file here failed to exit with code 0:', path.resolve(process.env.HOME + '/.r2g/temp/project/user_defined_smoke_test'));
+            log.error('an r2g test failed => a script in this dir failed to exit with code 0:', chalk.bold(path.resolve(process.env.HOME + '/.r2g/temp/project/tests')));
             log.error(chalk.magenta('for help fixing this error, see: https://github.com/ORESoftware/r2g/blob/master/docs/r2g-smoke-test-type-b.md'));
           }
           cb(code);
