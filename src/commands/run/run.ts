@@ -15,6 +15,7 @@ import {EVCallback} from "../../index";
 import {getFSMap} from "./get-fs-map";
 import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
+import pt from "prepend-transform";
 
 ///////////////////////////////////////////////
 
@@ -129,7 +130,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const dependenciesToInstall = Object.keys(packages);
   if (dependenciesToInstall.length < 1) {
-    log.warn('Here is your configuration:\n', docker2gConf);
+    log.debug('There were no local dependencies to install.');
+    log.debug('Here is your configuration:\n', docker2gConf);
   }
 
   const deps = [
@@ -372,8 +374,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
 
         k.stdin.end(`${cmd}`);
-        k.stdout.pipe(process.stdout);
-        k.stderr.pipe(process.stderr);
+        k.stdout.pipe(pt(chalk.gray('phase-Z: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.yellow('phase-Z: '))).pipe(process.stderr);
 
         k.once('exit', code => {
           if (code > 0) log.error(`Could not run your z-test command: ${cmd}`);
@@ -433,8 +435,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           })
         });
 
-        k.stderr.pipe(process.stderr);
-        k.stdout.pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.yellow('phase-S: '))).pipe(process.stderr);
+        k.stdout.pipe(pt(chalk.gray('phase-S: '))).pipe(process.stdout);
+
         k.stdin.end(`node smoke-tester.js;`);
         k.once('exit', code => {
           if (code > 0) {
@@ -476,29 +479,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           })
         });
 
-        k.stdout.pipe(process.stdout);
-        k.stderr.pipe(process.stderr);
+        k.stdout.pipe(pt(chalk.gray('phase-T: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.yellow('phase-T: '))).pipe(process.stderr);
 
-        const tests = path.resolve(r2gProject + '/tests');
-
-        fs.readdir(tests, (err, items) => {
-
-          if (err) {
-            return cb(err);
-          }
-
-          try{
-            const cmd = items
-            .filter(v => fs.lstatSync(tests + '/' + v).isFile())
-            .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `).concat(' exit "$?" ').join(' ');
-
-            k.stdin.end(`${cmd}`);
-          }
-          catch(err){
-            return cb(err);
-          }
-
-        });
 
         k.once('exit', code => {
           if (code > 0) {
@@ -507,6 +490,22 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           }
           cb(code);
         });
+
+        const tests = path.resolve(r2gProject + '/tests');
+
+        try {
+
+          const items = fs.readdirSync(tests);
+
+          const cmd = ` echo 'Now we are in phase-T...';` + items.filter(v => fs.lstatSync(tests + '/' + v).isFile())
+          .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `).concat(' exit "$?" ').join(' ');
+
+          log.info('About to run tests in your .r2g/tests dir.');
+          k.stdin.end(`${cmd}`);
+        }
+        catch (err) {
+          return cb(err);
+        }
       }
 
     },
