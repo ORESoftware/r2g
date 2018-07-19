@@ -1,5 +1,5 @@
 
-# r2g  > <sub> properly test your NPM packages before publishing. </sub>
+# r2g  <sub> properly test your NPM packages before publishing. </sub>
 
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
@@ -28,8 +28,8 @@ that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optiona
 <br>
 
 * <b> phase-Z:</b> packs your project and installs the packed project as a dependency of itself then runs `npm test` on your project. You can override `npm test` with `r2g.test` in package.json.
-* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main
-* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them
+* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main.
+* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them.
 
 <br>
 By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
@@ -56,6 +56,17 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 >
 > * This will skip phases Z and S
 >
+
+<br>
+
+>
+>```console
+>$ r2g run -z -s
+>```
+>
+> * This will also skip phases Z and S
+>
+
 
 <br>
 
