@@ -7,8 +7,9 @@ import async = require('async');
 import {getCleanTrace} from 'clean-trace';
 
 // project
+const execSh = path.resolve(__dirname + '/../../../assets/exec.sh');
 const contents = path.resolve(__dirname + '/../../../assets/contents');
-const Dockerfile = path.resolve(__dirname + '/../../../assets/contents/Dockerfile.r2g.original');
+const Dockerfile = path.resolve(__dirname + '/../../../assets/Dockerfile.r2g.original');
 const docker_r2g = '.r2g';
 import log from '../../logger';
 import chalk from "chalk";
@@ -19,18 +20,18 @@ import * as util from "util";
 export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const dockerfileDest = path.resolve(projectRoot + '/Dockerfile.r2g');
+  const execShDest = path.resolve(projectRoot + '/.r2g/exec.sh');
 
   async.autoInject({
 
       mkdir: function (cb: any) {
-
-        // fs.mkdir(`${projectRoot}/${docker_r2g}`, cb);
 
         const k = cp.spawn('bash');
         k.stdin.end(`mkdir ${projectRoot}/${docker_r2g}`);
         k.once('exit', function (code) {
           cb(null, code);
         });
+
       },
 
       copyContents: function (mkdir: any, cb: any) {
@@ -45,6 +46,35 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', cb);
       },
 
+      checkIfExecShExists: function (cb: any) {
+
+        if(!opts.docker){
+          return process.nextTick(cb);
+        }
+
+        fs.lstat(execShDest, function (err, stats) {
+          cb(null, stats);
+        });
+      },
+
+      copyExecSh: function (mkdir: any, checkIfExecShExists: any, copyContents: any, cb: any) {
+
+        if(!opts.docker){
+          return process.nextTick(cb);
+        }
+
+        if (checkIfExecShExists) {
+          log.info(chalk.yellow('Could not create .r2g/exec.sh file (already exists?).'));
+          return process.nextTick(cb);
+        }
+
+        fs.createReadStream(execSh)
+        .pipe(fs.createWriteStream(execShDest))
+        .once('error', cb)
+        .once('end', cb);
+
+      },
+
       checkIfDockerfileExists: function (cb: any) {
         fs.lstat(dockerfileDest, function (err, stats) {
           cb(null, stats);
@@ -52,6 +82,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       },
 
       createDockerfile: function (checkIfDockerfileExists: any, cb: any) {
+
+        if(!opts.docker){
+          return process.nextTick(cb);
+        }
 
         if (checkIfDockerfileExists) {
           log.info(chalk.yellow('Could not create Dockerfile.r2g file (already exists?).'));

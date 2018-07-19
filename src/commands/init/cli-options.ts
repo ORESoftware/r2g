@@ -13,6 +13,11 @@ export default [
     help: 'Verbosity level, 1-3 inclusive.'
   },
   {
+    names: ['docker'],
+    type: 'bool',
+    help: 'Include docker-related files during init.',
+  },
+  {
     names: ['search-root', 'search'],
     type: 'string',
     help: 'Search root path on your fs, to look for local dependencies.',
