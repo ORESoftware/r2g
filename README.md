@@ -1,17 +1,15 @@
 
-# r2g (@oresoftware/r2g)
+# r2g  - properly test your NPM packages before publishing.
 
 >
-> This tool allows you to test your package in the published format, without actually having to publish to NPM. <br>
-> Everything happens locally. For packages that do more complex/system things, it will be useful to use a locally running Docker container.<br>
-> <b> To use r2g in a Docker container</b>, see: https://github.com/ORESoftware/docker.r2g <br>
-> Or you can just run r2g as part of your normal CI/CD library testing on remote servers.
+> This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
+> Everything happens locally.
 >
 
 ### Installation
 
 ```console
-$ npm i -g @oresoftware/r2g
+$ npm i -g r2g
 ```
 
 <i>Optionally</i>, you can add the following to your ~/.bashrc and/or ~/.bash_profile files:
@@ -22,6 +20,22 @@ $ npm i -g @oresoftware/r2g
 
 _____________________________________________________________________________________________
 
+
+### Introduction
+
+r2g tests your package after using `npm pack` and `npm install --production`. You can use your current test suite for testing, and also write some new smoke tests
+that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optional:
+
+<br>
+
+* <b> phase-Z:</b> packs your project and installs the packed project as a dependency of itself then runs `npm test` on your project. You can override `npm test` with `r2g.test` in package.json.
+* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main
+* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them
+
+<br>
+By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
+<br>
+
 #### Quick reference
 
 <br>
@@ -31,18 +45,17 @@ ________________________________________________________________________________
 >$ r2g run
 >```
 >
-> * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install it as a dependency of a temp package in `"$HOME/.r2g/temp/project"`
-> * Runs smoke tests
+> * Runs all phases.
 >
 
 <br>
 
 >
 >```console
->$ r2g run -z
+>$ r2g run --skip=z,s
 >```
 >
-> * Copies your package to `"$HOME/.r2g/temp/copy"`, npm pack it, and install the packed dependency as a dependency of itself and run your regular test suite against itself
+> * This will skip phases Z and S
 >
 
 <br>
@@ -52,7 +65,7 @@ ________________________________________________________________________________
 >$ r2g run --full
 >```
 >
-> * Installs other locally developed dependencies to your main package, defined by `.r2g/config.js`, and tests everything together
+> * Installs other locally developed dependencies to your main package, defined in `.r2g/config.js`, and tests everything together
 >
 
 <br>
@@ -63,16 +76,6 @@ ________________________________________________________________________________
 >```
 >
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
->
-
-<br>
-
->
->```console
->$ r2g run --full --pack -z
->```
->
-> * This will do all of the above.
 >
 
 <br>
@@ -89,13 +92,8 @@ ________________________________________________________________________________
 <b>To make this README as clear and concise as possible:</b>
 
 * Your NPM package is referred to as `X`. X is the name of the package you publish to NPM, which is the "name" field of your package.json.
-* `T` is the r2g test project directory => `"$HOME/.r2g/temp/project"`
-* When X is tested, it will be installed as a dependency of Y. So it will be `T/node_modules/X`.
-* Y is the package name of the package in T
 * The package.json file for X is simply referred to as `X-package.json`.
-* Your index.js file (whatever "main" points to in X-package.json), is referred to as `X-main`
-
-When X is tested with r2g, it will be installed to: `$HOME/.r2g/temp/project/node_modules/X` which is of course the same as: `T/node_modules/X`
+* Your index.js file (or whatever the "main" property points to in X-package.json), is referred to as `X-main`
 
 <br>
 
@@ -115,29 +113,8 @@ The above things are why you need to take some extra pre-cautions before publish
 And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
 to *prove* that X works in its final format.
 
-* There is a secret feature which is extremely badass - install other locally developed projects which are dependencies of X, as part of r2g testing.
+* There is a secret feature which is extremely badass - install other locally developed packages which are dependencies of X, as part of r2g testing.
 See "Linking with existing local dependencies" below.
-
-## A Better Workflow
-
-One nice thing about testing locally instead of on a remote CI/CD server, is you don't have to leave your IDE, and therefore you won't get distracted by the internet lol.
-You can run this tool <b>before</b> pushing to a Git remote. r2g will smoke test your library in about as much time as it takes to `npm install --production` your project.
-<b>If r2g smoke tests do not pass, it means your package is not publishable!</b> <br>
-
-Running tests in local Docker containers has some advantages, but you can also run r2g as part of your regular test suite on CI/CD servers,
-just make sure you have write access to `"$HOME/.r2g"`
-
-How you use this tool locally:
-
-*What you do:* Write some smoke tests that will run after (a) your library is in the published format, and (b) is
-installed in another project as dependency. This provides the answer to two important questions: 1. does it actually install
-properly when --production is used?, and 2. can it be loaded and run with at least some basic functionality <i>by another package</i>?
-
-<b> To re-iterate: here are the 3 big benefits of using r2g in combination with your existing CI/CD test process: </b>
-
-* Uses `npm pack` which will convert the project into published format which help avoid problems with overly-aggressive `.npmignore` files, or an overly-passive `"files"` property in X-package.json
-* Tests your dependency in the actual format, which is as a dependency residing in `node_modules` of <i>another</i> project Y.
-* Uses the `--production` flag, as in `npm install --production`, when it installs your package to Y.
 
 <br>
 
@@ -251,7 +228,12 @@ Awesome.
 
 ## Usage in a Docker image/container
 
+Use a Docker container for a fresh/independent/isolated testing env. For packages that do more complex/system things, it will be useful to use a locally running Docker container.
+To use r2g in a Docker container, see: https://github.com/ORESoftware/docker.r2g Alternatively, you can just run r2g as part of your normal CI/CD library testing on remote servers.
 First, make sure you have Docker installed on your local machine. See standard installation instructions for MacOS/*nix.
+
+<br>
+
 Run this in the root of your project:
 
 ```bash
@@ -270,166 +252,7 @@ https://github.com/ORESoftware/docker.r2g
 
 <br>
 
-## Experimental usage
+### For the future:
 
-The following usage is *experimental*, don't use it yet.
+* Instead a dummy NPM project which will depend on X, we can allow users to use their own test projects, and pull those in with `git clone` or what not.
 
-1. Add the following scripts to your `package.json` file:
-
-```json
- "r2g": {
-    "copy-tests": "cp -r ./test $HOME/.r2g/temp/project",
-    "run-tests": "npm test"
-  },
-```
-
-In the above, we don't publish the test directory to NPM, but we want to test our tarballed contents,
-so we have to copy the test directory over.
-
-Note that you might actually publish the relevant tests when your run `npm publish` (gets tarballed).*
-So you might need to copy any other files -
-in other words, you won't need to do anything in r2g-copy-tests, so just do this
-
-
-```json
- "r2g": {
-    "copy-tests": "echo 'copying test no-op'",
-    "run-tests": "npm test"
- },
-
-```
-
-
-
-## Sample output
-
-r2g is setup for this project itself, so we run `r2g run` against this codebase.
-
-```terminal
-
-$ time r2g run
-
-r2g: [r2g info] Removing existing files within "$HOME/.r2g/temp"...
-r2g: [r2g info] we are not creating a deps map since the --full option was not used.
-r2g: [r2g info] Making sure the right folders exist using mkdir -p ...
-r2g: [r2g info] Recreating "$HOME/.r2g/temp"...
-r2g: [r2g info] Copying your project to "$HOME/.r2g/temp/copy" using rsync ...
-r2g: [r2g info] Copying the smoke-tester.js file to "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] Copying a "blank" package.json file to "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] Removing existing files within "$HOME/.r2g.temp"...
-r2g: copying new package.json file to: /home/oleg/.r2g/temp/project
-r2g: [r2g info] Copying your user defined tests to: "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] Running "npm pack" against your project ...
-r2g: Copying user defined smoke test
-r2g: [r2g info] Running the following command via this dir: "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] npm install --loglevel=warn --cache-min 9999999 --production "/home/oleg/.r2g/temp/copy/r2g/oresoftware-r2g-0.0.134.tgz";
-r2g: [r2g info] Running your exported r2gSmokeTest function(s) in "/home/oleg/.r2g/temp/project" ...
-r2g: This many packages were tested: 1
-r2g: Your exported r2gSmokeTest functions have all passed
-r2g: [r2g info] Running user defined tests in "/home/oleg/.r2g/temp/project" ...
-r2g: Now running the user defined smoke test...
-r2g: r2g user defined smoke test passed.
-r2g: [r2g info] Successfully ran r2g.
-
-real    0m2.144s
-user    0m2.124s
-sys     0m0.332s
-
-```
-
-
-If we run `r2g run --full --pack` we get:
-
-```terminal
-
-r2g: /home/oleg/.nvm/versions/node/v10.5.0/bin/r2g_run is sourcing the r2g shell script.
-r2g: [r2g info] Removing existing files within "$HOME/.r2g/temp"...
-r2g: [r2g info] Making sure the right folders exist using mkdir -p ...
-r2g: [r2g info] added the following package name to the map: clean-trace
-r2g: [r2g info] Recreating "$HOME/.r2g/temp"...
-r2g: [r2g info] Copying your project to "$HOME/.r2g/temp/copy" using rsync ...
-r2g: [r2g info] Copying the smoke-tester.js file to "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] Copying a "blank" package.json file to "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] Removing existing files within "$HOME/.r2g.temp"...
-r2g: copying new package.json file to: /home/oleg/.r2g/temp/project
-r2g: [r2g info] Copying your user defined tests to: "/home/oleg/.r2g/temp/project" ...
-r2g: Copying user defined smoke test
-r2g: [r2g warn] unexpected non-file here: /home/oleg/WebstormProjects/oresoftware/quicklock/test/xxx
-r2g: [r2g info] added the following package name to the map: residence
-r2g: [r2g info] About to run the following command: 'set -e; mkdir -p "/home/oleg/.r2g/temp/deps/r1uUFZMzQ"; rsync -r --exclude="node_modules" "/home/oleg/WebstormProjects/oresoftware/clean-trace" "/home/oleg/.r2g/temp/deps/r1uUFZMzQ";'
-r2g: [r2g info] About to run the following command: 'set -e; mkdir -p "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ"; rsync -r --exclude="node_modules" "/home/oleg/WebstormProjects/oresoftware/residence" "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ";'
-r2g: [r2g info] Running the following command: 'npm pack --loglevel=warn;', in this directory: "/home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace".
-r2g: [r2g info] Running the following command: 'npm pack --loglevel=warn;', in this directory: "/home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence".
-r2g: [r2g info] here is the project map now:
-r2g: [r2g info] residence '/home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence/residence-0.0.210.tgz'
-r2g: [r2g info] clean-trace '/home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace/clean-trace-0.0.104.tgz'
-r2g: [r2g info] here is updated the package.json file: {
-r2g: "name": "@oresoftware/r2g",
-r2g: "version": "0.0.134",
-r2g: "description": "Semver-oriented TypeScript library skeleton.",
-r2g: "main": "dist/index.js",
-r2g: "bin": {
-r2g: "r2g": "cli/r2g.sh",
-r2g: "r2g_run": "cli/r2g_run.sh",
-r2g: "r2g_init": "cli/r2g_init.sh",
-r2g: "r2g_basic": "cli/r2g_basic.sh"
-r2g: },
-r2g: "types": "dist/index.d.ts",
-r2g: "typings": "dist/index.d.ts",
-r2g: "scripts": {
-r2g: "postinstall": "./assets/postinstall.sh",
-r2g: "test": "suman test"
-r2g: },
-r2g: "repository": {
-r2g: "type": "git",
-r2g: "url": "git+https://github.com/ORESoftware/r2g.git"
-r2g: },
-r2g: "keywords": [
-r2g: "typescript",
-r2g: "library",
-r2g: "skeleton",
-r2g: "scaffold"
-r2g: ],
-r2g: "author": "TODO Yo.Mama",
-r2g: "license": "SEE LICENSE IN LICENSE.md",
-r2g: "bugs": {
-r2g: "url": "https://github.com/ORESoftware/r2g/issues"
-r2g: },
-r2g: "homepage": "https://github.com/ORESoftware/r2g#readme",
-r2g: "dependencies": {
-r2g: "@oresoftware/shell": "latest",
-r2g: "async": "^2.6.1",
-r2g: "chalk": "^2.4.1",
-r2g: "clean-trace": "file:///home/oleg/.r2g/temp/deps/r1uUFZMzQ/clean-trace/clean-trace-0.0.104.tgz",
-r2g: "dashdash": "^1.14.1",
-r2g: "residence": "file:///home/oleg/.r2g/temp/deps/ryg_LKWzGQ/residence/residence-0.0.210.tgz",
-r2g: "shortid": "^2.2.8"
-r2g: },
-r2g: "devDependencies": {
-r2g: "@types/async": "^2.0.49",
-r2g: "@types/core-js": "^0.9.46",
-r2g: "@types/node": "^9.6.2",
-r2g: "@types/shortid": "0.0.29"
-r2g: },
-r2g: "r2gz": {
-r2g: "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
-r2g: "run-tests": "node test"
-r2g: },
-r2g: "b3val": 3
-r2g: }
-r2g: [r2g info] Running "npm pack" against your project ...
-r2g: [r2g info] Running the following command via this dir: "/home/oleg/.r2g/temp/project" ...
-r2g: [r2g info] npm install --loglevel=warn --cache-min 9999999 --production "/home/oleg/.r2g/temp/copy/r2g/oresoftware-r2g-0.0.134.tgz";
-r2g: [r2g info] Running your exported r2gSmokeTest function(s) in "/home/oleg/.r2g/temp/project" ...
-r2g: This many packages were tested: 1
-r2g: Your exported r2gSmokeTest functions have all passed
-r2g: [r2g info] Running user defined tests in "/home/oleg/.r2g/temp/project" ...
-r2g: Now running the user defined smoke test...
-r2g: r2g user defined smoke test passed.
-r2g: [r2g info] Successfully ran r2g.
-
-real    0m3.092s
-user    0m3.832s
-sys     0m0.980s
-
-```

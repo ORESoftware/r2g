@@ -11,7 +11,7 @@ import * as assert from 'assert';
 // project
 import log from '../../logger';
 import chalk from "chalk";
-import {EVCallback} from "../../index";
+import {EVCb} from "../../index";
 import {getFSMap} from "./get-fs-map";
 import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
@@ -31,12 +31,20 @@ interface BinFieldObject {
   [key: string]: string
 }
 
-export const run = function (cwd: string, projectRoot: string, opts: any) {
+export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
   const userHome = path.resolve(process.env.HOME);
 
-  let pkgJSON: any = null, docker2gConf = null,
-    packages: Packages = null, searchRoot = '', pkgName = '', cleanPackageName = '', zTest = 'npm test';
+  let pkgJSON: any = null, r2gConf = null,
+    packages: Packages = null, searchRoot = '',
+    pkgName = '', cleanPackageName = '', zTest = 'npm test';
+
+  if(opts.skip){
+    const skipped = String(opts.skip).split(',').map(v => String(v || '').trim().toLowerCase()).filter(Boolean);
+    opts.z = opts.z || skipped.includes('z');
+    opts.s = opts.s || skipped.includes('s');
+    opts.t = opts.t || skipped.includes('t');
+  }
 
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
 
@@ -60,8 +68,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     zTest = pkgJSON.r2g.test;
   }
   catch (err) {
-    if (opts.z) {
-      log.info('using "npm test" to run z-test.');
+    if (!opts.z) {
+      log.info('using "npm test" to run phase-Z.');
     }
   }
 
@@ -74,8 +82,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
   }
 
   try {
-    docker2gConf = require(projectRoot + '/.r2g/config.js');
-    docker2gConf = docker2gConf.default || docker2gConf;
+    r2gConf = require(projectRoot + '/.r2g/config.js');
+    r2gConf = r2gConf.default || r2gConf;
   }
   catch (err) {
 
@@ -85,8 +93,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       throw getCleanTrace(err);
     }
 
-    docker2gConf = require('../../../assets/default.r2g.config.js');
-    docker2gConf = docker2gConf.default || docker2gConf;
+    r2gConf = require('../../../assets/default.r2g.config.js');
+    r2gConf = r2gConf.default || r2gConf;
 
     process.once('exit', code => {
       if (code < 1) {
@@ -96,21 +104,21 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   }
 
-  packages = docker2gConf.packages;
-  searchRoot = path.resolve(docker2gConf.searchRoot || '');
+  packages = r2gConf.packages;
+  searchRoot = path.resolve(r2gConf.searchRoot || '');
 
   if (!(packages && typeof packages === 'object')) {
-    log.error(docker2gConf);
+    log.error(r2gConf);
     throw new Error('You need a property called "packages" in your .r2g/config.js file.');
   }
 
   if (!(searchRoot && typeof searchRoot === 'string')) {
-    log.error(docker2gConf);
+    log.error(r2gConf);
     throw new Error('You need a property called "searchRoot" in your .r2g/config.js file.');
   }
 
   if (!path.isAbsolute(searchRoot)) {
-    log.error(docker2gConf);
+    log.error(r2gConf);
     throw new Error('Your "searchRoot" property in your .r2g/config.js file, needs to be an absolute path.');
   }
 
@@ -131,7 +139,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
   const dependenciesToInstall = Object.keys(packages);
   if (dependenciesToInstall.length < 1) {
     log.debug('There were no local dependencies to install.');
-    log.debug('Here is your configuration:\n', docker2gConf);
+    log.debug('Here is your configuration:\n', r2gConf);
   }
 
   const deps = [
@@ -159,7 +167,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   async.autoInject({
 
-      removeExistingProject(cb: EVCallback) {
+      removeExistingProject(cb: EVCb) {
 
         if (opts.keep || opts.multi) {
           log.info("We are keeping the previously installed packages because '--keep' / '--multi' was used.");
@@ -173,7 +181,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      mkdirpProject(removeExistingProject: any, cb: EVCallback) {
+      mkdirpProject(removeExistingProject: any, cb: EVCb) {
 
         log.info('Making sure the right folders exist using mkdir -p ...');
         const k = cp.spawn('bash');
@@ -186,7 +194,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      rimrafDeps(mkdirpProject: any, cb: EVCallback) {
+      rimrafDeps(mkdirpProject: any, cb: EVCb) {
 
         log.info('Removing existing files within "$HOME/.r2g.temp"...');
         const k = cp.spawn('bash');
@@ -195,7 +203,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      mkdirDeps(rimrafDeps: any, cb: EVCallback) {
+      mkdirDeps(rimrafDeps: any, cb: EVCb) {
 
         log.info('Re-creating folders "$HOME/.r2g/temp"...');
         const k = cp.spawn('bash');
@@ -204,7 +212,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      getMap(cb: EVCallback) {
+      getMap(cb: EVCb) {
 
         if (!opts.full) {
           log.info('we are not creating a deps map since the --full option was not used.');
@@ -219,7 +227,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         getFSMap(opts, searchRoot, packages, cb);
       },
 
-      copyProjectsInMap: function (getMap: any, cb: EVCallback) {
+      copyProjectsInMap: function (getMap: any, cb: EVCb) {
 
         if (Object.keys(getMap).length < 1) {
           return process.nextTick(cb, null, {});
@@ -228,7 +236,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         installDeps(getMap, dependenciesToInstall, opts, cb);
       },
 
-      renamePackagesToAbsolute: function (copyProjectsInMap: any, copyProject: any, cb: EVCallback) {
+      renamePackagesToAbsolute: function (copyProjectsInMap: any, copyProject: any, cb: EVCb) {
 
         if (Object.keys(copyProjectsInMap).length < 1) {
           return process.nextTick(cb, null, {});
@@ -238,7 +246,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         renameDeps(copyProjectsInMap, pkgJSONPath, cb);
       },
 
-      copyProject(mkdirpProject: any, cb: EVCallback) {
+      copyProject(mkdirpProject: any, cb: EVCb) {
 
         if (process.env.r2g_is_docker === 'yes') {
           log.info('We are not copying the project since we are using r2g.docker');
@@ -257,10 +265,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCallback) {
+      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb) {
 
         const cmd = `npm pack --loglevel=warn;`;
-        log.info(chalk.bold('Running the following command from your project copy:'), chalk.cyan.bold(cmd));
+        log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
 
         const k = cp.spawn('bash', [], {
           cwd: copyProject
@@ -278,9 +286,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
       },
 
-      linkPackage(runNPMInstallInCopy: any, copyProject: string, cb: EVCallback) {
+      linkPackage(runNPMInstallInCopy: any, copyProject: string, cb: EVCb) {
 
-        if (!opts.z) {
+        if (opts.z) {
           return process.nextTick(cb);
         }
 
@@ -332,9 +340,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runNPMInstallInCopy(runNpmInstall: any, copyProject: string, cb: EVCallback) {
+      runNPMInstallInCopy(runNpmInstall: any, copyProject: string, cb: EVCb) {
 
-        if (!opts.z) {
+        if (opts.z) {
           return process.nextTick(cb);
         }
 
@@ -355,9 +363,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runZTest(linkPackage: any, copyProject: string, cb: EVCallback) {
+      runZTest(linkPackage: any, copyProject: string, cb: EVCb) {
 
-        if (!opts.z) {
+        if (opts.z) {
+          log.warn('Skipping phase-Z');
           return process.nextTick(cb);
         }
 
@@ -384,9 +393,13 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCallback) {
-        // runNpmPack is the path to .tgz file
+      runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCb) {
 
+        if(opts.t && opts.s){
+          return process.nextTick(cb);
+        }
+
+        // note that runNpmPack is the path to .tgz file
         const cmd = `npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`;
         log.info(`Running the following command via this dir: "${r2gProject}" ...`);
         log.info(chalk.blueBright(cmd));
@@ -402,7 +415,11 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
       },
 
-      copySmokeTester(mkdirpProject: any, cb: EVCallback) {
+      copySmokeTester(mkdirpProject: any, cb: EVCb) {
+
+        if(opts.s){
+          return process.nextTick(cb);
+        }
 
         log.info(`Copying the smoke-tester.js file to "${r2gProject}" ...`);
 
@@ -412,7 +429,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         .once('finish', cb);
       },
 
-      copyPackageJSON(mkdirpProject: any, cb: EVCallback) {
+      copyPackageJSON(mkdirpProject: any, cb: EVCb) {
 
         log.info(`Copying a "blank" package.json file to "${r2gProject}" ...`);
 
@@ -424,7 +441,12 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.once('exit', cb);
       },
 
-      r2gSmokeTest(runZTest: any, runNpmInstall: any, copySmokeTester: any, cb: EVCallback) {
+      r2gSmokeTest(runZTest: any, runNpmInstall: any, copySmokeTester: any, cb: EVCb) {
+
+        if(opts.s){
+          log.warn('Skipping phase-S.');
+          return process.nextTick(cb);
+        }
 
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
 
@@ -448,7 +470,11 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
       },
 
-      copyUserDefinedTests(copyProject: string, cb: EVCallback) {
+      copyUserDefinedTests(copyProject: string, cb: EVCb) {
+
+        if(opts.t){
+          return process.nextTick(cb);
+        }
 
         log.info(`Copying your user defined tests to: "${r2gProject}" ...`);
 
@@ -468,7 +494,12 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
       },
 
-      runUserDefinedTests(copyUserDefinedTests: any, r2gSmokeTest: any, runNpmInstall: any, cb: EVCallback) {
+      runUserDefinedTests(copyUserDefinedTests: any, r2gSmokeTest: any, runNpmInstall: any, cb: EVCb) {
+
+        if(opts.t){
+          log.warn('Skipping phase-T');
+          return process.nextTick(cb);
+        }
 
         log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
 
