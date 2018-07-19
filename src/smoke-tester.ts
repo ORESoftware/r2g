@@ -42,8 +42,7 @@ const getAllPromises = async function (links: Array<string>) {
 
     return Promise.resolve(mod.r2gSmokeTest())
     .then((v: any) => {
-      console.log('resolved result for:', l);
-      console.log('result is:',v);
+      console.log('resolved result for:', l, 'result is:', v);
       return {path: l, result: v};
     });
   }));

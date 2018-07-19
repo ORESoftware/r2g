@@ -1,6 +1,6 @@
 {
-  "name": "@oresoftware/r2g",
-  "version": "0.1.019",
+  "name": "r2g",
+  "version": "0.1.190",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
@@ -39,6 +39,7 @@
     "chalk": "^2.4.1",
     "clean-trace": "latest",
     "dashdash": "^1.14.1",
+    "prepend-transform": "0.0.1016",
     "residence": "latest",
     "shortid": "^2.2.8"
   },

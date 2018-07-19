@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 
-
-
 if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
     echo "sh is stealing bash sunshine.";
     exit 1;
