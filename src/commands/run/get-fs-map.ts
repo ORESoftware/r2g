@@ -30,7 +30,10 @@ const isPathSearchableBasic = function (item: string) {
 
 /////////////////////////////////////////////////////////////////////
 
-export const getFSMap = function (opts: any, searchRoots: Array<string>, packages: Packages, cb: Function) {
+export interface MapType { [key: string]: string }
+
+
+export const getFSMap = function (opts: any, searchRoots: Array<string>, packages: Packages, cb: EVCb<MapType>) {
 
   const pths: Array<string> = [];
 
@@ -48,7 +51,7 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
     }
   });
 
-  const map = {} as { [key: string]: string };
+  const map = {} as MapType;
 
   const searchDir = function (dir: string, cb: EVCb<any>) {
 

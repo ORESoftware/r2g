@@ -41,7 +41,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
 
   let pkgJSON: any = null, r2gConf: any = null,
     packages: Packages = null, searchRoots: Array<string> = null,
-    pkgName = '', cleanPackageName = '', zTest = null;
+    pkgName = '', cleanPackageName = '', zTest: string = null;
 
   if (opts.skip) {
     const skipped = String(opts.skip).split(',').map(v => String(v || '').trim().toLowerCase()).filter(Boolean);
