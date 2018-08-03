@@ -31,15 +31,19 @@ interface BinFieldObject {
   [key: string]: string
 }
 
-export const run = (cwd: string, projectRoot: string, opts: any) : void => {
+const flattenDeep = function (a: Array<any>): Array<any> {
+  return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
+};
+
+export const run = (cwd: string, projectRoot: string, opts: any): void => {
 
   const userHome = path.resolve(process.env.HOME);
 
-  let pkgJSON: any = null, r2gConf = null,
-    packages: Packages = null, searchRoot = '',
-    pkgName = '', cleanPackageName = '', zTest = 'npm test';
+  let pkgJSON: any = null, r2gConf: any = null,
+    packages: Packages = null, searchRoots: Array<string> = null,
+    pkgName = '', cleanPackageName = '', zTest: string = null;
 
-  if(opts.skip){
+  if (opts.skip) {
     const skipped = String(opts.skip).split(',').map(v => String(v || '').trim().toLowerCase()).filter(Boolean);
     opts.z = opts.z || skipped.includes('z');
     opts.s = opts.s || skipped.includes('s');
@@ -73,6 +77,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
     }
   }
 
+  zTest = zTest || 'npm test';
   assert(typeof zTest === 'string', 'z-test is not a string => check the r2g.test property in your package.json.');
 
   pkgName = String(pkgName).replace(/[^0-9a-z]/gi, '_');
@@ -105,36 +110,44 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
   }
 
   packages = r2gConf.packages;
-  searchRoot = path.resolve(r2gConf.searchRoot || '');
+  searchRoots = flattenDeep([r2gConf.searchRoots, path.resolve(r2gConf.searchRoot || '')])
+  .map(v => String(v || '').trim())
+  .filter(Boolean);
 
   if (!(packages && typeof packages === 'object')) {
     log.error(r2gConf);
     throw new Error('You need a property called "packages" in your .r2g/config.js file.');
   }
 
-  if (!(searchRoot && typeof searchRoot === 'string')) {
-    log.error(r2gConf);
-    throw new Error('You need a property called "searchRoot" in your .r2g/config.js file.');
-  }
+  searchRoots.forEach(v => {
 
-  if (!path.isAbsolute(searchRoot)) {
-    log.error(r2gConf);
-    throw new Error('Your "searchRoot" property in your .r2g/config.js file, needs to be an absolute path.');
-  }
+    if (!(v && typeof v === 'string')) {
+      log.error(r2gConf);
+      throw chalk.redBright('You need a property called "searchRoot"/"searchRoots" in your .r2g/config.js file.');
+    }
 
-  try {
-    assert(fs.lstatSync(searchRoot).isDirectory());
-  }
-  catch (err) {
-    log.error('Your "searchRoot" property does not seem to exist as a directory on the local/host filesystem.');
-    log.error('In other words, the following path does not seem to be a directory:');
-    log.error(searchRoot);
-    throw getCleanTrace(err);
-  }
+    if (!path.isAbsolute(v)) {
+      log.error(r2gConf);
+      log.error('The following path is not absolute:', chalk.magenta(v));
+      throw chalk.redBright('Your "searchRoot"/"searchRoots" property in your .r2g/config.js file, needs to be an absolute path.');
+    }
 
-  if (!searchRoot.startsWith(userHome)) {
-    throw new Error('Your searchRoot needs to be within your user home directory.');
-  }
+    try {
+      assert(fs.lstatSync(v).isDirectory());
+    }
+    catch (err) {
+      log.error('Your "searchRoot" property does not seem to exist as a directory on the local/host filesystem.');
+      log.error('In other words, the following path does not seem to be a directory:');
+      log.error(v);
+      throw getCleanTrace(err);
+    }
+
+    if (!v.startsWith(userHome)) {
+      throw new Error('Your searchRoot needs to be within your user home directory.');
+    }
+
+  });
+
 
   const dependenciesToInstall = Object.keys(packages);
   if (dependenciesToInstall.length < 1) {
@@ -157,11 +170,6 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
     }
   });
 
-  let mapObject = function (obj: any, fn: Function, ctx?: object) {
-    return Object.keys(obj).reduce((a: any, b) => {
-      return (a[b] = fn.call(ctx || null, b, obj[b])), a;
-    }, {});
-  };
 
   const depsDir = path.resolve(process.env.HOME + `/.r2g/temp/deps`);
 
@@ -224,7 +232,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
           return process.nextTick(cb, null, {});
         }
 
-        getFSMap(opts, searchRoot, packages, cb);
+        getFSMap(opts, searchRoots, packages, cb);
       },
 
       copyProjectsInMap: function (getMap: any, cb: EVCb) {
@@ -395,7 +403,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
       runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCb) {
 
-        if(opts.t && opts.s){
+        if (opts.t && opts.s) {
           return process.nextTick(cb);
         }
 
@@ -417,7 +425,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
       copySmokeTester(mkdirpProject: any, cb: EVCb) {
 
-        if(opts.s){
+        if (opts.s) {
           return process.nextTick(cb);
         }
 
@@ -443,7 +451,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
       r2gSmokeTest(runZTest: any, runNpmInstall: any, copySmokeTester: any, cb: EVCb) {
 
-        if(opts.s){
+        if (opts.s) {
           log.warn('Skipping phase-S.');
           return process.nextTick(cb);
         }
@@ -472,7 +480,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
       copyUserDefinedTests(copyProject: string, cb: EVCb) {
 
-        if(opts.t){
+        if (opts.t) {
           return process.nextTick(cb);
         }
 
@@ -496,7 +504,7 @@ export const run = (cwd: string, projectRoot: string, opts: any) : void => {
 
       runUserDefinedTests(copyUserDefinedTests: any, r2gSmokeTest: any, runNpmInstall: any, cb: EVCb) {
 
-        if(opts.t){
+        if (opts.t) {
           log.warn('Skipping phase-T');
           return process.nextTick(cb);
         }
