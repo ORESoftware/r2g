@@ -9,20 +9,35 @@ fi
 
 export r2g_skip_postinstall="yes";
 
-if [[ "$oresoftware_local_dev" == "yes" ]]; then
-    echo "Running the r2g postinstall script in oresoftware local development env."
-fi
-
 
 mkdir -p "$HOME/.r2g/temp/project" || {
-  echo "could not create directory => '$HOME/.r2g/temp/project'...";
+    echo "could not create directory => '$HOME/.r2g/temp/project'...";
 }
 
 
 mkdir -p "$HOME/.oresoftware/bash" || {
-  echo "could not create oresoftware/bash dir."
-  exit 1;
+    echo "could not create oresoftware/bash dir."
+    exit 1;
 }
+
+
+cat "assets/completion.sh" > "$HOME/.oresoftware/bash/r2g.completion.sh" || {
+    echo "Could not copy completion.sh file to ~/.oresoftware/bash dir.";
+    exit 1;
+}
+
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+
+   if [ ! -f "$HOME/.oresoftware/bin/realpath" ]; then
+      (
+        curl --silent -o- https://raw.githubusercontent.com/oresoftware/realpath/master/assets/install.sh | bash || {
+           echo "Could not install realpath on your system.";
+           exit 1;
+        }
+      )
+   fi
+fi
 
 
 cat assets/shell.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
@@ -30,6 +45,10 @@ cat assets/shell.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
   exit 1;
 }
 
+cat assets/completion.sh > "$HOME/.oresoftware/bash/r2g.completion.sh" || {
+  echo "could not create oresoftware/bash/r2g.completion.sh file."
+  exit 1;
+}
 
 (
 

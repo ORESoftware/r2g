@@ -3,7 +3,7 @@
 export default [
 
   {
-    names: ['version','vn'],
+    names: ['version', 'vn'],
     type: 'bool',
     help: 'Print tool version and exit.'
   },
@@ -11,6 +11,11 @@ export default [
     names: ['help', 'h'],
     type: 'bool',
     help: 'Print this help and exit.'
+  },
+  {
+    names: ['bash-completion', 'completion'],
+    type: 'bool',
+    help: 'Generate bash completion code.'
   },
   {
     names: ['verbosity', 'v'],

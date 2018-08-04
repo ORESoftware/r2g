@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-echo "$0 is sourcing the r2g shell script."
-
 r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
 }
@@ -91,7 +89,6 @@ export -f r2g_get_project_dir;
 export -f r2g_get_temp_dir;
 
 export -f r2g_view_log;
-export -f r2g_uninstall;
 export -f r2g_copy_package_json;
 
 
