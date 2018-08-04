@@ -18,7 +18,7 @@ if (links.length < 1) {
   throw new Error('no requireable packages in package.json to smoke test with r2g.');
 }
 
-const getAllPromises = async function (links: Array<string>) {
+const getAllPromises = function (links: Array<string>) {
   return Promise.all(links.map(function (l) {
 
     let mod: any;
@@ -40,8 +40,7 @@ const getAllPromises = async function (links: Array<string>) {
       throw err;
     }
 
-    return Promise.resolve(mod.r2gSmokeTest())
-    .then((v: any) => {
+    return Promise.resolve(mod.r2gSmokeTest()).then((v: any) => {
       console.log('resolved result for:', l, 'result is:', v);
       return {path: l, result: v};
     });

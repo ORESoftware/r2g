@@ -50,7 +50,7 @@ r2g_zmx() {
 export -f r2g_zmx;
 
 
-if [ "$cmd" == "run" ]; then
+if [ "$cmd" == "run" ] || [ "$cmd" == "test" ]; then
 
    shift 1;
    r2g_zmx r2g_run "$@"

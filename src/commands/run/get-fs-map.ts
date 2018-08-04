@@ -7,14 +7,55 @@ import log from "../../logger";
 import {Packages} from "./run";
 import * as util from "util";
 import chalk from "chalk";
+import {EVCb} from "../../index";
 
 /////////////////////////////////////////////////////////////////////
 
-export const getFSMap = function (opts: any, searchRoot: string, packages: Packages, cb: Function) {
+const searchedPaths = {} as { [key: string]: true };
 
-  const map = {} as { [key: string]: string };
+const isPathSearchableBasic = function (item: string) {
 
-  const searchDir = function (dir: string, cb: any) {
+  item = path.normalize(item);
+
+  if (!path.isAbsolute(item)) {
+    throw new Error('Path to be searched is not absolute:' + item);
+  }
+
+  if (searchedPaths[item]) {
+    return false;
+  }
+
+  return true;
+};
+
+/////////////////////////////////////////////////////////////////////
+
+export interface MapType { [key: string]: string }
+
+
+export const getFSMap = function (opts: any, searchRoots: Array<string>, packages: Packages, cb: EVCb<MapType>) {
+
+  const pths: Array<string> = [];
+
+  searchRoots.map(d => String(d || '').trim())
+  .filter(Boolean)
+  .sort((a, b) => (a.length - b.length))
+  .forEach(v => {
+
+    const s = !pths.some(p => {
+      return p.startsWith(v + '/');
+    });
+
+    if (s) {
+      pths.push(v);
+    }
+  });
+
+  const map = {} as MapType;
+
+  const searchDir = function (dir: string, cb: EVCb<any>) {
+
+    searchedPaths[dir] = true;
 
     fs.readdir(dir, function (err, items) {
 
@@ -26,7 +67,7 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
         return cb(err);
       }
 
-      const mappy = function (item: string, cb: Function) {
+      const mappy = function (item: string, cb: EVCb<any>) {
 
         item = path.resolve(dir + '/' + item);
 
@@ -43,6 +84,10 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
           }
 
           if (stats.isDirectory()) {
+
+            if(!isPathSearchableBasic(item)){
+              return cb(null);
+            }
 
             if (item.endsWith('/.npm')) {
               return cb(null);
@@ -146,9 +191,14 @@ export const getFSMap = function (opts: any, searchRoot: string, packages: Packa
 
   };
 
-  searchDir(searchRoot, function (err: any) {
-    err && log.error('unexpected error:', err.message || err);
-    cb(err, map);
+  pths.forEach(v => {
+    if(isPathSearchableBasic(v)){
+      searchDir(v, function (err) {
+        err && log.error('unexpected error:', err.message || err);
+        cb(err, map);
+      });
+    }
   });
+
 
 };

@@ -1,9 +1,8 @@
 
-# r2g  - properly test your NPM packages before publishing.
+# r2g  <sub> properly test your NPM packages before publishing. </sub>
 
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
-> Everything happens locally.
 >
 
 ### Installation
@@ -29,8 +28,8 @@ that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optiona
 <br>
 
 * <b> phase-Z:</b> packs your project and installs the packed project as a dependency of itself then runs `npm test` on your project. You can override `npm test` with `r2g.test` in package.json.
-* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main
-* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them
+* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main.
+* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them.
 
 <br>
 By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
@@ -57,6 +56,17 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 >
 > * This will skip phases Z and S
 >
+
+<br>
+
+>
+>```console
+>$ r2g run -z -s
+>```
+>
+> * This will also skip phases Z and S
+>
+
 
 <br>
 
@@ -229,7 +239,11 @@ Awesome.
 ## Usage in a Docker image/container
 
 Use a Docker container for a fresh/independent/isolated testing env. For packages that do more complex/system things, it will be useful to use a locally running Docker container.
-To use r2g in a Docker container, see: https://github.com/ORESoftware/docker.r2g Alternatively, you can just run r2g as part of your normal CI/CD library testing on remote servers.
+To use r2g in a Docker container, see: https://github.com/ORESoftware/docker.r2g
+
+<br>
+
+Alternatively, you can just run r2g as part of your normal CI/CD library testing on remote servers.
 First, make sure you have Docker installed on your local machine. See standard installation instructions for MacOS/*nix.
 
 <br>
@@ -237,7 +251,7 @@ First, make sure you have Docker installed on your local machine. See standard i
 Run this in the root of your project:
 
 ```bash
-$ r2g init   # you only need to run this once per project, but won't hurt if you do it more than once
+$ r2g init --docker  # you only need to run this once per project, but won't hurt if you do it more than once
 ```
 
 Then run this:
