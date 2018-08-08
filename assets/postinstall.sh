@@ -21,12 +21,6 @@ mkdir -p "$HOME/.oresoftware/bash" || {
 }
 
 
-cat "assets/completion.sh" > "$HOME/.oresoftware/bash/r2g.completion.sh" || {
-    echo "Could not copy completion.sh file to ~/.oresoftware/bash dir.";
-    exit 1;
-}
-
-
 if [[ "$(uname -s)" == "Darwin" ]]; then
 
    if [ ! -f "$HOME/.oresoftware/bin/realpath" ]; then
@@ -40,13 +34,13 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
 fi
 
 
-cat assets/shell.sh > "$HOME/.oresoftware/bash/r2g.sh" || {
-  echo "could not create oresoftware/bash/r2g.sh file."
+cat "assets/shell.sh" > "$HOME/.oresoftware/bash/r2g.sh" || {
+  echo "Could not create oresoftware/bash/r2g.sh file."
   exit 1;
 }
 
-cat assets/completion.sh > "$HOME/.oresoftware/bash/r2g.completion.sh" || {
-  echo "could not create oresoftware/bash/r2g.completion.sh file."
+cat "assets/completion.sh" > "$HOME/.oresoftware/bash/r2g.completion.sh" || {
+  echo "Could not copy to ~/.oresoftware/bash."
   exit 1;
 }
 
