@@ -25,4 +25,4 @@ fi
   exit 1;
 }
 
-node "$commands/run" $@
+node "$commands/run" "$@"

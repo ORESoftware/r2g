@@ -2,7 +2,6 @@
 'use strict';
 
 
-
 import chalk from 'chalk';
 import log from '../../logger';
 

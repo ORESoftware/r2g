@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-echo "$0 is sourcing the r2g shell script."
-
 r2g_get_latest(){
   . "$HOME/.oresoftware/bash/r2g.sh"
 }
@@ -39,11 +37,11 @@ r2g(){
 
   if ! type -f r2g &> /dev/null || ! which r2g &> /dev/null; then
 
-    echo -e "Installing the '@oresoftware/r2g' NPM package globally..." >&2;
+    echo -e "Installing the 'r2g' NPM package globally..." >&2;
 
     npm i -s -g 'r2g' || {
 
-      echo -e "Could not install the '@oresoftware/r2g' NPM package globally." >&2;
+      echo -e "Could not install the 'r2g' NPM package globally." >&2;
       echo -e "Check your user permissions to install global NPM packages." >&2;
       return 1;
 
@@ -51,7 +49,7 @@ r2g(){
 
  fi
 
- command r2g $@;
+ command r2g "$@";
 
 }
 
@@ -91,7 +89,6 @@ export -f r2g_get_project_dir;
 export -f r2g_get_temp_dir;
 
 export -f r2g_view_log;
-export -f r2g_uninstall;
 export -f r2g_copy_package_json;
 
 

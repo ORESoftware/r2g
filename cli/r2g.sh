@@ -17,6 +17,17 @@ export r2g_no_color='\033[0m'
 
 my_args=( "$@" );
 
+project_root="";
+
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    project_root="$(dirname $(dirname $("$HOME/.oresoftware/bin/realpath" $0)))";
+
+else
+    project_root="$(dirname $(dirname $(realpath $0)))";
+fi
+
+commands="$project_root/dist/commands"
+
 r2g_match_arg(){
     # checks to see if the first arg, is among the remaining args
     # for example  ql_match_arg --json --json # yes
@@ -53,13 +64,29 @@ export -f r2g_zmx;
 if [ "$cmd" == "run" ] || [ "$cmd" == "test" ]; then
 
    shift 1;
-   r2g_zmx r2g_run "$@"
+
+    if [ -z "$(which rsync)" ]; then
+        echo >&2 "You need to install 'rsync' for r2g to work its magic.";
+        exit 1;
+    fi
+
+    if [ -z "$(which curl)" ]; then
+        echo >&2 "You need to install 'curl' for r2g to work its magic.";
+        exit 1;
+    fi
+
+    . "$HOME/.oresoftware/bash/r2g.sh" || {
+        echo >&2 "Could not source r2g bash functions from .oresoftware/bash/r2g.sh.";
+        exit 1;
+    }
+
+   r2g_zmx node "$commands/run" "$@"
 
 
 elif [ "$cmd" == "init" ]; then
 
   shift 1;
-  r2g_zmx r2g_init "$@"
+  r2g_zmx  node "$commands/init" "$@"
 
 elif [ "$cmd" == "symlink" ] || [ "$cmd" == "link" ]; then
 
@@ -83,7 +110,8 @@ elif [ "$cmd" == "docker" ]; then
 else
 
   echo "r2g error: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
-  r2g_zmx r2g_basic "$@"
+  node "$commands/basic" "$@"
+
 fi
 
 exit_code="$?"

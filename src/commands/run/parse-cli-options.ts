@@ -19,7 +19,7 @@ try {
 
 if (opts.help) {
   let help = parser.help({includeEnv: true}).trimRight();
-  console.log('usage: r2g run [OPTIONS]\n' + 'options:\n' + help);
+  console.log('usage: r2g run [OPTIONS]\n' + 'basicOpts:\n' + help);
   process.exit(0);
 }
 

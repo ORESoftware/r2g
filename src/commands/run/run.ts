@@ -273,7 +273,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
 
       },
 
-      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb) {
+      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb<string>) {
 
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
