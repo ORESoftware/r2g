@@ -1,6 +1,7 @@
 {
   "vcsType": "git",
   "vcsInfo": {
+    "remote":"origin",
     "master": "remotes/origin/master",
     "integration": "remotes/origin/dev"
   }
