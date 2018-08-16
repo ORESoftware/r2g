@@ -32,12 +32,15 @@ that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optiona
 * <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them.
 
 <br>
+
 By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
+
 <br>
 
 #### Quick reference
 
 <br>
+
 note: `r2g test` is an alias of `r2g run`.
 
 <br>
@@ -138,14 +141,20 @@ To learn more about how r2g works in detail, see: `docs/r2g-runtime-steps.md`
 
 # Basic usage / Getting started
 
-You can use r2g with zero-config - you just need to implement a single function. <br>
+You can use r2g with zero-config - you just need to implement a single function. 
+
+<br>
+
 To start, execute this in a shell at the root of your project:
 
 ```bash
 $ r2g run
 ```
 
-This command will then fail. That's expected. <br>
+This command will then fail. That's expected. 
+
+<br>
+
 To get your test to pass, add this to X-main (your package's index file, whatever "main" in package.json points to):
 
 ```js
@@ -154,7 +163,9 @@ exports.r2gSmokeTest = function(){  // this function can be async
 };
 ```
 
-the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must resolve to `true` (not just truthy). <br>
+the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must resolve to `true` (not just truthy). 
+
+<br>
 
 <b>To read more about the exported r2gSmokeTest function, see:</b> `docs/r2g-smoke-test-exported-main-function.md`
 
@@ -167,7 +178,10 @@ Note: the exported function `r2gSmokeTest` allows you to smoke test your package
 
 ## Adding more tests beyond the `r2gSmokeTest` function
 
-To do more sophisticated tests, we add some configuration in a folder called .r2g in the root of your project. <br>
+To do more sophisticated tests, we add some configuration in a folder called .r2g in the root of your project. 
+
+<br>
+
 To do this, run:
 
 ```bash
@@ -179,7 +193,9 @@ Your new `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
 
 <br>
 
-Now when `r2g run` executes, it will run `.r2g/smoke-test.js`,  *but* it will run this test in the context of the main project, meaning it will copy: <br>
+Now when `r2g run` executes, it will run `.r2g/smoke-test.js`,  *but* it will run this test in the context of the main project, meaning it will copy: 
+
+<br>
 
    `$HOME/.r2g/temp/project/node_modules/X/.r2g/smoke-test.js` -->  `$HOME/.r2g/temp/project/smoke-test.js`
 
@@ -230,8 +246,13 @@ If you execute `r2g run --full --pack`, then this awesomeness happens:
 }
 ```
 
-So using `r2g run --full` => we install local deps instead of the deps from NPM. <br>
-And using `r2g run --full --pack` => we pack the local deps before installing them. <br>
+So using `r2g run --full` => we install local deps instead of the deps from NPM. 
+
+<br>
+
+And using `r2g run --full --pack` => we pack the local deps before installing them. 
+
+<br>
 
 Awesome.
 
