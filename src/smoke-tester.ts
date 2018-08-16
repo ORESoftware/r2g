@@ -18,10 +18,11 @@ if (links.length < 1) {
   throw new Error('no requireable packages in package.json to smoke test with r2g.');
 }
 
-const getAllPromises = function (links: Array<string>) {
-  return Promise.all(links.map(function (l) {
-
+const getAllPromises = (links: Array<string>) => {
+  return Promise.all(links.map(l => {
+    
     let mod: any;
+    
     try {
       console.log('loading the following module:', l);
       mod = require(l);
@@ -30,6 +31,7 @@ const getAllPromises = function (links: Array<string>) {
       console.error('Could not load your package with path:', l);
       throw err;
     }
+    
     try {
       assert.equal(typeof mod.r2gSmokeTest, 'function');
     }
@@ -39,7 +41,7 @@ const getAllPromises = function (links: Array<string>) {
       console.error(l);
       throw err;
     }
-
+    
     return Promise.resolve(mod.r2gSmokeTest()).then((v: any) => {
       console.log('resolved result for:', l, 'result is:', v);
       return {path: l, result: v};
@@ -47,28 +49,26 @@ const getAllPromises = function (links: Array<string>) {
   }));
 };
 
-getAllPromises(links).then(function (results) {
-
+getAllPromises(links).then(results => {
+  
   console.log('This many packages were tested:', results.length);
-
-  const failures = results.filter(function (v) {
-    return v.result !== true;
+  
+  const failures = results.filter(v => {
+    return !(v && v.result === true);
   });
-
+  
   if (failures.length > 0) {
     console.error('At least one exported "r2gSmokeTest" function failed.');
     throw new Error(util.inspect(failures, {breakLength: Infinity}));
   }
-
+  
   console.log('Your exported r2gSmokeTest function(s) have all passed');
   process.exit(0);
-
+  
 })
-.catch(function (err) {
-
+.catch(err => {
   console.error(err);
   process.exit(1);
-
 });
 
 
