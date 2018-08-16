@@ -8,6 +8,29 @@ import * as assert from "assert";
 
 ////////////////////////////////////////////////////////////
 
+const colors = <{[key:string]: [number,number]}> {
+  'bold': [1, 22],
+  'italic': [3, 23],
+  'underline': [4, 24],
+  'inverse': [7, 27],
+  'white': [37, 39],
+  'grey': [90, 39],
+  'black': [30, 39],
+  'blue': [34, 39],
+  'cyan': [36, 39],
+  'green': [32, 39],
+  'magenta': [35, 39],
+  'red': [31, 39],
+  'yellow': [33, 39]
+};
+
+const stylize  =  (color: string, str: string) => {
+  const [start, end] = colors[color];
+  return `\u001b[${start}m${str}\u001b[${end}m`;
+};
+
+/////////////////////
+
 process.chdir(__dirname);
 const nm = path.resolve(__dirname + '/node_modules');
 const pkgJSON = require(__dirname + '/package.json');
@@ -15,7 +38,7 @@ const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependenci
 const links = Object.keys(deps);
 
 if (links.length < 1) {
-  throw new Error('no requireable packages in package.json to smoke test with r2g.');
+  throw new Error(stylize('red','no requireable packages in package.json to smoke test with r2g.'));
 }
 
 const getAllPromises = (links: Array<string>) => {
@@ -36,9 +59,9 @@ const getAllPromises = (links: Array<string>) => {
       assert.equal(typeof mod.r2gSmokeTest, 'function');
     }
     catch (err) {
-      console.error('A module failed to export a function from "main" with key "r2gSmokeTest".');
-      console.error('The module missing this export has the following path:');
-      console.error(l);
+      console.error(stylize('red','A module failed to export a function from "main" with key "r2gSmokeTest".'));
+      console.error('The module/package missing this export has the following name:');
+      console.error(stylize('red',l));
       throw err;
     }
     
