@@ -5,6 +5,18 @@
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
 >
 
+<br>
+
+## Video demo
+
+Watch this video to learn how to use r2g: <br>
+
+
+The video references this example repo: <br>
+https://github.com/ORESoftware/r2g.example
+
+<br>
+
 ### Installation
 
 ```console
