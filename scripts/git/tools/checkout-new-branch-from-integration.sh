@@ -25,8 +25,7 @@ if ! contains "$branch_type" "${arr[@]}"; then
     exit 1;
 fi
 
-
-git fetch origin dev;
+git fetch origin;
 
 time_seconds=`node -e 'console.log(String(Date.now()).slice(0,-3))'`;
 

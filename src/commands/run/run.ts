@@ -92,7 +92,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   }
   catch (err) {
 
-    log.warn(chalk.magentaBright('Could not read your .r2g/config.js file.'));
+    if(opts.verbosity > 2){
+      log.warning(chalk.yellow('Could not read your .r2g/config.js file.'));
+    }
 
     if (process.env.r2g_is_docker === 'yes') {
       throw getCleanTrace(err);
@@ -103,7 +105,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
 
     process.once('exit', code => {
       if (code < 1) {
-        log.warning(chalk.yellow.bold('Note that during this run, r2g could not read your .r2g/config.js file.'))
+        if(opts.verbosity > 2){
+          log.warning(chalk.yellow.bold('Note that during this run, r2g could not read your .r2g/config.js file.'))
+        }
       }
     });
 
@@ -273,7 +277,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
 
       },
 
-      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb) {
+      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb<string>) {
 
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));

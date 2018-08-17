@@ -29,6 +29,8 @@ const os = require('os');
 const fs = require('fs');
 const EE = require('events');
 
+const v = require('../fixtures/foo.js');
+assert.strictEqual(v.foo, 3, 'foo value is not 3, but it should be 3.');
 
 process.exit(0);
 
