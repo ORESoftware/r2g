@@ -7,6 +7,7 @@
 
 <br>
 
+
 ## Video demo
 
 Watch this video to learn how to use r2g: <br>
@@ -46,6 +47,16 @@ that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optiona
 <br>
 
 By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
+
+<br>
+
+r2g is part of multi-pronged attack to make multi-repos easier to manage with NPM.
+
+<b> The current pieces are: <b>
+
+* [npm-link-up (NLU)](https://github.com/ORESoftware/npm-link-up) => links multiple NPM packages together for local development
+* [r2g](https://github.com/ORESoftware/r2g) => tests local packages <i>properly</i> before publishing to NPM
+* [npp](https://github.com/ORESoftware/npp) => publish multiple packages and sync their semver versions
 
 <br>
 
