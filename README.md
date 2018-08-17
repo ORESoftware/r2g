@@ -1,5 +1,5 @@
 
-# r2g  <sub> properly test your NPM packages before publishing. </sub>
+# r2g  <sup> properly test your NPM packages before publishing. </sup>
 
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
@@ -7,6 +7,14 @@
 
 <br>
 
+#### Caveats + Disclaimer
+
+>
+> This will not work with MS Windows. Only MacOS and *nix. 
+> If you are interested in getting to work on Windows, pls file a ticket.
+>
+
+<br>
 
 ## Video demo
 
@@ -30,6 +38,9 @@ $ npm i -g r2g
 . "$HOME/.oresoftware/shell.sh"
 ```
 
+<i> => Note you will also get bash completion for r2g, if you source the above. </i>
+
+<br>
 _____________________________________________________________________________________________
 
 
