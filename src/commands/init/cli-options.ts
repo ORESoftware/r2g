@@ -19,7 +19,7 @@ export default [
   },
   {
     names: ['search-root', 'search'],
-    type: 'string',
+    type: 'arrayOfString',
     help: 'Search root path on your fs, to look for local dependencies.',
   },
   {
@@ -29,3 +29,14 @@ export default [
   }
 
 ]
+
+
+export interface R2GInitOpts {
+  search_root: Array<string>,
+  version: boolean,
+  docker: boolean,
+  allow_unknown: boolean,
+  force: boolean,
+  help: boolean,
+  verbosity: number
+}

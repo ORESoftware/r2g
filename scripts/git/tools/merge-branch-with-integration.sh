@@ -10,7 +10,8 @@ if [ "$current_branch" == "master" ] || [ "$current_branch" == "dev" ]; then
 fi
 
 time_seconds=`node -e 'console.log(String(Date.now()).slice(0,-3))'`;
-git fetch origin dev;
+
+git fetch origin;
 
 git add .
 git add -A

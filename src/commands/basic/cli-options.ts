@@ -29,3 +29,14 @@ export default [
   }
 
 ]
+
+
+export interface R2GBasicOpts {
+  bash_completion: boolean,
+  version: boolean,
+  debug: boolean,
+  allow_unknown: boolean,
+  force: boolean,
+  help: boolean,
+  verbosity: number
+}
