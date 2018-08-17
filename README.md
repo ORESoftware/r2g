@@ -37,7 +37,7 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 
 <br>
 
-#### Quick reference
+## Quick reference
 
 <br>
 

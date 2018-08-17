@@ -8,7 +8,7 @@ import * as assert from "assert";
 
 ////////////////////////////////////////////////////////////
 
-const colors = <{[key:string]: [number,number]}> {
+const colors = <{ [key: string]: [number, number] }> {
   'bold': [1, 22],
   'italic': [3, 23],
   'underline': [4, 24],
@@ -24,7 +24,7 @@ const colors = <{[key:string]: [number,number]}> {
   'yellow': [33, 39]
 };
 
-const stylize  =  (color: string, str: string) => {
+const stylize = (color: string, str: string) => {
   const [start, end] = colors[color];
   return `\u001b[${start}m${str}\u001b[${end}m`;
 };
@@ -38,7 +38,7 @@ const deps = Object.assign({}, pkgJSON.dependencies || {}, pkgJSON.devDependenci
 const links = Object.keys(deps);
 
 if (links.length < 1) {
-  throw new Error(stylize('red','no requireable packages in package.json to smoke test with r2g.'));
+  throw new Error(stylize('red', 'no requireable packages in package.json to smoke test with r2g.'));
 }
 
 const getAllPromises = (links: Array<string>) => {
@@ -51,7 +51,14 @@ const getAllPromises = (links: Array<string>) => {
       mod = require(l);
     }
     catch (err) {
-      console.error('Could not load your package with path:', l);
+      
+      if(new RegExp(l).test(err.message)){
+        console.error(stylize('red', 'Could not load your package with name:'), stylize('bold', l));
+        console.error(stylize('red', 'Because your module could not be loaded, it is likely that you have not built/compiled your project, or that your package.json name/main field is incorrect.'));
+      }
+      else{
+        console.error(stylize('red','You may have a missing dependency in your project, or a dependency that should be in "dependencies" not in "devDependencies".'));
+      }
       throw err;
     }
     
@@ -59,9 +66,9 @@ const getAllPromises = (links: Array<string>) => {
       assert.equal(typeof mod.r2gSmokeTest, 'function');
     }
     catch (err) {
-      console.error(stylize('red','A module failed to export a function from "main" with key "r2gSmokeTest".'));
+      console.error(stylize('red', 'A module failed to export a function from "main" with key "r2gSmokeTest".'));
       console.error('The module/package missing this export has the following name:');
-      console.error(stylize('red',l));
+      console.error(stylize('red', l));
       throw err;
     }
     
