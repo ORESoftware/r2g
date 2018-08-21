@@ -5,7 +5,7 @@
 
 <br>
 
-# <kbd>r2g</kbd>  <sup> properly test your NPM packages before publishing. </sup>
+# <span style="font-size:larger;"><kbd>r2g</kbd></span>  <sup> properly test your NPM packages before publishing. </sup>
 
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
