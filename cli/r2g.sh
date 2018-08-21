@@ -109,7 +109,7 @@ elif [ "$cmd" == "docker" ]; then
 
 else
 
-  echo "r2g error: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
+  echo "r2g info: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
   node "$commands/basic" "$@"
 
 fi

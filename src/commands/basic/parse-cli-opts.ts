@@ -30,7 +30,7 @@ if (opts.help) {
 }
 
 if (opts.version) {
-  console.log('r2g version:', pkgJSON.version);
+  console.log('r2g version:', chalk.bold(pkgJSON.version));
   process.exit(0);
 }
 

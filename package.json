@@ -39,6 +39,7 @@
     "chalk": "^2.4.1",
     "clean-trace": "latest",
     "dashdash": "^1.14.1",
+    "json-stdio": "latest",
     "prepend-transform": "0.0.1016",
     "residence": "latest",
     "shortid": "^2.2.8"
