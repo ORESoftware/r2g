@@ -199,7 +199,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
         k.stdin.end(`mkdir -p "${r2gProject}"; mkdir -p "${r2gProjectCopy}";`);
-        k.once('exit', function (code) {
+        k.once('exit', code => {
           if (code > 0) log.error("Could not create temp/project or temp/copy directory.");
           cb(code);
         });
@@ -239,7 +239,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         getFSMap(opts, searchRoots, packages, cb);
       },
 
-      copyProjectsInMap: function (getMap: any, cb: EVCb) {
+      copyProjectsInMap (getMap: any, cb: EVCb) {
 
         if (Object.keys(getMap).length < 1) {
           return process.nextTick(cb, null, {});
@@ -248,7 +248,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         installDeps(getMap, dependenciesToInstall, opts, cb);
       },
 
-      renamePackagesToAbsolute: function (copyProjectsInMap: any, copyProject: any, cb: EVCb) {
+      renamePackagesToAbsolute (copyProjectsInMap: any, copyProject: any, cb: EVCb) {
 
         if (Object.keys(copyProjectsInMap).length < 1) {
           return process.nextTick(cb, null, {});
@@ -270,7 +270,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
         k.stdin.end(`rm -rf ${r2gProjectCopy}; rsync -r --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";`);
-        k.once('exit', function (code) {
+        k.once('exit', code => {
           if (code > 0) log.error('Could not rimraf project copy path or could not copy to it using rsync.');
           cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
         });
@@ -292,7 +292,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           stdout += String(d || '').trim();
         });
         k.stderr.pipe(process.stderr);
-        k.once('exit', function (code) {
+        k.once('exit', code => {
           if (code > 0) log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
           cb(code, path.resolve(copyProject + '/' + stdout));
         });
@@ -412,7 +412,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         }
 
         // note that runNpmPack is the path to .tgz file
-        const cmd = `npm install --loglevel=warn --cache-min 9999999 --production "${runNpmPack}";`;
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";`;
         log.info(`Running the following command via this dir: "${r2gProject}" ...`);
         log.info(chalk.blueBright(cmd));
 
