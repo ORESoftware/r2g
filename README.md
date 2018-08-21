@@ -3,6 +3,8 @@
 
 [<img src="https://img.shields.io/badge/slack-@oresoftware/r2g-yellowgreen.svg?logo=slack">](https://oresoftware.slack.com/messages/CCAHLN77B)
 
+[![Gitter](https://badges.gitter.im/oresoftware/r2g.svg)](https://gitter.im/oresoftware/r2g?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 <br>
 
 #  @oresoftware/r2g 
