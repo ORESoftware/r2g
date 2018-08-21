@@ -6,10 +6,10 @@
 <br>
 
 #  @oresoftware/r2g 
-#  <sup> properly test your NPM packages before publishing. </sup>
 
 >
-> This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
+> Properly test your NPM packages before publishing. <br>
+> This tool allows you to test your package in the published format, without having to publish to an NPM registry.
 >
 
 <br>
