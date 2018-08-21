@@ -1,4 +1,10 @@
 
+<img width="200px" align="right" src="https://raw.githubusercontent.com/oresoftware/media/master/namespaces/r2g/oresoftware-r2g-rounded.png?foo">
+
+[<img src="https://img.shields.io/badge/slack-@oresoftware/r2g-yellowgreen.svg?logo=slack">](https://oresoftware.slack.com/messages/CCAHLN77B)
+
+<br>
+
 # r2g  <sup> properly test your NPM packages before publishing. </sup>
 
 >
@@ -63,7 +69,7 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 
 r2g is part of multi-pronged attack to make multi-repos easier to manage with NPM.
 
-<b> The current pieces are: <b>
+<b> The current pieces are: </b>
 
 * [npm-link-up (NLU)](https://github.com/ORESoftware/npm-link-up) => links multiple NPM packages together for local development
 * [r2g](https://github.com/ORESoftware/r2g) => tests local packages <i>properly</i> before publishing to NPM
