@@ -5,11 +5,8 @@
 
 <br>
 
-<div class="boxBorder"> r2g </div>
-
-<br>
-
-#  <div class="boxBorder"> r2g </div>  <sup> properly test your NPM packages before publishing. </sup>
+#  @oresoftware/r2g 
+#  <sup> properly test your NPM packages before publishing. </sup>
 
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
