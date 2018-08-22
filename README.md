@@ -70,7 +70,7 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 
 <br>
 
-r2g is part of multi-pronged attack to make multi-repos easier to manage with NPM.
+r2g is one of several tools that makes managing multiple locally developed NPM packages easier.
 
 <b> The current pieces are: </b>
 
