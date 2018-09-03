@@ -201,7 +201,7 @@ This command will then fail. That's expected.
 To get your test to pass, add this to X-main (your package's index file, whatever "main" in package.json points to):
 
 ```js
-exports.r2gSmokeTest = function(){  // this function can be async
+exports.r2gSmokeTest = async () => { 
   return Promise.resolve(true);
 };
 ```
