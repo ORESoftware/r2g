@@ -167,6 +167,8 @@ when you do a `git push`. Keep doing that. <i>However, what you are already doin
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`, and for example, your postinstall routine may behave differently here.
 3. You are not using `npm pack` to package your project before testing it. Your [`.npmignore`](https://docs.npmjs.com/misc/developers#keeping-files-out-of-your-package)  file could mean you will be missing files, when someone goes to use your package in the wild. Likewise, if
 the ["files"](https://docs.npmjs.com/files/package.json#files) property in X-package.json is too passive, you might be missing files as well. Using `npm pack` before testing solves that.
+4. It is possible to check out a branch that has passed on a remote CI/CD platform but locally does not have the built/transpiled target files. This means the files will not make it into the tarball that gets published to NPM. 
+Testing with r2g locally before publishing a local branch means you avoid this problem, because if the target files are not built, r2g tests will fail.
 
 The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think everyone has had an `.npmignore` file that accidentally ignored files we need in production.
 And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
