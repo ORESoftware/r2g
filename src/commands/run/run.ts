@@ -31,7 +31,7 @@ interface BinFieldObject {
   [key: string]: string
 }
 
-const flattenDeep = function (a: Array<any>): Array<any> {
+const flattenDeep =  (a: Array<any>): Array<any> => {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
