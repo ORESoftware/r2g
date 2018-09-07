@@ -7,6 +7,8 @@
 
 # r2g  <sup> properly test your NPM packages before publishing. </sup>
 
+[![Join the chat at https://gitter.im/oresoftware/r2g](https://badges.gitter.im/oresoftware/r2g.svg)](https://gitter.im/oresoftware/r2g?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 >
 > This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
 >
