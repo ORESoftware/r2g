@@ -29,7 +29,7 @@ This is how r2g works when you run `r2g run`.
 
 r2g uses the following steps to do its thing:
 
-1. Copies X to `"$HOME/.r2g/temp/copy"` with `rsync -r --exclude="node_modules"`
+1. Copies X to `"$HOME/.r2g/temp/copy"` with `rsync -r --exclude=".git" --exclude="node_modules"`
 
 2. Next, `npm pack` is run against X, which provides us with a `<X-version>.tgz` file
 
