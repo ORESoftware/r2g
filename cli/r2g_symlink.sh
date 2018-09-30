@@ -59,7 +59,7 @@ mkdir -p "$packable";
 rm -rf "$packable";
 mkdir -p "$packable";
 
-rsync -r --exclude="node_modules" "$project_root" "$packable"
+rsync -r --exclude=".git" --exclude="node_modules" "$project_root" "$packable"
 
 base_name="$(basename "$project_root")"
 

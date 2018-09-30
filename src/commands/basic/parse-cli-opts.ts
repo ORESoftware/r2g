@@ -25,12 +25,13 @@ if (opts.help) {
   log.warning(chalk.bold.cyan('To get help for r2g run, use:', chalk.bold.blueBright('r2g run --help')));
   log.warning(chalk.bold.cyan('To get help for r2g init, use:', chalk.bold.blueBright('r2g init --help')));
   let help = parser.help({includeEnv: true}).trimRight();
-  console.log('usage: r2g [OPTIONS]\n' + 'basicOpts:\n' + help);
+  console.log();
+  console.log('usage: r2g [OPTIONS]\n' + help);
   process.exit(0);
 }
 
 if (opts.version) {
-  console.log('r2g version:', pkgJSON.version);
+  console.log('r2g version:', chalk.bold(pkgJSON.version));
   process.exit(0);
 }
 

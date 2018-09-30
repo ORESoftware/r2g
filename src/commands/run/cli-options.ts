@@ -26,11 +26,13 @@ export default [
     names: ['allow-unknown'],
     type: 'bool',
     help: 'Allow unknown arguments to the command line.',
+    env: 'r2g_allow_unknown'
   },
   {
     names: ['skip'],
     type: 'string',
-    help : 'Skip phases, using --skip=s,t,z.'
+    help : 'Skip phases, using --skip=s,t,z.',
+    env: 'r2g_skip'
   },
   {
     names: ['z'],
