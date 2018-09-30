@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
+
+all_export="yep";
+
+if [[ ! "$SHELLOPTS" =~ "allexport" ]]; then
+    all_export="nope";
+    set -a;
+fi
+
+
 r2g_get_latest(){
-  . "$HOME/.oresoftware/bash/r2g.sh"
+  . "$BASH_SOURCE";  # source this file
 }
 
 r2g_get_home_dir(){
@@ -76,20 +85,11 @@ r2g_copy_package_json(){
 
 }
 
-export -f r2g;
-export -f r2g_get_latest;
-
-export -f r2g_open_home_dir;
-export -f r2g_open_temp_dir;
-export -f r2g_open_project_dir;
 
 
-export -f r2g_get_home_dir;
-export -f r2g_get_project_dir;
-export -f r2g_get_temp_dir;
 
-export -f r2g_view_log;
-export -f r2g_copy_package_json;
-
+if [ "$all_export" == "nope" ]; then
+  set +a;
+fi
 
 

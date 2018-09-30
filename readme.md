@@ -3,12 +3,16 @@
 
 [<img src="https://img.shields.io/badge/slack-@oresoftware/r2g-yellowgreen.svg?logo=slack">](https://oresoftware.slack.com/messages/CCAHLN77B)
 
+[![Gitter](https://badges.gitter.im/oresoftware/r2g.svg)](https://gitter.im/oresoftware/r2g?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Version](https://img.shields.io/npm/v/r2g.svg?colorB=green)](https://www.npmjs.com/package/r2g)
+
 <br>
 
-# r2g  <sup> properly test your NPM packages before publishing. </sup>
+#  @oresoftware/r2g 
 
 >
-> This tool allows you to test your package in the published format, without having to publish to an NPM registry. <br>
+> Properly test your NPM packages before publishing. <br>
+> This tool allows you to test your package in the published format, without having to publish to an NPM registry.
 >
 
 <br>
@@ -67,7 +71,7 @@ By default all phases are run, but you can skip phases with the `--skip=z,s,t` o
 
 <br>
 
-r2g is part of multi-pronged attack to make multi-repos easier to manage with NPM.
+r2g is one of several tools that makes managing multiple locally developed NPM packages easier.
 
 <b> The current pieces are: </b>
 
@@ -164,6 +168,8 @@ when you do a `git push`. Keep doing that. <i>However, what you are already doin
 2. You are testing your package directly, instead of testing it as a dependency of another project. In reality, someone will be using your package via `node_modules/X`, and for example, your postinstall routine may behave differently here.
 3. You are not using `npm pack` to package your project before testing it. Your [`.npmignore`](https://docs.npmjs.com/misc/developers#keeping-files-out-of-your-package)  file could mean you will be missing files, when someone goes to use your package in the wild. Likewise, if
 the ["files"](https://docs.npmjs.com/files/package.json#files) property in X-package.json is too passive, you might be missing files as well. Using `npm pack` before testing solves that.
+4. It is possible to check out a branch that has passed on a remote CI/CD platform but locally does not have the built/transpiled target files. This means the files will not make it into the tarball that gets published to NPM. 
+Testing with r2g locally before publishing a local branch means you avoid this problem, because if the target files are not built, r2g tests will fail.
 
 The above things are why you need to take some extra pre-cautions before publishing NPM packages. I think everyone has had an `.npmignore` file that accidentally ignored files we need in production.
 And we have all had dependencies listed in devDependencies instead of dependencies, which caused problems when people try to use the library. Those are the motivations for using this tool,
@@ -198,7 +204,7 @@ This command will then fail. That's expected.
 To get your test to pass, add this to X-main (your package's index file, whatever "main" in package.json points to):
 
 ```js
-exports.r2gSmokeTest = function(){  // this function can be async
+exports.r2gSmokeTest = async () => { 
   return Promise.resolve(true);
 };
 ```

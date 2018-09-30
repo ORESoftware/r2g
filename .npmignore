@@ -8,6 +8,7 @@ test
 src
 .r2g
 .circleci
+.github
 
 ### files
 .dockerignore

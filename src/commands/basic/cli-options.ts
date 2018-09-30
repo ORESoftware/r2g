@@ -26,6 +26,7 @@ export default [
     names: ['allow-unknown'],
     type: 'bool',
     help: 'Allow unknown arguments to the command line.',
+    env: 'r2g_allow_unknown'
   }
 
 ]
