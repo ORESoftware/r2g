@@ -30,5 +30,10 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 
+const to = setTimeout(() => {
+  console.error('r2g phase-T test timed out.');
+  process.exit(1);
+}, 4000);
+
 // your test goes here
 // assert.strictEqual(true, false, 'whoops');
