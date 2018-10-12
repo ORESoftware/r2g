@@ -64,7 +64,7 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
 
     q.push(callback => {
 
-      fs.readdir(dir, function (err, items) {
+      fs.readdir(dir, (err, items) => {
 
         callback(null);
 
@@ -76,11 +76,11 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
           return cb(err);
         }
 
-        const mappy = function (item: string, cb: EVCb<any>) {
+        const mappy = (itemv: string, cb: EVCb<any>) => {
 
-          item = path.resolve(dir + '/' + item);
+          const item = path.resolve(dir + '/' + itemv);
 
-          fs.lstat(item, function (err, stats) {
+          fs.lstat(item, (err, stats) => {
 
             if (err) {
               log.warn(err.message);
@@ -98,24 +98,10 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
                 return cb(null);
               }
 
-              if (item.endsWith('/.npm')) {
-                return cb(null);
-              }
-
-              if (item.endsWith('/.cache')) {
-                return cb(null);
-              }
-
-              if (item.endsWith('/node_modules')) {
-                return cb(null);
-              }
-
-              if (item.endsWith('/node_modules/')) {
-                return cb(null);
-              }
-
-              if (item.endsWith('/.nvm')) {
-                return cb(null);
+              for (let v of ['/.npm', '/.cache', '/node_modules', '/.nvm']) {
+                if (item.endsWith(v)) {
+                  return cb(null);
+                }
               }
 
               return searchDir(item, cb);
@@ -130,7 +116,7 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
               return cb(null);
             }
 
-            fs.readFile(item, function (err, data) {
+            fs.readFile(item, (err, data) => {
 
               if (err) {
                 return cb(err);
