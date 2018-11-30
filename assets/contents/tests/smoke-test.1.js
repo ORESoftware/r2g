@@ -3,14 +3,16 @@
 
 /*
 
- the files in .r2g/tests will be copied to this location:
+ READ ME:
+ 
+ => the files in .r2g/tests will be copied to this location:
 
  $HOME/.r2g/temp/project/tests/*
 
- they do not need to be .js files, but they need to have a hashbang,
+ => they do not need to be .js files, but they need to have a hashbang,
  so that r2g knows how to run the file.
  
- the test files in .r2g/tests can load non-test files from .r2g/fixtures.
+ => the test files in .r2g/tests can load non-test files from .r2g/fixtures.
 
 */
 
@@ -30,5 +32,13 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 
-// your test goes here
-// assert.strictEqual(true, false, 'whoops');
+const to = setTimeout(() => {
+  console.error('r2g phase-T test timed out.');
+  process.exit(1);
+}, 4000);
+
+
+/*
+ your test goes here, e.g.:
+ assert.strictEqual(true, false, 'whoops');
+*/

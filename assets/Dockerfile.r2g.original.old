@@ -40,7 +40,7 @@ ARG CACHEBUST=1
 # COPY .r2g .r2g
 # RUN update_npm_cache
 
-RUN npm i -s -g "@oresoftware/docker.r2g@latest"
+RUN npm i -s -g "@oresoftware/r2g.docker@latest"
 RUN npm i -s -g "@oresoftware/r2g@latest"
 
 COPY . .

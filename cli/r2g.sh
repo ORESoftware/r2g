@@ -98,8 +98,8 @@ elif [ "$cmd" == "docker" ]; then
   shift 1;
 
   if ! which dkr2g; then
-    npm install -g '@oresoftware/docker.r2g' || {
-      echo "Could not install docker.r2g, exiting.";
+    npm install -g 'r2g.docker' || {
+      echo "Could not install r2g.docker, exiting.";
       exit 1;
     }
   fi
