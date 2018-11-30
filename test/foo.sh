@@ -6,8 +6,8 @@
 #fi
 
 
-    exec > >( while read line; do echo " stdout: $line"; done )
-    exec 2> >( while read line; do echo " stderr: $line"; done )
+exec > >( while read line; do echo " stdout: $line"; done )
+exec 2> >( while read line; do echo " stderr: $line"; done )
 
 #    echo "rolo"
-    echo "cholo" >&2
+echo "cholo" >&2

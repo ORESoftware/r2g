@@ -26,11 +26,11 @@ RUN  curl -sS -o- "$ores_bash_utils/master/assets/run-npm-config-settings.sh" | 
 ARG CACHEBUST=1
 
 #RUN npm i -g "@oresoftware/read.json"
-#RUN npm i -g "@oresoftware/docker.r2g"
+#RUN npm i -g "@oresoftware/r2g.docker"
 #RUN npm i -g "@oresoftware/r2g"
 
 RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/read.json.tgz?$(date +%s)"
-RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/docker.r2g.tgz?$(date +%s)"
+RUN npm i -g "$r2g_tarballs_base_url/master/tgz/oresoftware/r2g.docker.tgz?$(date +%s)"
 
 COPY . .
 

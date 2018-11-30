@@ -230,7 +230,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         }
         
         if (process.env.r2g_is_docker === 'yes') {
-          log.info('we are not creating a deps map since we are using docker.r2g');
+          log.info('we are not creating a deps map since we are using r2g.docker');
           return process.nextTick(cb, null, {});
         }
         

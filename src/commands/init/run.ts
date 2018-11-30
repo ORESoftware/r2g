@@ -24,17 +24,15 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   async.autoInject({
 
-      mkdir: function (cb: any) {
+      mkdir(cb: any) {
 
         const k = cp.spawn('bash');
-        k.stdin.end(`mkdir ${projectRoot}/${docker_r2g}`);
-        k.once('exit', function (code) {
-          cb(null, code);
-        });
+        k.stdin.end(`mkdir "${projectRoot}/${docker_r2g}"`);
+        k.once('exit', code => cb(null, code));
 
       },
 
-      copyContents: function (mkdir: any, cb: any) {
+      copyContents(mkdir: any, cb: any) {
 
         if (mkdir) {
           log.info(chalk.yellow('Could not create .r2g folder (already exists?).'));
@@ -42,24 +40,22 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         }
 
         const k = cp.spawn('bash');
-        k.stdin.end(`cp -R ${contents}/* ${cwd}/${docker_r2g}`);
+        k.stdin.end(`cp -R ${contents}/* "${cwd}/${docker_r2g}"`);
         k.once('exit', cb);
       },
 
-      checkIfExecShExists: function (cb: any) {
+      checkIfExecShExists(cb: any) {
 
-        if(!opts.docker){
+        if (!opts.docker) {
           return process.nextTick(cb);
         }
 
-        fs.lstat(execShDest, function (err, stats) {
-          cb(null, stats);
-        });
+        fs.lstat(execShDest,  (err, stats) => cb(null, stats));
       },
 
-      copyExecSh: function (mkdir: any, checkIfExecShExists: any, copyContents: any, cb: any) {
+      copyExecSh(mkdir: any, checkIfExecShExists: any, copyContents: any, cb: any) {
 
-        if(!opts.docker){
+        if (!opts.docker) {
           return process.nextTick(cb);
         }
 
@@ -69,9 +65,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         }
 
         fs.createReadStream(execSh)
-        .pipe(fs.createWriteStream(execShDest))
-        .once('error', cb)
-        .once('end', cb);
+          .pipe(fs.createWriteStream(execShDest))
+          .once('error', cb)
+          .once('end', cb);
 
       },
 
@@ -81,9 +77,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
       },
 
-      createDockerfile: function (checkIfDockerfileExists: any, cb: any) {
+      createDockerfile (checkIfDockerfileExists: any, cb: any) {
 
-        if(!opts.docker){
+        if (!opts.docker) {
           return process.nextTick(cb);
         }
 
@@ -93,9 +89,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         }
 
         fs.createReadStream(Dockerfile)
-        .pipe(fs.createWriteStream(dockerfileDest))
-        .once('error', cb)
-        .once('end', cb);
+          .pipe(fs.createWriteStream(dockerfileDest))
+          .once('error', cb)
+          .once('end', cb);
       }
 
     },
@@ -103,14 +99,14 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     function (err: any, results) {
 
       if (err && err.OK) {
-        log.warn(chalk.blueBright('r2g/docker.r2g may have been initialized with some problems.'));
+        log.warn(chalk.blueBright('r2g/r2g.docker may have been initialized with some problems.'));
         log.warn(util.inspect(err));
       }
       else if (err) {
         throw getCleanTrace(err);
       }
       else {
-        log.info(chalk.green('Successfully initialized r2g/docker.r2g'))
+        log.info(chalk.green('Successfully initialized r2g/r2g.docker'))
       }
 
     });

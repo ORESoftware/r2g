@@ -9,7 +9,7 @@ import shortid = require("shortid");
 
 /////////////////////////////////////////////////////////////////
 
-export const installDeps = function (createProjectMap: any, dependenciesToInstall: Array<string>, opts: any, cb: any) {
+export const installDeps =  (createProjectMap: any, dependenciesToInstall: Array<string>, opts: any, cb: any) => {
 
   const finalMap = {} as any;
 
@@ -19,7 +19,7 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
 
   const c = opts.pack ? 4 : 4;
 
-  async.eachLimit(dependenciesToInstall, c, function (dep, cb) {
+  async.eachLimit(dependenciesToInstall, c,  (dep, cb) => {
 
       if (!createProjectMap[dep]) {
         log.info('dependency is not in the local map:', dep);
@@ -35,10 +35,9 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
       const basename = path.basename(c);
       const depRoot = path.resolve(dest + '/' + basename);
 
+      const pack = (depRoot: string, cb: any) => {
 
-      const pack = function(depRoot: string, cb: any){
-
-        if(!opts.pack){
+        if (!opts.pack) {
           // the map just points to the root of the project
           finalMap[dep] = depRoot;
           return process.nextTick(cb);
@@ -51,21 +50,18 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
         const cmd = [
           `npm pack --loglevel=warn;`,
         ]
-        .join(' ');
-
+          .join(' ');
 
         log.info(`Running the following command: '${chalk.cyan.bold(cmd)}', in this directory: "${depRoot}".`);
 
         let stdout = '';
 
-        k.stdout.on('data', function (d) {
-          stdout+= String(d).trim();
-        });
+        k.stdout.on('data', d => stdout += String(d).trim());
         k.stdin.end(cmd);
         k.stderr.pipe(process.stderr);
         k.once('exit', function (code) {
 
-          if(code > 0){
+          if (code > 0) {
             return cb(new Error('"npm pack" command exited with code greater than 0.'));
           }
 
@@ -80,16 +76,15 @@ export const installDeps = function (createProjectMap: any, dependenciesToInstal
         `set -e`,
         `mkdir -p "${dest}"`,
         `rsync -r --exclude="node_modules" --exclude=".git" "${c}" "${dest}";`,
-        // `npm install --loglevel=warn "${dest}/${basename}";`
       ]
-      .join('; ');
+        .join('; ');
 
       log.info(`About to run the following command: '${chalk.cyan.bold(cmd)}'`);
 
       k.stdin.end(cmd);
       k.stderr.pipe(process.stderr);
 
-      k.once('exit', function (code) {
+      k.once('exit', code => {
 
         if (code < 1) {
           return pack(depRoot, cb);
