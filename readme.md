@@ -23,6 +23,8 @@
 > This will not work with MS Windows. Only MacOS and *nix. 
 > If you are interested in getting to work on Windows, pls file a ticket.
 >
+> On MacOS, you may need Bash version 4. MacOS comes with Bash version 3 by default.
+>
 
 <br>
 

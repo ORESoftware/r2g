@@ -510,7 +510,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         if(packageJSONOverride){
           override = deepMerge({}, defaultPkgJSON, packageJSONOverride);
-          log.warning({override});
+          log.warning('package.json overriden with:',{override});
         }
         else{
           override = Object.assign({}, defaultPkgJSON);
@@ -584,7 +584,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           return process.nextTick(cb);
         }
         
-        log.error('Running custom actions!!!!!!!');
+        log.info('Running custom actions...');
         
         async.series({
           // inCopy(cb){

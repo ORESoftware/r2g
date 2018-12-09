@@ -58,14 +58,19 @@ r2g_zmx() {
 }
 
 r2g_stdout() {
-    while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done
+    # REPLY is a build-in, see:
+    while read; do echo -e "${r2g_gray}r2g:${r2g_no_color} $REPLY"; done
 }
 
 r2g_stderr() {
-    while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done
+    while read; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $REPLY"; done
 }
 
+r2g_zmx_all() {
+    sed 's/^/r2g: /'
+}
 
+export -f r2g_zmx_all;
 export -f r2g_zmx;
 export -f r2g_stdout;
 export -f r2g_stderr;
@@ -90,7 +95,7 @@ if [[ "$cmd" == "run" ]] || [[ "$cmd" == "test" ]]; then
         exit 1;
     }
 
-    node "$commands/run" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
+    node "$commands/run" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout) # |& r2g_zmx_all
 
 
 elif [[ "$cmd" == "init" ]]; then
