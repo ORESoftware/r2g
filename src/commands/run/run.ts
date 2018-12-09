@@ -55,8 +55,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
   const customActionsPath = path.resolve(projectRoot + '/.r2g/custom.actions.js');
   
-  log.error({customActionsPath});
-  
   try {
     pkgJSON = require(pkgJSONPth);
     pkgName = pkgJSON.name;
