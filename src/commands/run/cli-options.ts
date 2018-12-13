@@ -26,16 +26,33 @@ export default [
     names: ['allow-unknown'],
     type: 'bool',
     help: 'Allow unknown arguments to the command line.',
+    env: 'r2g_allow_unknown'
+  },
+  {
+    names: ['skip'],
+    type: 'string',
+    help : 'Skip phases, using --skip=s,t,z.',
+    env: 'r2g_skip'
   },
   {
     names: ['z'],
     type: 'bool',
-    help : 'Test your package using r2g.test or npm test, after linking project to itself after npm pack.'
+    help : 'Skip phase-Z.'
+  },
+  {
+    names: ['t'],
+    type: 'bool',
+    help : 'Skip phase-T.'
+  },
+  {
+    names: ['s'],
+    type: 'bool',
+    help : 'Skip phase-S.'
   },
   {
     names: ['full'],
     type: 'bool',
-    help: 'Install local copies of select dependencies, instead of using NPM.',
+    help: 'Install local copies of select dependencies/packages, instead of using NPM registry/cache.',
     default: false
   },
   {

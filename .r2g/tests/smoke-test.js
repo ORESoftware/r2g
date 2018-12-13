@@ -29,12 +29,9 @@ const os = require('os');
 const fs = require('fs');
 const EE = require('events');
 
+const v = require('../fixtures/foo.js');
+assert.strictEqual(v.foo, 3, 'foo value is not 3, but it should be 3.');
 
-process.on('unhandledRejection', (reason, p) => {
-  // unless we force process to exit with 1, process may exit with 0 upon an unhandledRejection
-  console.error(reason);
-  process.exit(1);
-});
-
+process.exit(0);
 
 // your test goes here

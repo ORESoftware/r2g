@@ -1,6 +1,6 @@
 {
-  "name": "@oresoftware/r2g",
-  "version": "0.1.017",
+  "name": "r2g",
+  "version": "0.1.195",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
@@ -39,7 +39,9 @@
     "chalk": "^2.4.1",
     "clean-trace": "latest",
     "dashdash": "^1.14.1",
-    "residence": "0.0.209",
+    "json-stdio": "latest",
+    "prepend-transform": "0.0.1016",
+    "residence": "latest",
     "shortid": "^2.2.8"
   },
   "devDependencies": {
@@ -51,11 +53,7 @@
   "r2g": {
     "test": "echo 'this is great'"
   },
-  "r2gz": {
-    "copy-tests": "cp -r ./test $HOME/.r2g/temp/project && cp -r ./dist $HOME/.r2g/temp/project",
-    "run-tests": "node test"
-  },
-  "npp":{
+  "npp": {
     "publishable": true
   },
   "b3val": 3
