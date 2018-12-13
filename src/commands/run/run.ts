@@ -7,6 +7,7 @@ import async = require('async');
 import {getCleanTrace} from 'clean-trace';
 import * as util from "util";
 import * as assert from 'assert';
+import * as Domain from 'domain';
 
 // project
 import log from '../../logger';
@@ -16,6 +17,7 @@ import {getFSMap} from "./get-fs-map";
 import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
 import pt from "prepend-transform";
+import {timeout} from "async";
 
 ///////////////////////////////////////////////
 
@@ -34,6 +36,59 @@ interface BinFieldObject {
 
 const flattenDeep = (a: Array<any>): Array<any> => {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
+};
+
+const handleTask = (r2gProject: string) => {
+  return (t: (root: string, cb: EVCb<any>) => void, cb: (err: any) => void) => {
+    
+    process.nextTick(() => {
+      
+      const d = Domain.create();
+      
+      let first = true;
+      const finish = (err: any, isTimeout: boolean) => {
+        
+        clearTimeout(to);
+        
+        if (err) {
+          log.error(err);
+          log.error('The following function experienced an error:', t);
+        }
+        
+        if (isTimeout) {
+          log.error('The following task timed out:', t);
+        }
+        
+        if (first) {
+          process.nextTick(() => {
+            d.exit();
+            cb(err);
+          });
+        }
+        
+      };
+      
+      const to = setTimeout(() => {
+        finish(new Error('timeout'), true);
+      }, 5000);
+      
+      d.once('error', err => {
+        log.error('Could not successfully run task:');
+        log.error(String(t));
+        finish(err, false);
+      });
+      
+      d.run(() => {
+        t(r2gProject, function (err) {
+          if (arguments.length > 1) {
+            log.error('The following callback arguments were ignored:', Array.from(arguments).slice(0));
+          }
+          finish(err, false);
+        });
+      });
+    });
+  }
+  
 };
 
 export const run = (cwd: string, projectRoot: string, opts: any): void => {
@@ -72,35 +127,34 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   }
   
   interface CustomActionExports {
-    default? :CustomActionExports,
+    default?: CustomActionExports,
     inCopyBeforeInstall: Array<CustomAction>,
     inProjectBeforeInstall: Array<CustomAction>,
     inCopyAfterInstall: Array<CustomAction>,
     inProjectAfterInstall: Array<CustomAction>,
   }
-
   
   type CustomAction = (root: string, cb: EVCb<any>) => void;
   let customActions: CustomActionExports = null, customActionsStats = null;
   
-  try{
+  try {
     customActionsStats = fs.statSync(customActionsPath);
   }
-  catch(err){
+  catch (err) {
     //ignore
   }
   
-  try{
-    if(customActionsStats){
+  try {
+    if (customActionsStats) {
       customActions = require(customActionsPath);
       customActions = customActions.default || customActions;
       assert(customActions, 'custom.actions.js is missing certain exports.');
     }
   }
-  catch(err){
-     log.error('Could not load custom.actions.js');
-     log.error(err.message);
-     process.exit(1);
+  catch (err) {
+    log.error('Could not load custom.actions.js');
+    log.error(err.message);
+    process.exit(1);
   }
   
   let packageJSONOverride: any = null, packageJSONOverrideStats = null;
@@ -456,7 +510,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         });
         
       },
-    
       
       copySmokeTester(mkdirpProject: any, cb: EVCb) {
         
@@ -483,9 +536,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         const defaultPkgJSON = require(defaultPackageJSONPath);
         const packageJSONPath = path.resolve(r2gProject + '/package.json');
-  
+        
         function deepMerge(...sources: any[]) {
-          let acc : any= {};
+          let acc: any = {};
           for (const source of sources) {
             if (Array.isArray(source)) {
               if (!(Array.isArray(acc))) {
@@ -498,24 +551,22 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
                 if (value instanceof Object && key in acc) {
                   value = deepMerge(acc[key], value)
                 }
-                acc = { ...acc, [key]: value }
+                acc = {...acc, [key]: value}
               }
             }
           }
           return acc;
         }
-  
         
         let override = null;
         
-        if(packageJSONOverride){
+        if (packageJSONOverride) {
           override = deepMerge({}, defaultPkgJSON, packageJSONOverride);
-          log.warning('package.json overriden with:',{override});
+          log.warning('package.json overriden with:', {override});
         }
-        else{
+        else {
           override = Object.assign({}, defaultPkgJSON);
         }
-        
         
         const strm = fs.createWriteStream(packageJSONPath)
           .once('error', cb)
@@ -524,50 +575,46 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         strm.end(JSON.stringify(override, null, 2) + '\n');
         
       },
-    
-      customActionsBeforeInstall(copyPackageJSON : any, cb: EVCb<any>){
       
-        if(!customActions){
+      customActionsBeforeInstall(copyPackageJSON: any, cb: EVCb<any>) {
+        
+        if (!customActions) {
           log.info('No custom actions registered. Use custom.actions.js to add custom actions.');
           return process.nextTick(cb);
         }
-      
+        
         log.info('Running custom actions...');
-      
+        
         async.series({
-            inProject(cb){
-            
+            inProject(cb) {
+              
               const tasks = flattenDeep([customActions.inProjectBeforeInstall]).filter(Boolean);
-            
-              if(tasks.length < 1){
+              
+              if (tasks.length < 1) {
                 return process.nextTick(cb);
               }
-            
-              async.eachSeries(tasks, (t,cb) => {
-                process.nextTick(() => {
-                  t(r2gProject, cb);
-                })
-              },cb);
-            
+              
+              async.eachSeries(tasks, handleTask(r2gProject), cb);
+              
             }
           },
           cb);
-      
+        
       },
-    
-      runNpmInstall(copyPackageJSON: any, customActionsBeforeInstall: any, runNpmPack: string, cb: EVCb) {
       
+      runNpmInstall(copyPackageJSON: any, customActionsBeforeInstall: any, runNpmPack: string, cb: EVCb) {
+        
         if (opts.t && opts.s) {
           return process.nextTick(cb);
         }
-      
+        
         // note that runNpmPack is the path to .tgz file
         const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";
            npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
         
         log.info(`Running the following command via this dir: "${r2gProject}" ...`);
         log.info(chalk.blueBright(cmd));
-      
+        
         const k = cp.spawn('bash');
         k.stdin.end(`cd "${r2gProject}" && ` + cmd);
         k.stderr.pipe(process.stderr);
@@ -576,10 +623,10 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           cb(code);
         });
       },
-    
-      customActionsAfterInstall(runNpmInstall : any, cb: EVCb<any>){
+      
+      customActionsAfterInstall(runNpmInstall: any, cb: EVCb<any>) {
         
-        if(!customActions){
+        if (!customActions) {
           log.info('No custom actions registered. Use custom.actions.js to add custom actions.');
           return process.nextTick(cb);
         }
@@ -587,39 +634,20 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info('Running custom actions...');
         
         async.series({
-          // inCopy(cb){
-          //
-          //   const tasks = flattenDeep([customActions.inCopy]).filter(Boolean);
-          //
-          //   if(tasks.length < 1){
-          //     return process.nextTick(cb);
-          //   }
-          //
-          //   async.eachSeries(tasks, (t,cb) => {
-          //     process.nextTick(() => {
-          //       t(r2gProject, cb);
-          //     })
-          //   },cb);
-          //
-          // },
-          inProject(cb){
-  
-            const tasks = flattenDeep([customActions.inProjectAfterInstall]).filter(Boolean);
-  
-            if(tasks.length < 1){
-              return process.nextTick(cb);
+            inProject(cb) {
+              
+              const tasks = flattenDeep([customActions.inProjectAfterInstall]).filter(Boolean);
+              
+              if (tasks.length < 1) {
+                return process.nextTick(cb);
+              }
+              
+              async.eachSeries(tasks, handleTask(r2gProject), cb);
+              
             }
-  
-            async.eachSeries(tasks, (t,cb) => {
-              process.nextTick(() => {
-                t(r2gProject, cb);
-              })
-            },cb);
-            
-          }
-        },
+          },
           cb);
-      
+        
       },
       
       r2gSmokeTest(runZTest: any, customActionsAfterInstall: any, copySmokeTester: any, cb: EVCb) {

@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 
 
-if [ "$0" == "/bin/sh" ] || [ "$0" == "sh" ]; then
-    echo "sh is stealing bash sunshine.";
-    exit 1;
-fi
-
-
 export r2g_gray='\033[1;30m'
 export r2g_magenta='\033[1;35m'
 export r2g_cyan='\033[1;36m'
