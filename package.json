@@ -46,7 +46,6 @@
   },
   "devDependencies": {
     "@types/async": "^2.0.49",
-    "@types/core-js": "^0.9.46",
     "@types/node": "^9.6.2",
     "@types/shortid": "0.0.29"
   },
