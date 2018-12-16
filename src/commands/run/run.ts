@@ -7,6 +7,7 @@ import async = require('async');
 import {getCleanTrace} from 'clean-trace';
 import * as util from "util";
 import * as assert from 'assert';
+import * as Domain from 'domain';
 
 // project
 import log from '../../logger';
@@ -16,12 +17,14 @@ import {getFSMap} from "./get-fs-map";
 import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
 import pt from "prepend-transform";
+import {timeout} from "async";
 
 ///////////////////////////////////////////////
 
 const r2gProject = path.resolve(process.env.HOME + '/.r2g/temp/project');
 const r2gProjectCopy = path.resolve(process.env.HOME + '/.r2g/temp/copy');
 const smokeTester = require.resolve('../../smoke-tester.js');
+const defaultPackageJSONPath = require.resolve('../../../assets/default.package.json');
 
 export interface Packages {
   [key: string]: boolean | string
@@ -31,8 +34,61 @@ interface BinFieldObject {
   [key: string]: string
 }
 
-const flattenDeep =  (a: Array<any>): Array<any> => {
+const flattenDeep = (a: Array<any>): Array<any> => {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
+};
+
+const handleTask = (r2gProject: string) => {
+  return (t: (root: string, cb: EVCb<any>) => void, cb: (err: any) => void) => {
+    
+    process.nextTick(() => {
+      
+      const d = Domain.create();
+      
+      let first = true;
+      const finish = (err: any, isTimeout: boolean) => {
+        
+        clearTimeout(to);
+        
+        if (err) {
+          log.error(err);
+          log.error('The following function experienced an error:', t);
+        }
+        
+        if (isTimeout) {
+          log.error('The following task timed out:', t);
+        }
+        
+        if (first) {
+          process.nextTick(() => {
+            d.exit();
+            cb(err);
+          });
+        }
+        
+      };
+      
+      const to = setTimeout(() => {
+        finish(new Error('timeout'), true);
+      }, 5000);
+      
+      d.once('error', err => {
+        log.error('Could not successfully run task:');
+        log.error(String(t));
+        finish(err, false);
+      });
+      
+      d.run(() => {
+        t(r2gProject, function (err) {
+          if (arguments.length > 1) {
+            log.error('The following callback arguments were ignored:', Array.from(arguments).slice(0));
+          }
+          finish(err, false);
+        });
+      });
+    });
+  }
+  
 };
 
 export const run = (cwd: string, projectRoot: string, opts: any): void => {
@@ -50,7 +106,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     opts.t = opts.t || skipped.includes('t');
   }
   
+  const pkgJSONOverridePth = path.resolve(projectRoot + '/.r2g/package.override.js');
   const pkgJSONPth = path.resolve(projectRoot + '/package.json');
+  const customActionsPath = path.resolve(projectRoot + '/.r2g/custom.actions.js');
   
   try {
     pkgJSON = require(pkgJSONPth);
@@ -66,6 +124,61 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     throw new Error(
       'Your package.json file does not appear to have a proper name field. Here is the file:\n' + util.inspect(pkgJSON)
     );
+  }
+  
+  interface CustomActionExports {
+    default?: CustomActionExports,
+    inCopyBeforeInstall: Array<CustomAction>,
+    inProjectBeforeInstall: Array<CustomAction>,
+    inCopyAfterInstall: Array<CustomAction>,
+    inProjectAfterInstall: Array<CustomAction>,
+  }
+  
+  type CustomAction = (root: string, cb: EVCb<any>) => void;
+  let customActions: CustomActionExports = null, customActionsStats = null;
+  
+  try {
+    customActionsStats = fs.statSync(customActionsPath);
+  }
+  catch (err) {
+    //ignore
+  }
+  
+  try {
+    if (customActionsStats) {
+      customActions = require(customActionsPath);
+      customActions = customActions.default || customActions;
+      assert(customActions, 'custom.actions.js is missing certain exports.');
+    }
+  }
+  catch (err) {
+    log.error('Could not load custom.actions.js');
+    log.error(err.message);
+    process.exit(1);
+  }
+  
+  let packageJSONOverride: any = null, packageJSONOverrideStats = null;
+  
+  try {
+    packageJSONOverrideStats = fs.statSync(pkgJSONOverridePth);
+  }
+  catch (err) {
+    // ignore
+  }
+  
+  try {
+    if (packageJSONOverrideStats) {
+      assert(packageJSONOverrideStats.isFile(), 'package.override.js should be a file, but it is not.');
+      packageJSONOverride = require(pkgJSONOverridePth);
+      packageJSONOverride = packageJSONOverride.default || packageJSONOverride;
+      assert(packageJSONOverride && !Array.isArray(packageJSONOverride) && typeof packageJSONOverride === 'object',
+        'package.override.js does not export the right object.');
+    }
+  }
+  catch (err) {
+    log.error('Could not run stat on file at path:', pkgJSONOverridePth);
+    log.error(err.message);
+    process.exit(1);
   }
   
   try {
@@ -86,15 +199,19 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     pkgName = pkgName.slice(1);
   }
   
+  const confPath = path.resolve(projectRoot + '/.r2g/config.js');
+  
   try {
-    r2gConf = require(projectRoot + '/.r2g/config.js');
+    r2gConf = require(confPath);
     r2gConf = r2gConf.default || r2gConf;
   }
   catch (err) {
     
-    if (opts.verbosity > 2) {
-      log.warning(chalk.yellow('Could not read your .r2g/config.js file.'));
+    if (opts.verbosity > 1) {
+      log.warning(err.message);
     }
+    
+    log.warning(chalk.yellow('Could not read your .r2g/config.js file at path:', chalk.bold(confPath)));
     
     if (process.env.r2g_is_docker === 'yes') {
       throw getCleanTrace(err);
@@ -114,9 +231,10 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   }
   
   packages = r2gConf.packages;
+  
   searchRoots = flattenDeep([r2gConf.searchRoots, path.resolve(r2gConf.searchRoot || '')])
-  .map(v => String(v || '').trim())
-  .filter(Boolean);
+    .map(v => String(v || '').trim())
+    .filter(Boolean);
   
   if (!(packages && typeof packages === 'object')) {
     log.error(r2gConf);
@@ -230,7 +348,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         }
         
         if (process.env.r2g_is_docker === 'yes') {
-          log.info('we are not creating a deps map since we are using docker.r2g');
+          log.info('we are not creating a deps map since we are using r2g.docker');
           return process.nextTick(cb, null, {});
         }
         
@@ -280,11 +398,8 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
         
-        const k = cp.spawn('bash', [], {
-          cwd: copyProject
-        });
-        
-        k.stdin.end(cmd);
+        const k = cp.spawn('bash');
+        k.stdin.end(`cd "${copyProject}" && ` + cmd);
         let stdout = '';
         k.stdout.on('data', d => {
           stdout += String(d || '').trim();
@@ -319,9 +434,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           }
           
           return keys.map(function (k) {
-            return ` mkdir -p node_modules/.bin && ln -sf "${path}/${bin[k]}" "node_modules/.bin/${k}" `
-          })
-          .join(' && ');
+              return ` mkdir -p node_modules/.bin && ln -sf "${path}/${bin[k]}" "node_modules/.bin/${k}" `
+            })
+            .join(' && ');
         };
         
         const cmd = [
@@ -331,17 +446,15 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           // `rsync -r "${r2gProject}/node_modules/${cleanPackageName}" "node_modules"`,
           getBinMap(pkgJSON.bin, `${copyProject}/node_modules/${cleanPackageName}`, cleanPackageName)
         ]
-        .join(' && ');
+          .join(' && ');
         
         const cwd = String(copyProject).slice(0);
         log.info(chalk.bold(`Running the following command from "${cwd}":`), chalk.bold.cyan(cmd));
         
-        const k = cp.spawn('bash', [], {
-          cwd
-        });
+        const k = cp.spawn('bash');
         
         k.stderr.pipe(process.stderr);
-        k.stdin.end(cmd);
+        k.stdin.end(`cd "${cwd}" && ` + cmd);
         
         k.once('exit', code => {
           if (code > 0) log.error('Could not link from project to copy.');
@@ -359,12 +472,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = `npm install --cache-min 9999999 --loglevel=warn`;
         log.info(`Running "${cmd}" in project copy.`);
         
-        const k = cp.spawn('bash', [], {
-          cwd: copyProject
-        });
-        
+        const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
-        k.stdin.end(cmd);
+        k.stdin.end(`cd "${copyProject}" && ` + cmd);
         
         k.once('exit', code => {
           if (code > 0) log.error('Could not link from project to copy.');
@@ -385,14 +495,12 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
         
         const k = cp.spawn('bash', [], {
-          
-          cwd: copyProject,
           env: Object.assign(process.env, {}, {
             PATH: path.resolve(copyProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
         
-        k.stdin.end(`${cmd}`);
+        k.stdin.end(`cd "${copyProject}" && ${cmd}`);
         k.stdout.pipe(pt(chalk.gray('phase-Z: '))).pipe(process.stdout);
         k.stderr.pipe(pt(chalk.yellow('phase-Z: '))).pipe(process.stderr);
         
@@ -401,28 +509,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           cb(code);
         });
         
-      },
-      
-      runNpmInstall(copyPackageJSON: any, runNpmPack: string, cb: EVCb) {
-        
-        if (opts.t && opts.s) {
-          return process.nextTick(cb);
-        }
-        
-        // note that runNpmPack is the path to .tgz file
-        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";`;
-        log.info(`Running the following command via this dir: "${r2gProject}" ...`);
-        log.info(chalk.blueBright(cmd));
-        
-        const k = cp.spawn('bash', [], {
-          cwd: r2gProject
-        });
-        k.stdin.end(cmd);
-        k.stderr.pipe(process.stderr);
-        k.once('exit', code => {
-          if (code > 0) log.error(`Could not run the following command: ${cmd}.`);
-          cb(code);
-        });
       },
       
       copySmokeTester(mkdirpProject: any, cb: EVCb) {
@@ -434,26 +520,137 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Copying the smoke-tester.js file to "${r2gProject}" ...`);
         
         fs.createReadStream(smokeTester)
-        .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
-        .once('error', cb)
-        .once('finish', cb);
+          .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
+          .once('error', cb)
+          .once('finish', cb);
       },
       
       copyPackageJSON(mkdirpProject: any, cb: EVCb) {
         
-        log.info(`Copying a "blank" package.json file to "${r2gProject}" ...`);
+        if (opts.keep) {
+          log.warn(`Re-using the existing package.json file at path '${r2gProject}/package.json'...`);
+          return process.nextTick(cb);
+        }
         
-        const k = cp.spawn('bash', [], {
-          cwd: r2gProject
-        });
+        log.info(`Copying package.json file to "${r2gProject}" ...`);
         
-        k.stderr.pipe(process.stderr);
-        k.stdin.end(`r2g_copy_package_json "${r2gProject}" ${opts.keep || ''};`);
+        const defaultPkgJSON = require(defaultPackageJSONPath);
+        const packageJSONPath = path.resolve(r2gProject + '/package.json');
         
-        k.once('exit', cb);
+        function deepMerge(...sources: any[]) {
+          let acc: any = {};
+          for (const source of sources) {
+            if (Array.isArray(source)) {
+              if (!(Array.isArray(acc))) {
+                acc = []
+              }
+              acc = [...acc, ...source]
+            }
+            else if (source && typeof source === 'object') {
+              for (let [key, value] of Object.entries(source)) {
+                if (value instanceof Object && key in acc) {
+                  value = deepMerge(acc[key], value)
+                }
+                acc = {...acc, [key]: value}
+              }
+            }
+          }
+          return acc;
+        }
+        
+        let override = null;
+        
+        if (packageJSONOverride) {
+          override = deepMerge({}, defaultPkgJSON, packageJSONOverride);
+          log.warning('package.json overriden with:', {override});
+        }
+        else {
+          override = Object.assign({}, defaultPkgJSON);
+        }
+        
+        const strm = fs.createWriteStream(packageJSONPath)
+          .once('error', cb)
+          .once('finish', cb);
+        
+        strm.end(JSON.stringify(override, null, 2) + '\n');
+        
       },
       
-      r2gSmokeTest(runZTest: any, runNpmInstall: any, copySmokeTester: any, cb: EVCb) {
+      customActionsBeforeInstall(copyPackageJSON: any, cb: EVCb<any>) {
+        
+        if (!customActions) {
+          log.info('No custom actions registered. Use custom.actions.js to add custom actions.');
+          return process.nextTick(cb);
+        }
+        
+        log.info('Running custom actions...');
+        
+        async.series({
+            inProject(cb) {
+              
+              const tasks = flattenDeep([customActions.inProjectBeforeInstall]).filter(Boolean);
+              
+              if (tasks.length < 1) {
+                return process.nextTick(cb);
+              }
+              
+              async.eachSeries(tasks, handleTask(r2gProject), cb);
+              
+            }
+          },
+          cb);
+        
+      },
+      
+      runNpmInstall(copyPackageJSON: any, customActionsBeforeInstall: any, runNpmPack: string, cb: EVCb) {
+        
+        if (opts.t && opts.s) {
+          return process.nextTick(cb);
+        }
+        
+        // note that runNpmPack is the path to .tgz file
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";
+           npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
+        
+        log.info(`Running the following command via this dir: "${r2gProject}" ...`);
+        log.info(chalk.blueBright(cmd));
+        
+        const k = cp.spawn('bash');
+        k.stdin.end(`cd "${r2gProject}" && ` + cmd);
+        k.stderr.pipe(process.stderr);
+        k.once('exit', code => {
+          if (code > 0) log.error(`Could not run the following command: ${cmd}.`);
+          cb(code);
+        });
+      },
+      
+      customActionsAfterInstall(runNpmInstall: any, cb: EVCb<any>) {
+        
+        if (!customActions) {
+          log.info('No custom actions registered. Use custom.actions.js to add custom actions.');
+          return process.nextTick(cb);
+        }
+        
+        log.info('Running custom actions...');
+        
+        async.series({
+            inProject(cb) {
+              
+              const tasks = flattenDeep([customActions.inProjectAfterInstall]).filter(Boolean);
+              
+              if (tasks.length < 1) {
+                return process.nextTick(cb);
+              }
+              
+              async.eachSeries(tasks, handleTask(r2gProject), cb);
+              
+            }
+          },
+          cb);
+        
+      },
+      
+      r2gSmokeTest(runZTest: any, customActionsAfterInstall: any, copySmokeTester: any, cb: EVCb) {
         
         if (opts.s) {
           log.warn('Skipping phase-S.');
@@ -463,7 +660,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
         
         const k = cp.spawn('bash', [], {
-          cwd: r2gProject,
           env: Object.assign(process.env, {}, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
@@ -472,7 +668,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(pt(chalk.yellow('phase-S: '))).pipe(process.stderr);
         k.stdout.pipe(pt(chalk.gray('phase-S: '))).pipe(process.stdout);
         
-        k.stdin.end(`node smoke-tester.js;`);
+        k.stdin.end(`cd "${r2gProject}" && node smoke-tester.js;`);
         k.once('exit', code => {
           if (code > 0) {
             log.error('r2g smoke test failed => one of your exported r2gSmokeTest function calls failed to resolve to true.');
@@ -490,14 +686,12 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         log.info(`Copying your user defined tests to: "${r2gProject}" ...`);
         
-        const k = cp.spawn('bash', [], {
-          cwd: copyProject
-        });
-        
+        const k = cp.spawn('bash');
         k.stdout.pipe(process.stdout);
         k.stderr.pipe(process.stderr);
         
         k.stdin.end([
+          `cd "${copyProject}"`,
           `mkdir -p .r2g/tests`,
           `mkdir -p .r2g/fixtures`,
           `rsync -r .r2g/tests "${r2gProject}"`,
@@ -518,7 +712,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
         
         const k = cp.spawn('bash', [], {
-          cwd: r2gProject,
           env: Object.assign(process.env, {}, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
@@ -543,20 +736,20 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           
           const cmd = ` echo 'Now we are in phase-T...';` +
             items.filter(v => fs.lstatSync(tests + '/' + v).isFile())
-            .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `)
-            .concat(' exit "$?" ').join(' ');
+              .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `)
+              .concat(' exit "$?" ').join(' ');
           
           log.info('About to run tests in your .r2g/tests dir.');
-          k.stdin.end(`${cmd}`);
+          k.stdin.end(`cd "${r2gProject}" && ${cmd}`);
         }
         catch (err) {
-          return cb(err);
+          return process.nextTick(cb, err);
         }
       }
       
     },
     
-     (err: any, results) => {
+    (err: any, results) => {
       
       if (err && err.OK) {
         log.warn(chalk.blueBright(' => r2g may have run with some problems.'));

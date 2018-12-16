@@ -23,13 +23,14 @@
 > This will not work with MS Windows. Only MacOS and *nix. 
 > If you are interested in getting to work on Windows, pls file a ticket.
 >
+> On MacOS, you may need Bash version 4. MacOS comes with Bash version 3 by default.
+>
 
 <br>
 
 ## Video demo
 
 Watch this video to learn how to use r2g: <br>
-
 
 The video references this example repo: <br>
 https://github.com/ORESoftware/r2g.example
@@ -309,7 +310,7 @@ Awesome.
 ## Usage in a Docker image/container
 
 Use a Docker container for a fresh/independent/isolated testing env. For packages that do more complex/system things, it will be useful to use a locally running Docker container.
-To use r2g in a Docker container, see: https://github.com/ORESoftware/docker.r2g
+To use r2g in a Docker container, see: https://github.com/ORESoftware/r2g.docker
 
 <br>
 
@@ -331,7 +332,7 @@ $ r2g docker
 ```
 
 The above command actually uses this command line tool: <br>
-https://github.com/ORESoftware/docker.r2g
+https://github.com/ORESoftware/r2g.docker
 
 
 <br>
