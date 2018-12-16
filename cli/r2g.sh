@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
 
+if [[ "$r2g_is_running" == "yes" ]]; then
+   echo "Looks like r2g somehow launched an r2g child process. That is not allowed, exitting with 0.";
+   exit 0;
+fi
+
+export r2g_is_running="yes";
+
 export r2g_gray='\033[1;30m'
 export r2g_magenta='\033[1;35m'
 export r2g_cyan='\033[1;36m'
