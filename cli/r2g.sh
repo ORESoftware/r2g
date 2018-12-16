@@ -2,7 +2,7 @@
 
 
 if [[ "$r2g_is_running" == "yes" ]]; then
-   echo "Looks like r2g somehow launched an r2g child process. That is not allowed, exitting with 0.";
+   echo "Looks like r2g somehow launched an r2g child process. That is not allowed, exiting with 0.";
    exit 0;
 fi
 
