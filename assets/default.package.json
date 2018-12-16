@@ -1,0 +1,29 @@
+{
+  "name": "@oresoftware/shell",
+  "version": "0.0.101",
+  "description": "Semver-oriented TypeScript library skeleton.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'you should override this, b/c this is auto-fail as is.'; exit 1;"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ORESoftware/r2g.git"
+  },
+  "keywords": [],
+  "author": "Yo.Mama",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/ORESoftware/r2g/issues"
+  },
+  "homepage": "https://github.com/ORESoftware/r2g#readme",
+  "dependencies": {},
+  "devDependencies": {},
+  "nlu":{
+    "linkable": false
+  },
+  "r2g":{
+    "npm.test": false,
+    "linkable": false
+  }
+}

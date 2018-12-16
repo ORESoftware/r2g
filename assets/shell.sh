@@ -63,31 +63,6 @@ r2g(){
 }
 
 
-
-r2g_copy_package_json(){
-
-  local dest="$1"
-  local keep="$2"
-
-  if [  -f "package.json" ]; then
-     echo >&2 "package.json file already exists here: $PWD";
-     exit 0;
-  fi
-
-
-  echo >&2 "copying new package.json file to: $dest";
-
-  curl -H 'Cache-Control: no-cache' \
-          "https://raw.githubusercontent.com/oresoftware/shell/master/assets/package.json?$(date +%s)" \
-            --output "$dest/package.json" 2>&1 || {
-            echo "curl command failed to read package.json, now we should try wget..." >&2
-  }
-
-}
-
-
-
-
 if [ "$all_export" == "nope" ]; then
   set +a;
 fi
