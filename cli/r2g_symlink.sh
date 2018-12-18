@@ -47,8 +47,6 @@ if ! r2g_match_arg "--pack" "${my_args[@]}"; then
 fi
 
 
-
-
 symlinkable="$HOME/.r2g/temp/symlinkable"
 mkdir -p "$symlinkable";
 rm -rf "$symlinkable";
@@ -72,7 +70,6 @@ base_name="$(basename "$project_root")"
      npm init --silent -f
      npm install --loglevel=warn "$full_pack_path";
 )
-
 
 
 mkdir -p "$package_dir";
