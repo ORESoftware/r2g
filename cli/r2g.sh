@@ -17,6 +17,8 @@ export r2g_green='\033[1;32m'
 export r2g_no_color='\033[0m'
 
 my_args=( "$@" );
+cmd="$1";
+shift 1;
 
 project_root="";
 
@@ -42,20 +44,12 @@ r2g_match_arg(){
 }
 
 export -f r2g_match_arg;
-
-
 export FORCE_COLOR=1;
-cmd="$1";
 
 
-#r2g_zmx(){
-# "$@"  \
-#      2> >( while read line; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $line"; done ) \
-#      1> >( while read line; do echo -e "${r2g_gray}r2g:${r2g_no_color} $line"; done )
-#}
-
-r2g_zmx() {
-    "$@" 2>&1 | sed 's/^/r2g: /'
+r2g_stdout() {
+    # REPLY is a build-in, see:
+    while read; do echo -e "${r2g_gray}r2g:${r2g_no_color} $REPLY"; done
 }
 
 r2g_stdout() {
@@ -67,19 +61,10 @@ r2g_stderr() {
     while read; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $REPLY"; done
 }
 
-r2g_zmx_all() {
-    sed 's/^/r2g: /'
-}
-
-export -f r2g_zmx_all;
-export -f r2g_zmx;
 export -f r2g_stdout;
 export -f r2g_stderr;
 
-
 if [[ "$cmd" == "run" ]] || [[ "$cmd" == "test" ]]; then
-
-   shift 1;
 
     if [[ -z "$(which rsync)" ]]; then
         echo >&2 "You need to install 'rsync' for r2g to work its magic.";
@@ -98,20 +83,15 @@ if [[ "$cmd" == "run" ]] || [[ "$cmd" == "test" ]]; then
 
     node "$commands/run" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout) # |& r2g_zmx_all
 
-
 elif [[ "$cmd" == "init" ]]; then
 
-  shift 1;
   node "$commands/init" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
 elif [[ "$cmd" == "symlink" ]] || [[ "$cmd" == "link" ]]; then
 
-  shift 1;
   r2g_symlink "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
 elif [[ "$cmd" == "docker" ]]; then
-
-  shift 1;
 
   if ! which dkr2g; then
     npm install -g 'r2g.docker' || {
@@ -120,13 +100,16 @@ elif [[ "$cmd" == "docker" ]]; then
     }
   fi
 
-
   dkr2g exec --allow-unknown "$@"
+
+elif [[ "$cmd" == "publish" ]]; then
+
+  node "$commands/publish" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
 else
 
   echo "r2g info: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
-  node "$commands/basic" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
+  node "$commands/basic" "$my_args[@]" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
 fi
 

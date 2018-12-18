@@ -385,7 +385,11 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
-        k.stdin.end(`rm -rf ${r2gProjectCopy}; rsync -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";`);
+        k.stdin.end(`
+          rm -rf "${r2gProjectCopy}";
+          rsync --copy-links -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";
+        `);
+        
         k.once('exit', code => {
           if (code > 0) log.error('Could not rimraf project copy path or could not copy to it using rsync.');
           cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
@@ -694,8 +698,8 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           `cd "${copyProject}"`,
           `mkdir -p .r2g/tests`,
           `mkdir -p .r2g/fixtures`,
-          `rsync -r .r2g/tests "${r2gProject}"`,
-          `rsync -r .r2g/fixtures "${r2gProject}"`
+          `rsync --copy-links -r .r2g/tests "${r2gProject}"`,
+          `rsync --copy-links -r .r2g/fixtures "${r2gProject}"`
         ].join(' && '));
         
         k.once('exit', cb);

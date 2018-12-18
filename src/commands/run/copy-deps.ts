@@ -75,7 +75,7 @@ export const installDeps =  (createProjectMap: any, dependenciesToInstall: Array
       const cmd = [
         `set -e`,
         `mkdir -p "${dest}"`,
-        `rsync -r --exclude="node_modules" --exclude=".git" "${c}" "${dest}";`,
+        `rsync --copy-links -r --exclude="node_modules" --exclude=".git" "${c}" "${dest}";`,
       ]
         .join('; ');
 
