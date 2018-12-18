@@ -73,7 +73,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
          `;
         
         k.stderr.pipe(process.stderr);
-        
         k.stdin.end(cmd);
         
         k.once('exit', code => {
