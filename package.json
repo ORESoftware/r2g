@@ -1,13 +1,10 @@
 {
   "name": "r2g",
-  "version": "0.1.196",
+  "version": "0.1.197",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "dist/index.js",
   "bin": {
     "r2g": "cli/r2g.sh",
-    "r2g_run": "cli/r2g_run.sh",
-    "r2g_init": "cli/r2g_init.sh",
-    "r2g_basic": "cli/r2g_basic.sh",
     "r2g_symlink": "cli/r2g_symlink.sh",
     "r2g_get_project_root": "cli/r2g_get_project_root.js"
   },
