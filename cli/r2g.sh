@@ -16,7 +16,7 @@ export r2g_yellow='\033[1;33m'
 export r2g_green='\033[1;32m'
 export r2g_no_color='\033[0m'
 
-my_args=( "$@" );
+my_args=("$@");
 cmd="$1";
 shift 1;
 
@@ -109,7 +109,7 @@ elif [[ "$cmd" == "publish" ]]; then
 else
 
   echo "r2g info: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
-  node "$commands/basic" "$my_args[@]" 2> >(r2g_stderr) 1> >(r2g_stdout)
+  node "$commands/basic" "${my_args[@]}" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
 fi
 

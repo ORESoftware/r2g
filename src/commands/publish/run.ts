@@ -15,6 +15,7 @@ import log from '../../logger';
 import chalk from "chalk";
 import * as util from "util";
 import shortid = require("shortid");
+import pt from 'prepend-transform';
 
 ///////////////////////////////////////////////
 
@@ -29,7 +30,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         
         const k = cp.spawn('bash');
         k.stdin.end(`mkdir -p "${publishDir}"`);
-        k.stderr.pipe(process.stderr);
+        k.stderr.pipe(pt('mkdir: ')).pipe(process.stderr);
         k.once('exit', code => {
           if (code > 0) {
             log.error('Could not create dir at path:', publishDir);
@@ -41,12 +42,10 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       
       copyProject(mkdir: any, cb: any) {
         
-        const links =  '--copy-dirlinks'; //'--keep-dirlinks'; //'--copy-dirlinks'; // '--links'; // --copy-links
-        
         const k = cp.spawn('bash');
-        const cmd = `rsync ${links} -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`
+        const cmd = `rsync --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
         k.stdin.end(cmd);
-        k.stderr.pipe(process.stderr);
+        k.stderr.pipe(pt('rsync: ')).pipe(process.stderr);
         k.once('exit', code => {
           if (code > 0) {
             log.error('Could not run the following command:');
@@ -58,21 +57,15 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       
       packAndPublish(copyProject: any, cb: any) {
         
-        if (true) {
-          log.info(`subl ${publishDir}`);
-          return process.nextTick(cb);
-        }
-        
         const k = cp.spawn('bash');
         const cmd = `
           set -e;
           cd "${publishDir}";
-          tarball="$(npm pack --loglevel=warn)";
-          tar --delete -f "$tarball" '.r2g';
-          npm publish "$tarball";
+          npm publish --loglevel=warn;
          `;
         
-        k.stderr.pipe(process.stderr);
+        k.stdout.pipe(pt('npm publish:')).pipe(process.stdout);
+        k.stderr.pipe(pt('npm publish: ')).pipe(process.stderr);
         k.stdin.end(cmd);
         
         k.once('exit', code => {
@@ -87,11 +80,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       
       rimraf(packAndPublish: number, cb: any) {
         
-        if (true) {
-          log.info();
-          return process.nextTick(cb);
-        }
-        
         const k = cp.spawn('bash');
         k.stdin.end(`rm -rf "${publishDir}"`);
         k.once('exit', code => {
@@ -102,21 +90,20 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           
           cb(packAndPublish);
         });
-      },
-      
+      }
     },
     
     (err: any, results) => {
       
       if (err && err.OK) {
-        log.warn(chalk.blueBright('r2g/r2g.docker may have been initialized with some problems.'));
+        log.warn(chalk.blueBright('Your package may have been published with some problems:'));
         log.warn(util.inspect(err));
       }
       else if (err) {
         throw getCleanTrace(err);
       }
       else {
-        log.info(chalk.green('Successfully initialized r2g/r2g.docker'))
+        log.info(chalk.green('Successfully published your package.'))
       }
       
     });

@@ -21,7 +21,7 @@ if [[ -z "$project_root" ]]; then
  exit 1;
 fi
 
-package_name="$(read_json "$project_root/package.json" name)"
+package_name="$(read_json "$project_root/package.json" 'name')"
 if [[ -z "$package_name" ]]; then
   echo "Could not find an package.json name in $PWD.";
   exit 1;
