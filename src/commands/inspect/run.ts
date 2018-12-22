@@ -32,6 +32,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
   
   const id = shortid.generate();
   
+  const fifoDir = path.resolve(process.env.HOME + `/.r2g/temp/fifo/${id}`);
   const extractDir = path.resolve(process.env.HOME + `/.r2g/temp/extract/${id}`);
   const publishDir = path.resolve(process.env.HOME + `/.r2g/temp/inspect/${id}`);
   
@@ -40,7 +41,16 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       mkdir(cb: any) {
         
         const k = cp.spawn('bash');
-        k.stdin.end(`mkdir -p "${publishDir}"; mkdir -p "${extractDir}";`);
+        k.stdin.end(`
+        
+          set -e;
+          mkdir -p "${publishDir}";
+          mkdir -p "${extractDir}";
+          mkdir -p "${fifoDir}";
+          mkfifo "${fifoDir}/fifo";
+      
+        `);
+        
         k.stderr.pipe(pt('mkdir: ')).pipe(process.stderr);
         k.once('exit', code => {
           if (code > 0) {
@@ -115,6 +125,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         
         // k.stdin.end(`tar --list --verbose --file="${createTarball.pack.value}"`);
         k.stdin.end(`
+        
             echo; echo; echo 'tar --list results:'; echo;
             tar -z --list --file="${createTarball.pack.value}" | grep '^package/' | cut -c 9- ;
          
@@ -143,45 +154,44 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         log.info('Tarball will be extracted here:', chalk.blueBright.bold(extractDir));
         
         const cmd = ` cd "${extractDir}/package" && find . -type f | xargs du  --threshold=5KB `;
+        console.log('Running this command to inspect your tarball for large files:');
+        console.log(chalk.blueBright(cmd));
         
-        console.log({cmd});
+        const fifo = cp.spawn('bash');
+        fifo.stdout.setEncoding('utf8');
+        
+        fifo.stdout
+          .pipe(pt(chalk.yellow.bold('warning: this is a big file (>5KB) according to du: ')))
+          .pipe(process.stdout);
+        
+        fifo.stdin.end(`
+        
+            while true; do
+              cat "${fifoDir}/fifo"
+            done
+        
+        `);
         
         const k = cp.spawn('bash');
         
-        // k.stdin.end(`tar --list --verbose --file="${createTarball.pack.value}"`);
         k.stdin.end(`
             
             set -e;
             
-           handle_json(){
-              while read line; do
-                cat <<EOF\n{"@json-stdio":true,"value":{"type":"$1","line":"$line"}}\nEOF
-              done
-           }
-            
-            ( echo; echo; echo 'du results:'; ) | handle_json 'foo';
+            echo;
+            echo 'du results:';
             tar -xzvf "${createTarball.pack.value}" -C "${extractDir}" > /dev/null;
-            ${cmd} ;
-            ${cmd} | handle_json 'du';
-            
+            ${cmd} > "${fifoDir}/fifo";
+            kill -INT ${fifo.pid};
+         
         `);
         
-        k.stdout.pipe(stdio.createParser()).on(stdio.stdEventName, v => {
-          
-          console.log({v});
-          
-          if (!(v && v.type === 'du')) {
-            
-            if (v && typeof v.line === 'string') {
-              console.log(v.line);
-            }
-            return;
-          }
-          
-          console.log(chalk.redBright('this is a big file (>500KB) according to du: ', v.line));
-        });
+        k.stdout
+          .pipe(process.stdout);
         
-        k.stderr.pipe(pt(chalk.magenta('du stderr: '))).pipe(process.stderr);
+        k.stderr
+          .pipe(pt(chalk.magenta('du stderr: ')))
+          .pipe(process.stderr);
         
         k.once('exit', code => {
           
@@ -198,8 +208,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         
         const k = cp.spawn('bash');
         
-        // k.stdin.end(`exit 0;`);
-        k.stdin.end(`rm -rf "${publishDir}"; rm -rf "${extractDir}";`);
+        k.stdin.end(`rm -rf "${publishDir}"; rm -rf "${extractDir}"; rm -rf "${fifoDir}";`);
         
         k.once('exit', code => {
           
@@ -215,6 +224,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     
     (err: any, results) => {
       
+      console.log();
+      
       if (err && err.OK) {
         log.warn(chalk.blueBright('Your package may have been published with some problems:'));
         log.warn(util.inspect(err));
@@ -225,6 +236,8 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       else {
         log.info(chalk.green('Successfully inspected tarball.'))
       }
+      
+      // process.exit(0);
       
     });
   
