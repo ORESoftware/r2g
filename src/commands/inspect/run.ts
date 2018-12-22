@@ -112,48 +112,53 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         });
       },
       
-      inspect(createTarball: CreateTarball, cb: EVCb<any>) {
+      inspectAllFiles(createTarball: CreateTarball, cb: EVCb<any>) {
         
         if (!(createTarball.pack && createTarball.pack.value)) {
           log.error('No tarball could be found.');
           return process.nextTick(cb);
         }
         
+        log.info();
         log.info('Tarball was packed here:', chalk.blueBright.bold((createTarball.pack.value)));
         
         const k = cp.spawn('bash');
         
-        // k.stdin.end(`tar --list --verbose --file="${createTarball.pack.value}"`);
+        log.info();
+        log.info(chalk.bold.underline.italic('Results from the "tar --list" command:'));
+        log.info();
+        
+        const cmd = `tar -z --list --file="${createTarball.pack.value}" | grep '^package/' | cut -c 9- ;`;
+        
         k.stdin.end(`
+            ${cmd}
+        `);
         
-            echo; echo; echo 'tar --list results:'; echo;
-            tar -z --list --file="${createTarball.pack.value}" | grep '^package/' | cut -c 9- ;
-         
-          `);
-        
-        k.stdout.pipe(pt(chalk.gray('the tarball: '))).pipe(process.stdout);
+        k.stdout.pipe(pt(chalk.gray('the tarball contents: '))).pipe(process.stdout);
         k.stderr.pipe(pt(chalk.magenta('the tarball: '))).pipe(process.stderr);
         
         k.once('exit', code => {
           
           if (code > 0) {
-            log.error('Could not rimraf dir at path:', publishDir);
+            log.error('Could not run this command:', cmd);
           }
           
           cb(createTarball.code);
         });
       },
+    
       
-      extract(inspect: any, createTarball: CreateTarball, cb: EVCb<any>) {
+      extract(inspectAllFiles: any, createTarball: CreateTarball, cb: EVCb<any>) {
         
         if (!(createTarball.pack && createTarball.pack.value)) {
           log.error('No tarball could be found.');
           return process.nextTick(cb);
         }
         
+        log.info();
         log.info('Tarball will be extracted here:', chalk.blueBright.bold(extractDir));
         
-        const cmd = ` cd "${extractDir}/package" && find . -type f | xargs du  --threshold=5KB `;
+        const cmd = ` cd "${extractDir}/package" && find . -type f | xargs du  --threshold=5KB | sort`;
         console.log('Running this command to inspect your tarball for large files:');
         console.log(chalk.blueBright(cmd));
         
@@ -166,45 +171,139 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         
         fifo.stdin.end(`
         
-            while true; do
-              cat "${fifoDir}/fifo"
+            on_sigint(){
+               export has_sigint=yes;
+               sleep 0.25;
+               exit 0;
+            }
+            
+            export -f on_sigint;
+        
+            trap on_sigint INT
+            trap on_sigint SIGINT
+
+            while [[ "$has_sigint" != "yes" ]]; do
+              exec cat "${fifoDir}/fifo"
             done
         
         `);
         
-        const k = cp.spawn('bash');
+        const fifoStatus = {
+          exited: false
+        };
         
-        k.stdin.end(`
+        fifo.once('exit', code => {
+           fifoStatus.exited  = true;
+        });
+        
+        {
+  
+          const k = cp.spawn('bash');
+  
+          k.stdin.end(`
             
             set -e;
             
             echo;
-            echo 'du results:';
+            echo -e ${chalk.italic.underline('results from the du file-size check command:')};
             tar -xzvf "${createTarball.pack.value}" -C "${extractDir}" > /dev/null;
             ${cmd} > "${fifoDir}/fifo";
-            kill -INT ${fifo.pid};
+            kill -INT ${fifo.pid} | cat;
+
+        `);
+  
+          k.stdout
+            .pipe(process.stdout);
+  
+          k.stderr
+            .pipe(pt(chalk.magenta('du stderr: ')))
+            .pipe(process.stderr);
+  
+          k.once('exit', code => {
+    
+            if (code > 0) {
+              log.error('Could not rimraf dir at path:', publishDir);
+            }
+    
+            cb(code);
+          });
+        }
+       
+        
+      },
+    
+      inspectOnlyFolders(extract: any, createTarball: CreateTarball, cb: EVCb<any>) {
+      
+        if (!(createTarball.pack && createTarball.pack.value)) {
+          log.error('No tarball could be found.');
+          return process.nextTick(cb);
+        }
+      
+        log.info();
+        log.info('Tarball was packed here:', chalk.blueBright.bold((createTarball.pack.value)));
+      
+        const k = cp.spawn('bash');
+      
+        log.info();
+        log.info(chalk.bold.underline.italic('Results from the "find . -type d -maxdepth 2" command:'));
+        log.info();
+      
+        k.stdin.end(`
+        
+            cd "${extractDir}/package" && find . -type d -mindepth 1 -maxdepth 2 | sort ;
          
         `);
-        
-        k.stdout
-          .pipe(process.stdout);
-        
-        k.stderr
-          .pipe(pt(chalk.magenta('du stderr: ')))
-          .pipe(process.stderr);
-        
+      
+        k.stdout.pipe(pt(chalk.gray('the tarball folders: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.magenta('the tarball folders stderr: '))).pipe(process.stderr);
+      
         k.once('exit', code => {
-          
+        
           if (code > 0) {
             log.error('Could not rimraf dir at path:', publishDir);
           }
-          
-          cb(code);
-        });
         
+          cb(createTarball.code);
+        });
+      },
+    
+    
+      duOnFolders(inspectOnlyFolders: any, createTarball: CreateTarball, cb: EVCb<any>) {
+      
+        if (!(createTarball.pack && createTarball.pack.value)) {
+          log.error('No tarball could be found.');
+          return process.nextTick(cb);
+        }
+      
+        log.info();
+        log.info('Tarball was packed here:', chalk.blueBright.bold((createTarball.pack.value)));
+      
+        const k = cp.spawn('bash');
+      
+        log.info();
+        log.info(chalk.bold.underline.italic('Results from the "find . -type d -maxdepth 2" command:'));
+        log.info();
+      
+        k.stdin.end(`
+        
+            cd "${extractDir}/package" && ( find . -type d -mindepth 1 -maxdepth 2 | du --max-depth=1 -h --threshold=2KB ) ;
+         
+        `);
+      
+        k.stdout.pipe(pt(chalk.gray('the tarball folders: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.magenta('the tarball folders stderr: '))).pipe(process.stderr);
+      
+        k.once('exit', code => {
+        
+          if (code > 0) {
+            log.error('Could not rimraf dir at path:', publishDir);
+          }
+        
+          cb(createTarball.code);
+        });
       },
       
-      rimraf(extract: any, createTarball: CreateTarball, cb: EVCb<any>) {
+      rimraf(duOnFolders: any, createTarball: CreateTarball, cb: EVCb<any>) {
         
         const k = cp.spawn('bash');
         
