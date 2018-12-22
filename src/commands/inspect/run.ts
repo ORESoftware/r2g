@@ -159,7 +159,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
               done
            }
             
-           # ( echo; echo; echo 'du results:'; ) | handle_json 'foo';
+            ( echo; echo; echo 'du results:'; ) | handle_json 'foo';
             tar -xzvf "${createTarball.pack.value}" -C "${extractDir}" > /dev/null;
             ${cmd} ;
             ${cmd} | handle_json 'du';
