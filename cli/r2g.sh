@@ -106,6 +106,14 @@ elif [[ "$cmd" == "publish" ]]; then
 
   node "$commands/publish" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
+elif [[ "$cmd" == "inspect" ]]; then
+
+  node "$commands/inspect" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
+
+elif [[ "$cmd" == "clean" ]]; then
+
+  node "$commands/clean" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
+
 else
 
   echo "r2g info: no subcommand was recognized, available commands: (r2g run, r2g init, r2g docker)."
