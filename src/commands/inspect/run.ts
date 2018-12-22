@@ -114,8 +114,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         const k = cp.spawn('bash');
         
         // k.stdin.end(`tar --list --verbose --file="${createTarball.pack.value}"`);
-        k.stdin.end(
-          `
+        k.stdin.end(`
             echo; echo; echo 'tar --list results:'; echo;
             tar -z --list --file="${createTarball.pack.value}" | grep '^package/' | cut -c 9- ;
          
@@ -143,19 +142,45 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         
         log.info('Tarball will be extracted here:', chalk.blueBright.bold(extractDir));
         
+        const cmd = ` cd "${extractDir}/package" && find . -type f | xargs du  --threshold=5KB `;
+        
+        console.log({cmd});
+        
         const k = cp.spawn('bash');
         
         // k.stdin.end(`tar --list --verbose --file="${createTarball.pack.value}"`);
         k.stdin.end(`
             
             set -e;
-            echo; echo; echo 'du results:';
-            ( cd "${extractDir}" && tar -xzvf "${createTarball.pack.value}" ) &> /dev/null;
-            find "${extractDir}/package" -type f | xargs du --threshold=500KB | cat;
+            
+           handle_json(){
+              while read line; do
+                cat <<EOF\n{"@json-stdio":true,"value":{"type":"$1","line":"$line"}}\nEOF
+              done
+           }
+            
+           # ( echo; echo; echo 'du results:'; ) | handle_json 'foo';
+            tar -xzvf "${createTarball.pack.value}" -C "${extractDir}" > /dev/null;
+            ${cmd} ;
+            ${cmd} | handle_json 'du';
             
         `);
         
-        k.stdout.pipe(pt(chalk.redBright('this is a big file (>500KB) according to du: '))).pipe(process.stdout);
+        k.stdout.pipe(stdio.createParser()).on(stdio.stdEventName, v => {
+          
+          console.log({v});
+          
+          if (!(v && v.type === 'du')) {
+            
+            if (v && typeof v.line === 'string') {
+              console.log(v.line);
+            }
+            return;
+          }
+          
+          console.log(chalk.redBright('this is a big file (>500KB) according to du: ', v.line));
+        });
+        
         k.stderr.pipe(pt(chalk.magenta('du stderr: '))).pipe(process.stderr);
         
         k.once('exit', code => {
@@ -172,9 +197,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       rimraf(extract: any, createTarball: CreateTarball, cb: EVCb<any>) {
         
         const k = cp.spawn('bash');
-  
-        k.stdin.end(`exit 0;`);
-        // k.stdin.end(`rm -rf "${publishDir}"; rm -rf "${extractDir}";`);
+        
+        // k.stdin.end(`exit 0;`);
+        k.stdin.end(`rm -rf "${publishDir}"; rm -rf "${extractDir}";`);
         
         k.once('exit', code => {
           
