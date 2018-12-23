@@ -52,11 +52,6 @@ r2g_stdout() {
     while read; do echo -e "${r2g_gray}r2g:${r2g_no_color} $REPLY"; done
 }
 
-r2g_stdout() {
-    # REPLY is a build-in, see:
-    while read; do echo -e "${r2g_gray}r2g:${r2g_no_color} $REPLY"; done
-}
-
 r2g_stderr() {
     while read; do echo -e "${r2g_magenta}r2g:${r2g_no_color} $REPLY"; done
 }

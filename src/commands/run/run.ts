@@ -316,7 +316,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(process.stderr);
         k.stdin.end(`mkdir -p "${r2gProject}"; mkdir -p "${r2gProjectCopy}";`);
         k.once('exit', code => {
-          if (code > 0) log.error("Could not create temp/project or temp/copy directory.");
+          if (code > 0) {
+            log.error("Could not create temp/project or temp/copy directory.");
+          }
           cb(code);
         });
         
@@ -391,7 +393,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         `);
         
         k.once('exit', code => {
-          if (code > 0) log.error('Could not rimraf project copy path or could not copy to it using rsync.');
+          if (code > 0) {
+            log.error('Could not rimraf project copy path or could not copy to it using rsync.');
+          }
           cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
         });
         
@@ -410,7 +414,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         });
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
+          if (code > 0) {
+            log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
+          }
           cb(code, path.resolve(copyProject + '/' + stdout));
         });
       },
@@ -461,7 +467,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stdin.end(`cd "${cwd}" && ` + cmd);
         
         k.once('exit', code => {
-          if (code > 0) log.error('Could not link from project to copy.');
+          if (code > 0) {
+            log.error('Could not link from project to copy.');
+          }
           cb(code);
         });
         
@@ -481,7 +489,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stdin.end(`cd "${copyProject}" && ` + cmd);
         
         k.once('exit', code => {
-          if (code > 0) log.error('Could not link from project to copy.');
+          if (code > 0) {
+            log.error('Could not link from project to copy.');
+          }
           cb(code);
         });
         
@@ -509,7 +519,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(pt(chalk.yellow('phase-Z: '))).pipe(process.stderr);
         
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run your z-test command: ${cmd}`);
+          if (code > 0) {
+            log.error(`Could not run your z-test command: ${cmd}`);
+          }
           cb(code);
         });
         
@@ -623,7 +635,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stdin.end(`cd "${r2gProject}" && ` + cmd);
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run the following command: ${cmd}.`);
+          if (code > 0) {
+            log.error(`Could not run the following command: ${cmd}.`);
+          }
           cb(code);
         });
       },
@@ -734,21 +748,46 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         const tests = path.resolve(r2gProject + '/tests');
         
+        let items;
         try {
-          
-          const items = fs.readdirSync(tests);
-          
-          const cmd = ` echo 'Now we are in phase-T...';` +
-            items.filter(v => fs.lstatSync(tests + '/' + v).isFile())
-              .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `)
-              .concat(' exit "$?" ').join(' ');
-          
-          log.info('About to run tests in your .r2g/tests dir.');
-          k.stdin.end(`cd "${r2gProject}" && ${cmd}`);
+          items = fs.readdirSync(tests);
         }
         catch (err) {
           return process.nextTick(cb, err);
         }
+        
+        const cmd = items.filter(v => {
+            try {
+              return fs.lstatSync(path.resolve(tests + '/' + v)).isFile()
+            }
+            catch (err) {
+              log.error(err.message);
+              return false;
+            }
+            
+          })
+          .map(v => ` ( echo 'running test' && chmod u+x './tests/${v}' && './tests/${v}' ) | r2g_handle_stdio '${v}' ; `)
+          .join(' ');
+        
+        log.info('About to run tests in your .r2g/tests dir.');
+        k.stdin.end(`
+          
+              set -e;
+              
+              echo 'Now we are in phase-T...';
+              
+              r2g_handle_stdio() {
+                  # REPLY is a built-in, see:
+                  while read; do echo -e "\${r2g_gray}$1:\${r2g_no_color} $REPLY"; done
+              }
+
+              export -f r2g_handle_stdio;
+          
+             cd "${r2gProject}";
+             ${cmd}
+             
+          `);
+        
       }
       
     },
