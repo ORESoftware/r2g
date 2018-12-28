@@ -12,8 +12,7 @@
 
 >
 > Properly test your NPM packages before publishing. <br>
-> This tool allows you to test your package in the published format, without having to publish to an NPM registry.
->
+> This CLI tool allows you to easily test your package in the published format, without having to publish to an NPM registry.
 
 <br>
 
@@ -23,16 +22,14 @@
 > This will not work with MS Windows. Only MacOS and *nix. 
 > If you are interested in getting to work on Windows, pls file a ticket.
 >
-> On MacOS, you may need Bash version 4. MacOS comes with Bash version 3 by default.
->
 
 <br>
 
 ## Video demo
 
-Watch this video to learn how to use r2g: <br>
+Watch this video to learn how to use r2g: TBD (video demo coming in the future) <br>
 
-The video references this example repo: <br>
+The video will reference this example repo: <br>
 https://github.com/ORESoftware/r2g.example
 
 <br>
@@ -43,19 +40,24 @@ https://github.com/ORESoftware/r2g.example
 $ npm i -g r2g
 ```
 
-<i>Optionally</i>, you can add the following to your ~/.bashrc and/or ~/.bash_profile files:
+You can add the following to your ~/.bashrc and/or ~/.bash_profile files:
 
 ```shell
 . "$HOME/.oresoftware/shell.sh"
 ```
 
-<i> => Note you will also get bash completion for r2g, if you source the above. </i>
+<i> => Note you will also get bash completion for r2g, if you source the above shell script. </i>
 
 <br>
 _____________________________________________________________________________________________
 
+### FAQ
 
-### Introduction
+see docs/faq.md
+
+<br>
+
+### About The Tool
 
 r2g tests your package after using `npm pack` and `npm install --production`. You can use your current test suite for testing, and also write some new smoke tests
 that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optional:
@@ -86,16 +88,12 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 
 <br>
 
-note: `r2g test` is an alias of `r2g run`.
-
-<br>
-
 >
 >```console
->$ r2g run
+>$ r2g run  ### note: `r2g test` is an alias of `r2g run`
 >```
 >
-> * Runs all phases.
+> * Runs the tool, and runs all phases.
 >
 
 <br>
@@ -118,7 +116,6 @@ note: `r2g test` is an alias of `r2g run`.
 > * This will also skip phases Z and S
 >
 
-
 <br>
 
 >
@@ -137,6 +134,30 @@ note: `r2g test` is an alias of `r2g run`.
 >```
 >
 > * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
+>
+
+<br>
+
+>
+>```console
+>$ r2g inspect
+>```
+>
+> * Copies your project to a temp folder and logs info about a temp tarball that gets created
+> * AKA, you can see which contents/folders/files will get included in the tarball
+> * Also warns you about any especially large files that you may have accidentally included.
+>
+
+<br>
+
+>
+>```console
+>$ r2g publish
+>```
+>
+> * Publish your package and ignore the .r2g folder for an even leaner tarball
+> * Copies your project to a temp folder and the .r2g folder is excluded/ignored
+> * Also copies symlinks so you can include symlinked files/folders easily when publishing
 >
 
 <br>
