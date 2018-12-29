@@ -772,7 +772,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info('About to run tests in your .r2g/tests dir.');
         k.stdin.end(`
           
-              set -e;
+              set -eo pipefail
               
               echo 'Now we are in phase-T...';
               
