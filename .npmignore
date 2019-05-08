@@ -17,6 +17,8 @@ src
 .gitignore
 .npmignore
 .travis.yml
+.nlu.json
+.npp.json
 
 ### matching
 Dockerfile*

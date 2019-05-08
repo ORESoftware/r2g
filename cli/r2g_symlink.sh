@@ -21,7 +21,7 @@ if [[ -z "$project_root" ]]; then
  exit 1;
 fi
 
-package_name="$(read_json "$project_root/package.json" name)"
+package_name="$(read_json "$project_root/package.json" 'name')"
 if [[ -z "$package_name" ]]; then
   echo "Could not find an package.json name in $PWD.";
   exit 1;
@@ -47,8 +47,6 @@ if ! r2g_match_arg "--pack" "${my_args[@]}"; then
 fi
 
 
-
-
 symlinkable="$HOME/.r2g/temp/symlinkable"
 mkdir -p "$symlinkable";
 rm -rf "$symlinkable";
@@ -59,7 +57,7 @@ mkdir -p "$packable";
 rm -rf "$packable";
 mkdir -p "$packable";
 
-rsync -r --exclude=".git" --exclude="node_modules" "$project_root" "$packable"
+rsync --copy-links -r --exclude=".git" --exclude="node_modules" "$project_root" "$packable"
 
 base_name="$(basename "$project_root")"
 
@@ -72,7 +70,6 @@ base_name="$(basename "$project_root")"
      npm init --silent -f
      npm install --loglevel=warn "$full_pack_path";
 )
-
 
 
 mkdir -p "$package_dir";

@@ -8,7 +8,7 @@ import * as assert from "assert";
 
 ////////////////////////////////////////////////////////////
 
-const colors = <{ [key: string]: [number, number] }> {
+const colors = <{ [key: string]: [number, number] }>{
   'bold': [1, 22],
   'italic': [3, 23],
   'underline': [4, 24],
@@ -52,12 +52,12 @@ const getAllPromises = (links: Array<string>) => {
     }
     catch (err) {
       
-      if(new RegExp(l).test(err.message)){
+      if (new RegExp(l).test(err.message)) {
         console.error(stylize('red', 'Could not load your package with name:'), stylize('bold', l));
         console.error(stylize('red', 'Because your module could not be loaded, it is likely that you have not built/compiled your project, or that your package.json name/main field is incorrect.'));
       }
-      else{
-        console.error(stylize('red','You may have a missing dependency in your project, or a dependency that should be in "dependencies" not in "devDependencies".'));
+      else {
+        console.error(stylize('red', 'You may have a missing dependency in your project, or a dependency that should be in "dependencies" not in "devDependencies".'));
       }
       throw err;
     }
@@ -79,26 +79,27 @@ const getAllPromises = (links: Array<string>) => {
   }));
 };
 
-getAllPromises(links).then(results => {
-  
-  console.log('This many packages were tested:', results.length);
-  
-  const failures = results.filter(v => {
-    return !(v && v.result === true);
+getAllPromises(links)
+  .then(results => {
+    
+    console.log('This many packages were tested:', results.length);
+    
+    const failures = results.filter(v => {
+      return !(v && v.result === true);
+    });
+    
+    if (failures.length > 0) {
+      console.error('At least one exported "r2gSmokeTest" function failed.');
+      throw new Error(util.inspect(failures, {breakLength: Infinity}));
+    }
+    
+    console.log('Your exported r2gSmokeTest function(s) have all passed');
+    process.exit(0);
+    
+  })
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
   });
-  
-  if (failures.length > 0) {
-    console.error('At least one exported "r2gSmokeTest" function failed.');
-    throw new Error(util.inspect(failures, {breakLength: Infinity}));
-  }
-  
-  console.log('Your exported r2gSmokeTest function(s) have all passed');
-  process.exit(0);
-  
-})
-.catch(err => {
-  console.error(err);
-  process.exit(1);
-});
 
 
