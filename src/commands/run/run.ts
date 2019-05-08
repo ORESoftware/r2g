@@ -750,7 +750,21 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         let items;
         try {
-          items = fs.readdirSync(tests);
+          
+           items = fs.readdirSync(tests);
+          
+          const cmd = ` set -e;\n cd "${r2gProject}";\n echo 'Now we are in phase-T...'; \n` +
+            items
+              // .map(v => path.resolve())
+              .filter(v => fs.lstatSync(tests + '/' + v).isFile())
+              .map(v => ` chmod u+x ./tests/${v} && ./tests/${v}; `)
+              .join('\n');
+              // .concat(' exit "$?" ').join('\n');
+          
+          log.info('About to run tests in your .r2g/tests dir, the command is:');
+          log.info(chalk.blueBright(cmd));
+          k.stdin.end(cmd);
+
         }
         catch (err) {
           return process.nextTick(cb, err);
