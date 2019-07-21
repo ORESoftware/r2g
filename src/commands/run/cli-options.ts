@@ -13,6 +13,12 @@ export default [
     help: 'Verbosity level, 1-3 inclusive.'
   },
   {
+    names: ['ignore-dirty-git-index', 'ignore-dirty-index'],
+    type: 'bool',
+    default: false,
+    env: 'ignore_dirty_index'
+  },
+  {
     names: ['search-root','search'],
     type: 'string',
     help: 'Search root path on your fs, to look for local dependencies.',
