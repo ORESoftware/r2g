@@ -290,7 +290,6 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
       
       checkForUntrackedFiles(cb: EVCb<any>) {
         
-        
         if (opts.ignore_dirty_git_index) {
           return process.nextTick(cb);
         }
@@ -562,7 +561,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
         
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(copyProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
@@ -676,8 +675,8 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         }
         
         // note that runNpmPack is the path to .tgz file
-        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";
-           npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";\n` +
+          `npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
         
         log.info(`Running the following command via this dir: "${r2gProject}" ...`);
         log.info(chalk.blueBright(cmd));
@@ -729,7 +728,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
         
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
@@ -781,7 +780,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
         
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
