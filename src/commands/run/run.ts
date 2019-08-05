@@ -18,6 +18,7 @@ import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
 import pt from "prepend-transform";
 import {timeout} from "async";
+import deepMixin from "@oresoftware/deep.mixin";
 
 ///////////////////////////////////////////////
 
@@ -93,7 +94,7 @@ const handleTask = (r2gProject: string) => {
 
 export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
-  const userHome = path.resolve(process.env.HOME);
+  const userHome = path.resolve(process.env.HOME);``
   
   let pkgJSON: any = null, r2gConf: any = null,
     packages: Packages = null, searchRoots: Array<string> = null,
@@ -605,30 +606,11 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const defaultPkgJSON = require(defaultPackageJSONPath);
         const packageJSONPath = path.resolve(r2gProject + '/package.json');
         
-        function deepMerge(...sources: any[]) {
-          let acc: any = {};
-          for (const source of sources) {
-            if (Array.isArray(source)) {
-              if (!(Array.isArray(acc))) {
-                acc = []
-              }
-              acc = [...acc, ...source]
-            } else if (source && typeof source === 'object') {
-              for (let [key, value] of Object.entries(source)) {
-                if (value instanceof Object && key in acc) {
-                  value = deepMerge(acc[key], value)
-                }
-                acc = {...acc, [key]: value}
-              }
-            }
-          }
-          return acc;
-        }
         
         let override = null;
         
         if (packageJSONOverride) {
-          override = deepMerge({}, defaultPkgJSON, packageJSONOverride);
+          override = deepMixin(defaultPkgJSON, packageJSONOverride);
           log.warning('package.json overriden with:', {override});
         } else {
           override = Object.assign({}, defaultPkgJSON);
