@@ -201,7 +201,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     r2gConf = r2gConf.default || r2gConf;
   } catch (err) {
     
-    if (opts.verbosity > 1) {
+    if (opts.verbosity > 0) {
       log.warning(err.message);
     }
     
@@ -442,7 +442,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(process.stderr);
         k.stdin.end(`
           rm -rf "${r2gProjectCopy}";
-          rsync --copy-links -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";
+          rsync --perms --copy-links -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";
         `);
         
         k.once('exit', code => {
@@ -744,8 +744,8 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           `cd "${copyProject}"`,
           `mkdir -p .r2g/tests`,
           `mkdir -p .r2g/fixtures`,
-          `rsync --copy-links -r .r2g/tests "${r2gProject}"`,
-          `rsync --copy-links -r .r2g/fixtures "${r2gProject}"`
+          `rsync --perms --copy-links -r .r2g/tests "${r2gProject}"`,
+          `rsync --perms --copy-links -r .r2g/fixtures "${r2gProject}"`
         ].join(' && '));
         
         k.once('exit', cb);
