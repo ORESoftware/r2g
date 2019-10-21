@@ -64,7 +64,15 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       copyProject(mkdir: any, cb: any) {
         
         const k = cp.spawn('bash');
-        const cmd = `rsync --perms --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
+        
+        const cmd = [
+          `rsync --perms --copy-links`,
+          `-r --exclude=.github --exclude=.r2g --exclude=.idea`,
+          `--exclude=LICENSE --exclude=LICENSE.md --exclude=license.md`,
+          `--exclude=readme.md --exclude README.md --exclude readme --exclude README`,
+          `--exclude=node_modules --exclude=.git "${projectRoot}/" "${publishDir}/";`
+        ].join(' ');
+        
         k.stdin.end(cmd);
         k.stderr.pipe(pt('rsync: ')).pipe(process.stderr);
         k.once('exit', code => {
@@ -146,7 +154,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
           cb(createTarball.code);
         });
       },
-    
       
       extract(inspectAllFiles: any, createTarball: CreateTarball, cb: EVCb<any>) {
         
@@ -193,13 +200,13 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         };
         
         fifo.once('exit', code => {
-           fifoStatus.exited  = true;
+          fifoStatus.exited = true;
         });
         
         {
-  
+          
           const k = cp.spawn('bash');
-  
+          
           k.stdin.end(`
             
             set -e;
@@ -211,94 +218,92 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
             kill -INT ${fifo.pid} | cat;
 
         `);
-  
+          
           k.stdout
             .pipe(process.stdout);
-  
+          
           k.stderr
             .pipe(pt(chalk.magenta('du stderr: ')))
             .pipe(process.stderr);
-  
+          
           k.once('exit', code => {
-    
+            
             if (code > 0) {
               log.error('Could not rimraf dir at path:', publishDir);
             }
-    
+            
             cb(code);
           });
         }
-       
         
       },
-    
-      inspectOnlyFolders(extract: any, createTarball: CreateTarball, cb: EVCb<any>) {
       
+      inspectOnlyFolders(extract: any, createTarball: CreateTarball, cb: EVCb<any>) {
+        
         if (!(createTarball.pack && createTarball.pack.value)) {
           log.error('No tarball could be found.');
           return process.nextTick(cb);
         }
-      
+        
         log.info();
         log.info('Tarball was packed here:', chalk.blueBright.bold((createTarball.pack.value)));
-      
+        
         const k = cp.spawn('bash');
-      
+        
         log.info();
         log.info(chalk.bold.underline.italic('Results from the "find . -type d -maxdepth 2" command:'));
         log.info();
-      
+        
         k.stdin.end(`
         
             cd "${extractDir}/package" && find . -type d -mindepth 1 -maxdepth 2 | sort ;
          
         `);
-      
+        
         k.stdout.pipe(pt(chalk.gray('the tarball folders: '))).pipe(process.stdout);
         k.stderr.pipe(pt(chalk.magenta('the tarball folders stderr: '))).pipe(process.stderr);
-      
-        k.once('exit', code => {
         
+        k.once('exit', code => {
+          
           if (code > 0) {
             log.error('Could not rimraf dir at path:', publishDir);
           }
-        
+          
           cb(createTarball.code);
         });
       },
-    
-    
-      duOnFolders(inspectOnlyFolders: any, createTarball: CreateTarball, cb: EVCb<any>) {
       
+      duOnFolders(inspectOnlyFolders: any, createTarball: CreateTarball, cb: EVCb<any>) {
+        
         if (!(createTarball.pack && createTarball.pack.value)) {
           log.error('No tarball could be found.');
           return process.nextTick(cb);
         }
-      
+        
         log.info();
         log.info('Tarball was packed here:', chalk.blueBright.bold((createTarball.pack.value)));
-      
+        
         const k = cp.spawn('bash');
-      
+        
         log.info();
         log.info(chalk.bold.underline.italic('Results from the "find . -type d -maxdepth 2" command:'));
         log.info();
-      
+        
         k.stdin.end(`
         
             cd "${extractDir}/package" && ( find . -type d -mindepth 1 -maxdepth 2 | du --max-depth=1 -h --threshold=2KB ) ;
          
         `);
-      
+        
         k.stdout.pipe(pt(chalk.gray('the tarball folders: '))).pipe(process.stdout);
         k.stderr.pipe(pt(chalk.magenta('the tarball folders stderr: '))).pipe(process.stderr);
-      
-        k.once('exit', code => {
         
+        k.once('exit', code => {
+          
           if (code > 0) {
             log.error('Could not rimraf dir at path:', publishDir);
           }
-        
+          
           cb(createTarball.code);
         });
       },
