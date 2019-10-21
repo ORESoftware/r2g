@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
+    "@oresoftware/deep.mixin": "0.0.107",
     "@oresoftware/shell": "latest",
     "async": "^2.6.1",
     "chalk": "^2.4.1",

@@ -28,6 +28,12 @@ export default [
     type: 'bool',
     help: 'Allow unknown arguments to the command line.',
     env: 'r2g_allow_unknown'
+  },
+  {
+    names: ['ignore-dirty-git-index', 'ignore-dirty-index'],
+    type: 'bool',
+    default: false,
+    env: 'ignore_dirty_index'
   }
 
 ]

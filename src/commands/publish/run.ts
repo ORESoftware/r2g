@@ -16,6 +16,7 @@ import chalk from "chalk";
 import * as util from "util";
 import shortid = require("shortid");
 import pt from 'prepend-transform';
+import {EVCb} from "../../index";
 
 ///////////////////////////////////////////////
 
@@ -25,8 +26,67 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
   const publishDir = path.resolve(process.env.HOME + `/.r2g/temp/publish/${id}`);
   
   async.autoInject({
+    
+      checkForUntrackedFiles(cb: EVCb<any>) {
+        
+        if (opts.ignore_dirty_git_index) {
+          return process.nextTick(cb);
+        }
       
-      mkdir(cb: any) {
+        log.info('Checking for dirty git status...');
+      
+        const k = cp.spawn('bash');
+        k.stderr.pipe(process.stderr);
+      
+        k.stdin.end(`
+            set -e;
+            cd ${projectRoot};
+            if [[ ! -d '.git' ]]; then
+               exit 0;
+            fi
+            
+           if  test $(git status --porcelain | wc -l) != '0'; then
+            exit 1;
+           fi
+        `);
+      
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('Changes to (untracked) files need to be committed. Check your git index using the `git status` command.');
+            log.error('Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.');
+          }
+          cb(code);
+        });
+      },
+    
+      checkForDirtyGitIndex(checkForUntrackedFiles: any, cb: EVCb<any>) {
+      
+        if (opts.ignore_dirty_git_index) {
+          return process.nextTick(cb);
+        }
+      
+        log.info('Checking for dirty git index...');
+        const k = cp.spawn('bash');
+        k.stderr.pipe(process.stderr);
+      
+        k.stdin.end(`
+          set -e;
+          cd ${projectRoot};
+          if [[ -d '.git' ]]; then
+               git diff --quiet
+          fi
+        `);
+      
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.');
+          }
+          cb(code);
+        });
+      
+      },
+      
+      mkdir(checkForDirtyGitIndex: any, cb: any) {
         
         const k = cp.spawn('bash');
         k.stdin.end(`mkdir -p "${publishDir}"`);
@@ -43,7 +103,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       copyProject(mkdir: any, cb: any) {
         
         const k = cp.spawn('bash');
-        const cmd = `rsync --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
+        const cmd = `rsync --perms --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
         k.stdin.end(cmd);
         k.stderr.pipe(pt('rsync: ')).pipe(process.stderr);
         k.once('exit', code => {

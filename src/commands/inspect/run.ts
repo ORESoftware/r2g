@@ -64,7 +64,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
       copyProject(mkdir: any, cb: any) {
         
         const k = cp.spawn('bash');
-        const cmd = `rsync --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
+        const cmd = `rsync --perms --copy-links -r --exclude=".r2g" --exclude="node_modules" --exclude=".git" "${projectRoot}/" "${publishDir}/";`;
         k.stdin.end(cmd);
         k.stderr.pipe(pt('rsync: ')).pipe(process.stderr);
         k.once('exit', code => {

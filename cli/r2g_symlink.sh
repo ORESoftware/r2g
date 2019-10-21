@@ -57,7 +57,7 @@ mkdir -p "$packable";
 rm -rf "$packable";
 mkdir -p "$packable";
 
-rsync --copy-links -r --exclude=".git" --exclude="node_modules" "$project_root" "$packable"
+rsync --perms --copy-links -r --exclude=".git" --exclude="node_modules" "$project_root" "$packable"
 
 base_name="$(basename "$project_root")"
 
