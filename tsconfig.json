@@ -6,7 +6,7 @@
     "pretty": true,
     "rootDir": "src",
     "skipLibCheck": true,
-    "declaration": true,
+    "declaration": false,
     "baseUrl": ".",
     "target": "es2018",
     "module": "commonjs",

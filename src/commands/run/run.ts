@@ -315,7 +315,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.once('exit', code => {
           if (code > 0) {
             log.error('Changes to (untracked) files need to be committed. Check your git index using the `git status` command.');
-            log.error('Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.');
+            log.error(`Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.`);
           }
           cb(code);
         });

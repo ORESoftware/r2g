@@ -1,6 +1,6 @@
 {
   "name": "r2g",
-  "version": "0.1.201",
+  "version": "0.1.202",
   "description": "r2g is a CLI tool to test and publish NPM packages, as if you were an end user.",
   "main": "dist/index.js",
   "bin": {
@@ -34,14 +34,14 @@
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
     "@oresoftware/deep.mixin": "0.0.107",
-    "@oresoftware/shell": "latest",
+    "@oresoftware/shell": "0.0.110",
     "async": "^2.6.1",
-    "chalk": "^2.4.1",
-    "clean-trace": "latest",
+    "chalk": "2.4.2",
+    "clean-trace": "0.0.104",
     "dashdash": "^1.14.1",
-    "json-stdio": "latest",
+    "json-stdio": "0.1.111",
     "prepend-transform": "0.0.1016",
-    "residence": "latest",
+    "residence": "0.0.217",
     "shortid": "^2.2.8"
   },
   "devDependencies": {
