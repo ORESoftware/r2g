@@ -1,6 +1,6 @@
 {
   "name": "r2g",
-  "version": "0.1.201-rc.1",
+  "version": "0.1.201",
   "description": "r2g is a CLI tool to test and publish NPM packages, as if you were an end user.",
   "main": "dist/index.js",
   "bin": {
