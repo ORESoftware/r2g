@@ -1,7 +1,7 @@
 {
   "npm-link-up": true,
   "searchRoots": [
-    "../.."
+    "$HOME/codes/oresoftware"
   ],
   "ignore": [],
   "comments": [],

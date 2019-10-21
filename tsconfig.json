@@ -4,18 +4,19 @@
     "resolveJsonModule": true,
     "allowJs": false,
     "pretty": true,
+    "rootDir": "src",
     "skipLibCheck": true,
     "declaration": true,
     "baseUrl": ".",
-    "target": "es6",
+    "target": "es2018",
     "module": "commonjs",
     "noImplicitAny": true,
     "removeComments": true,
     "allowUnreachableCode": true,
     "lib": [
-      "es2015",
-      "es2016",
-      "es2017"
+      "es2017",
+      "es2018",
+      "es2019"
     ]
   },
   "compileOnSave": false,
