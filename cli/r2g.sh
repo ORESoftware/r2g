@@ -101,6 +101,10 @@ elif [[ "$cmd" == "publish" ]]; then
 
   node "$commands/publish" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
 
+elif [[ "$cmd" == "version" ]]; then
+
+  node "$commands/version" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
+
 elif [[ "$cmd" == "inspect" ]]; then
 
   node "$commands/inspect" "$@" 2> >(r2g_stderr) 1> >(r2g_stdout)
