@@ -42,6 +42,7 @@ if (links.length < 1) {
 }
 
 const getAllPromises = (links: Array<string>) => {
+  
   return Promise.all(links.map(l => {
     
     let mod: any;

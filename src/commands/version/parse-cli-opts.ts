@@ -40,9 +40,7 @@ if (opts.version) {
   process.exit(0);
 }
 
-const flattenDeep = function (arr1: Array<any>): Array<any> {
-  return arr1.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
-};
+
 
 
 export {opts};
