@@ -33,7 +33,7 @@
   "dependencies": {
     "@oresoftware/deep.mixin": "0.0.107",
     "@oresoftware/shell": "latest",
-    "async": "^2.6.1",
+    "async": "^3.2.2",
     "chalk": "^2.4.1",
     "clean-trace": "latest",
     "dashdash": "^1.14.1",
