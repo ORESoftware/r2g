@@ -18,6 +18,12 @@ export default [
     help: 'Verbosity level, 1-3 inclusive.'
   },
   {
+    names: ['otp'],
+    type: 'string',
+    help: 'Provide/pass this OTP (one-time passcode) to NPM.',
+    default: ''
+  },
+  {
     names: ['access'],
     type: 'string',
     help: 'Allow public/restricted access to package.',
