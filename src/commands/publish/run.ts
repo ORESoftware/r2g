@@ -45,11 +45,11 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stdin.end(`
             set -e;
             cd ${shQuote(projectRoot)};
-            if [[ ! -d '.git' ]]; then
+            if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
                exit 0;
             fi
 
-           if  test $(git status --porcelain | wc -l) != '0'; then
+           if [[ -n "$(git status --porcelain)" ]]; then
             exit 1;
            fi
         `);
@@ -76,8 +76,9 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         k.stdin.end(`
           set -e;
           cd ${shQuote(projectRoot)};
-          if [[ -d '.git' ]]; then
-               git diff --quiet
+          if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+               git diff --quiet --exit-code
+               git diff --cached --quiet --exit-code
           fi
         `);
 
