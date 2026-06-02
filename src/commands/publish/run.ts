@@ -20,6 +20,10 @@ import {EVCb} from "../../index";
 
 ///////////////////////////////////////////////
 
+const shQuote = (v: string) => {
+  return `'${String(v).replace(/'/g, `'\\''`)}'`;
+};
+
 export const run = function (cwd: string, projectRoot: string, opts: any) {
 
   const id = shortid.generate();
@@ -40,7 +44,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
         k.stdin.end(`
             set -e;
-            cd ${projectRoot};
+            cd ${shQuote(projectRoot)};
             if [[ ! -d '.git' ]]; then
                exit 0;
             fi
@@ -71,7 +75,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
 
         k.stdin.end(`
           set -e;
-          cd ${projectRoot};
+          cd ${shQuote(projectRoot)};
           if [[ -d '.git' ]]; then
                git diff --quiet
           fi
@@ -171,4 +175,3 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
     });
 
 };
-

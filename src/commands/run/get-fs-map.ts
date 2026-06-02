@@ -11,9 +11,7 @@ import {EVCb} from "../../index";
 
 /////////////////////////////////////////////////////////////////////
 
-const searchedPaths = {} as { [key: string]: true };
-
-const isPathSearchableBasic = function (item: string) {
+const isPathSearchableBasic = function (item: string, searchedPaths: { [key: string]: true }) {
 
   item = path.normalize(item);
 
@@ -41,6 +39,7 @@ const q = async.queue<Task, any>((task, cb) => task(cb), 8);
 export const getFSMap = function (opts: any, searchRoots: Array<string>, packages: Packages, cb: EVCb<MapType>) {
 
   const pths: Array<string> = [];
+  const searchedPaths = {} as { [key: string]: true };
 
   searchRoots.map(d => String(d || '').trim())
     .filter(Boolean)
@@ -94,7 +93,7 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
 
             if (stats.isDirectory()) {
 
-              if (!isPathSearchableBasic(item)) {
+              if (!isPathSearchableBasic(item, searchedPaths)) {
                 return cb(null);
               }
 
@@ -186,13 +185,17 @@ export const getFSMap = function (opts: any, searchRoots: Array<string>, package
 
   };
 
-  pths.forEach(v => {
-    if (isPathSearchableBasic(v)) {
+  async.eachSeries(pths, function (v, next) {
+    if (isPathSearchableBasic(v, searchedPaths)) {
       searchDir(v, function (err) {
         err && log.error('unexpected error:', err.message || err);
-        cb(err, map);
+        next(err);
       });
+      return;
     }
+    next(null);
+  }, function (err) {
+    cb(err, map);
   });
 
 };

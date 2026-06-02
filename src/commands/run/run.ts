@@ -4,6 +4,7 @@ import cp = require('child_process');
 import path = require("path");
 import fs = require('fs');
 import async = require('async');
+import Module = require('module');
 import {getCleanTrace} from 'clean-trace';
 import * as util from "util";
 import * as assert from 'assert';
@@ -26,6 +27,35 @@ const r2gProject = path.resolve(process.env.HOME + '/.r2g/temp/project');
 const r2gProjectCopy = path.resolve(process.env.HOME + '/.r2g/temp/copy');
 const smokeTester = require.resolve('../../smoke-tester.js');
 const defaultPackageJSONPath = require.resolve('../../../assets/default.package.json');
+
+const shQuote = (v: string) => {
+  return `'${String(v).replace(/'/g, `'\\''`)}'`;
+};
+
+const getNpmPackFileName = (stdout: string) => {
+  return String(stdout || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean).pop() || '';
+};
+
+const loadCommonJSFile = (pth: string) => {
+  const CJSModule: any = Module;
+  const m = new CJSModule(pth, module);
+  m.filename = pth;
+  m.paths = CJSModule._nodeModulePaths(path.dirname(pth));
+  m._compile(fs.readFileSync(pth, 'utf8'), pth);
+  return m.exports;
+};
+
+const loadR2GFile = (pth: string) => {
+  try {
+    return require(pth);
+  } catch (err) {
+    const message = String(err && err.message || '');
+    if (err && (err.code === 'ERR_REQUIRE_ESM' || message.includes('require is not defined in ES module scope'))) {
+      return loadCommonJSFile(pth);
+    }
+    throw err;
+  }
+};
 
 export interface Packages {
   [key: string]: boolean | string
@@ -61,6 +91,7 @@ const handleTask = (r2gProject: string) => {
         }
         
         if (first) {
+          first = false;
           process.nextTick(() => {
             d.exit();
             cb(err);
@@ -94,7 +125,7 @@ const handleTask = (r2gProject: string) => {
 
 export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
-  const userHome = path.resolve(process.env.HOME);``
+  const userHome = path.resolve(process.env.HOME || '');
   
   let pkgJSON: any = null, r2gConf: any = null,
     packages: Packages = null, searchRoots: Array<string> = null,
@@ -145,7 +176,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   try {
     if (customActionsStats) {
-      customActions = require(customActionsPath);
+      customActions = loadR2GFile(customActionsPath);
       customActions = customActions.default || customActions;
       assert(customActions, 'custom.actions.js is missing certain exports.');
     }
@@ -166,7 +197,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   try {
     if (packageJSONOverrideStats) {
       assert(packageJSONOverrideStats.isFile(), 'package.override.js should be a file, but it is not.');
-      packageJSONOverride = require(pkgJSONOverridePth);
+      packageJSONOverride = loadR2GFile(pkgJSONOverridePth);
       packageJSONOverride = packageJSONOverride.default || packageJSONOverride;
       assert(packageJSONOverride && !Array.isArray(packageJSONOverride) && typeof packageJSONOverride === 'object',
         'package.override.js does not export the right object.');
@@ -197,7 +228,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   const confPath = path.resolve(projectRoot + '/.r2g/config.js');
   
   try {
-    r2gConf = require(confPath);
+    r2gConf = loadR2GFile(confPath);
     r2gConf = r2gConf.default || r2gConf;
   } catch (err) {
     
@@ -275,7 +306,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     pkgJSON.optionalDependencies || {}
   ];
   
-  const allDeps = deps.reduce(Object.assign, {});
+  const allDeps = deps.reduce((a, b) => Object.assign(a, b), {});
   
   Object.keys(packages).forEach(function (k) {
     if (!allDeps[k]) {
@@ -302,7 +333,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         k.stdin.end(`
             set -e;
-            cd ${projectRoot};
+            cd ${shQuote(projectRoot)};
             if [[ ! -d '.git' ]]; then
                exit 0;
             fi
@@ -333,7 +364,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         k.stdin.end(`
           set -e;
-          cd ${projectRoot};
+          cd ${shQuote(projectRoot)};
           if [[ -d '.git' ]]; then
                git diff --quiet
           fi
@@ -459,19 +490,26 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
         
-        const k = cp.spawn('bash');
-        k.stdin.end(`cd "${copyProject}" && ` + cmd);
+        const k = cp.spawn('npm', ['pack', '--loglevel=warn'], {
+          cwd: copyProject
+        });
         let stdout = '';
         k.stdout.on('data', d => {
-          stdout += String(d || '').trim();
+          stdout += String(d || '');
         });
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
           if (code > 0) {
             log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
+            return cb(new Error(`npm pack exited with code: ${code}`));
           }
-          cb(code, path.resolve(copyProject + '/' + stdout));
+          const tarballName = getNpmPackFileName(stdout);
+          if (!tarballName) {
+            return cb(new Error(`npm pack did not print a tarball filename. stdout: ${stdout}`));
+          }
+          cb(null, path.resolve(copyProject + '/' + tarballName));
         });
+        k.once('error', cb);
       },
       
       linkPackage(runNPMInstallInCopy: any, copyProject: string, cb: EVCb) {
@@ -560,7 +598,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = String(zTest).slice(0);
         
         log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
-        
+
         const k = cp.spawn('bash', [], {
           env: Object.assign({}, process.env, {
             PATH: path.resolve(copyProject + '/node_modules/.bin') + ':' + process.env.PATH
@@ -664,7 +702,11 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(chalk.blueBright(cmd));
         
         const k = cp.spawn('bash');
-        k.stdin.end(`cd "${r2gProject}" && ` + cmd);
+        k.stdin.end(`
+          set -e
+          cd "${r2gProject}"
+          ${cmd}
+        `);
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
           if (code > 0) {
@@ -761,44 +803,13 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
         
-        const k = cp.spawn('bash', [], {
-          env: Object.assign({}, process.env, {
-            PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
-          })
-        });
-        
-        k.stdout.pipe(pt(chalk.gray('phase-T: '))).pipe(process.stdout);
-        k.stderr.pipe(pt(chalk.yellow('phase-T: '))).pipe(process.stderr);
-        
-        k.once('exit', code => {
-          if (code > 0) {
-            log.error('an r2g test failed => a script in this dir failed to exit with code 0:', chalk.bold(path.resolve(process.env.HOME + '/.r2g/temp/project/tests')));
-            log.error(chalk.magenta('for help fixing this error, see: https://github.com/ORESoftware/r2g/blob/master/docs/r2g-smoke-test-type-b.md'));
-          }
-          cb(code);
-        });
-        
         const tests = path.resolve(r2gProject + '/tests');
         
         let items: Array<string>;
         try {
           
           items = fs.readdirSync(tests);
-          
-          if (false) {
-            const cmd = ` set -e;\n cd "${r2gProject}";\n echo 'Now we are in phase-T...'; \n` +
-              items
-              // .map(v => path.resolve())
-                .filter(v => fs.lstatSync(tests + '/' + v).isFile())
-                .map(v => ` chmod u+x ./tests/${v} && ./tests/${v}; `)
-                .join('\n');
-            // .concat(' exit "$?" ').join('\n');
-            
-            log.info('About to run tests in your .r2g/tests dir, the command is:');
-            log.info(chalk.blueBright(cmd));
-            k.stdin.end(cmd);
-          }
-          
+
         } catch (err) {
           return process.nextTick(cb, err);
         }
@@ -814,9 +825,29 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
             }
             
           })
-          .map(v => ` ( echo 'running test' && chmod u+x './tests/${v}' && './tests/${v}' ) | r2g_handle_stdio '${v}' ; `)
+          .map(v => {
+            const testPath = `./tests/${v}`;
+            return ` ( echo ${shQuote('running test')} && chmod u+x ${shQuote(testPath)} && ${shQuote(testPath)} ) | r2g_handle_stdio ${shQuote(v)} ; `;
+          })
           .join(' ');
         
+        const k = cp.spawn('bash', [], {
+          env: Object.assign({}, process.env, {
+            PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
+          })
+        });
+
+        k.stdout.pipe(pt(chalk.gray('phase-T: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.yellow('phase-T: '))).pipe(process.stderr);
+
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('an r2g test failed => a script in this dir failed to exit with code 0:', chalk.bold(path.resolve(process.env.HOME + '/.r2g/temp/project/tests')));
+            log.error(chalk.magenta('for help fixing this error, see: https://github.com/ORESoftware/r2g/blob/master/docs/r2g-smoke-test-type-b.md'));
+          }
+          cb(code);
+        });
+
         log.info('About to run tests in your .r2g/tests dir.');
         k.stdin.end(`
           
@@ -846,7 +877,14 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.warn(chalk.blueBright(' => r2g may have run with some problems.'));
         log.warn(util.inspect(err));
       } else if (err) {
-        throw getCleanTrace(err);
+        if (typeof err === 'number') {
+          log.error(`r2g encountered exit code: ${err}`);
+          process.exit(err);
+          return;
+        }
+        log.error(getCleanTrace(err));
+        process.exit(1);
+        return;
       } else {
         log.info(chalk.green('Successfully ran r2g.'))
       }
@@ -856,4 +894,3 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     });
   
 };
-
