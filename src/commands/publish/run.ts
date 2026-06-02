@@ -127,7 +127,7 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         const cmd = `
           set -e;
           cd "${publishDir}";
-          npm publish --loglevel=warn --access="${opts.access}" --otp="${opts.otp}";
+          npm publish --loglevel=warn --access="${opts.access}" ${npmOpts};
          `;
 
         k.stdout.pipe(pt('npm publish:')).pipe(process.stdout);
