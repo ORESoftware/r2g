@@ -50,7 +50,15 @@ const loadR2GFile = (pth: string) => {
     return require(pth);
   } catch (err) {
     const message = String(err && err.message || '');
-    if (err && (err.code === 'ERR_REQUIRE_ESM' || message.includes('require is not defined in ES module scope'))) {
+    if (
+      err &&
+      (
+        err.code === 'ERR_REQUIRE_ESM' ||
+        message.includes('require is not defined in ES module scope') ||
+        message.includes('exports is not defined in ES module scope') ||
+        message.includes('module is not defined in ES module scope')
+      )
+    ) {
       return loadCommonJSFile(pth);
     }
     throw err;
@@ -442,7 +450,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         getFSMap(opts, searchRoots, packages, cb);
       },
       
-      copyProjectsInMap(getMap: any, cb: EVCb) {
+      copyProjectsInMap(getMap: any, mkdirDeps: any, cb: EVCb) {
         
         if (Object.keys(getMap).length < 1) {
           return process.nextTick(cb, null, {});

@@ -16,7 +16,16 @@ assert.strictEqual(fs.existsSync(readmePath), true, 'fixtures readme was not cop
 
 const matrix = require(matrixPath);
 assert.strictEqual(matrix.phaseCommands.t, '.r2g/tests');
+assert.strictEqual(matrix.features.fixtures, '.r2g/fixtures');
+assert.strictEqual(matrix.features.packageOverride, '.r2g/package.override.js');
 assert.deepStrictEqual(Object.keys(matrix.phaseCommands).sort(), ['s', 't', 'z']);
+
+const tempPackageJSONPath = path.resolve(__dirname, '../package.json');
+if (fs.existsSync(tempPackageJSONPath)) {
+  const tempPackageJSON = require(tempPackageJSONPath);
+  assert.strictEqual(tempPackageJSON.r2g.packageOverride, true);
+  assert.strictEqual(tempPackageJSON.r2g.packageOverrideSource, '.r2g/package.override.js');
+}
 
 const sample = fs.readFileSync(samplePath, 'utf8').trim().split(/\r?\n/);
 assert.deepStrictEqual(sample, [

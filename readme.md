@@ -59,18 +59,30 @@ see docs/faq.md
 
 ### About The Tool
 
-r2g tests your package after using `npm pack` and `npm install --production`. You can use your current test suite for testing, and also write some new smoke tests
-that are specific to r2g. r2g current has 3 <i>phases</i>, each phase is optional:
+r2g tests your package after using `npm pack` and `npm install --production`. You can use your current test suite for testing, and also write smoke tests
+that are specific to r2g. r2g currently has 3 <i>phases</i>, each phase is optional:
 
 <br>
 
-* <b> phase-Z:</b> packs your project and installs the packed project as a dependency of itself then runs `npm test` on your project. You can override `npm test` with `r2g.test` in package.json.
-* <b> phase-S:</b> installs your project as a dependency of a dummy package in `$HOME/.r2g/temp/project`, then it executes the `r2gSmokeTest` function exported from your main.
-* <b> phase-T:</b> Copies the test scripts from `.r2g/tests` in your project, to `$HOME/.r2g/temp/project/tests`, and runs them.
+* <b> phase-Z:</b> packs your project, installs that packed package back into the copied project, then runs a package-level command. By default this is `npm test`; override it with `r2g.test` in package.json.
+* <b> phase-S:</b> installs your packed project into `$HOME/.r2g/temp/project`, requires your package by name, then executes the `r2gSmokeTest` function exported from your package main.
+* <b> phase-T:</b> copies executable scripts from `.r2g/tests` to `$HOME/.r2g/temp/project/tests`, copies `.r2g/fixtures` to `$HOME/.r2g/temp/project/fixtures`, and runs every file in the copied tests directory.
 
 <br>
 
 By default all phases are run, but you can skip phases with the `--skip=z,s,t` option.
+
+<br>
+
+The usual full coverage setup is:
+
+* `package.json` has an `r2g.test` command for phase-Z.
+* Your package main exports `r2gSmokeTest` for phase-S.
+* `.r2g/tests` contains executable smoke scripts for phase-T.
+* `.r2g/fixtures` contains only data that phase-T scripts need.
+* `.r2g/config.js` declares `searchRoot` and optional local packages for `r2g run --full`.
+* `.r2g/custom.actions.js` can run setup/assertion hooks inside the temp project before and after install.
+* `.r2g/package.override.js` can adjust the temp project's package.json when the default dummy package is not enough.
 
 <br>
 
@@ -123,7 +135,8 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 >$ r2g run --full
 >```
 >
-> * Installs other locally developed dependencies to your main package, defined in `.r2g/config.js`, and tests everything together
+> * Installs other locally developed dependencies to your main package, defined in `.r2g/config.js`, and tests everything together.
+> * Use this when X depends on another local package and you want to test both unpublished versions together.
 >
 
 <br>
@@ -133,7 +146,8 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 >$ r2g run --full --pack
 >```
 >
-> * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together
+> * Installs other locally developed dependencies to your main package, *npm packs them too*, and tests everything together.
+> * This is the closest local simulation of publishing X and its local dependencies.
 >
 
 <br>
@@ -158,6 +172,7 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 > * Publish your package and ignore the .r2g folder for an even leaner tarball
 > * Copies your project to a temp folder and the .r2g folder is excluded/ignored
 > * Also copies symlinks so you can include symlinked files/folders easily when publishing
+> * Use `r2g publish --otp=123456` when npm requires a one-time password.
 >
 
 <br>
@@ -257,20 +272,93 @@ r2g init
 ```
 
 this will add a folder to your project called `.r2g`. Your `.r2g` folder should never be in `.npmignore`. (Running `r2g init` is safe, it will not overwrite any existing files).
-Your new `.r2g` folder contains a file called: `.r2g/smoke-test.js`.
+Your new `.r2g` folder contains `.r2g/tests` and `.r2g/fixtures`.
 
 <br>
 
-Now when `r2g run` executes, it will run `.r2g/smoke-test.js`,  *but* it will run this test in the context of the main project, meaning it will copy: 
+Now when `r2g run` executes phase-T, it runs each executable file in `.r2g/tests`,  *but* it runs those tests in the context of the temp project, meaning it copies:
 
 <br>
 
-   `$HOME/.r2g/temp/project/node_modules/X/.r2g/smoke-test.js` -->  `$HOME/.r2g/temp/project/smoke-test.js`
+   `$HOME/.r2g/temp/project/node_modules/X/.r2g/tests/*` -->  `$HOME/.r2g/temp/project/tests/*`
+
+and:
+
+   `$HOME/.r2g/temp/project/node_modules/X/.r2g/fixtures/*` -->  `$HOME/.r2g/temp/project/fixtures/*`
 
 <br>
 
-The above is very important to understand, because it means that this smoke test *should not include any dependencies* from X-package.json.
-In fact, the *only* dependency `.r2g/smoke-test.js` should require, besides core modules, is X itself.
+The above is very important to understand, because it means phase-T scripts *should not directly require dependencies* from X-package.json.
+In fact, besides core modules and fixture files, phase-T scripts should require X itself by package name.
+
+<br>
+
+Example:
+
+```js
+#!/usr/bin/env node
+'use strict';
+
+const assert = require('assert');
+const fixture = require('../fixtures/phase-contract.json');
+const x = require(fixture.packageName);
+
+assert.strictEqual(typeof x.r2gSmokeTest, 'function');
+assert.strictEqual(x.r2gSmokeTest(), true);
+```
+
+<br>
+
+Make phase-Z explicit in package.json when `npm test` is too slow, too broad, or not focused on publishability:
+
+```json
+{
+  "r2g": {
+    "test": "node .r2g/tests/phase-contract.cjs --phase-z"
+  }
+}
+```
+
+<br>
+
+Use `.r2g/custom.actions.js` when the temp project needs setup or extra lifecycle assertions:
+
+```js
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+const marker = name => (root, cb) => {
+  try {
+    fs.mkdirSync(path.resolve(root, '.r2g-markers'), {recursive: true});
+    fs.writeFileSync(path.resolve(root, '.r2g-markers', `${name}.txt`), `${name}\n`);
+    cb();
+  }
+  catch (err) {
+    cb(err);
+  }
+};
+
+exports.default = {
+  inProjectBeforeInstall: [marker('before-install')],
+  inProjectAfterInstall: [marker('after-install')]
+};
+```
+
+<br>
+
+Use `.r2g/package.override.js` when the default temp package.json needs extra fields:
+
+```js
+'use strict';
+
+exports.default = {
+  r2g: {
+    packageOverride: true
+  }
+};
+```
 
 <br>
 
@@ -365,4 +453,3 @@ https://github.com/ORESoftware/r2g.docker
 
 ### TBD
 Just adding some spaces here
-
