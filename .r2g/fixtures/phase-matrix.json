@@ -1,0 +1,24 @@
+{
+  "packageName": "r2g",
+  "smokeExport": "r2gSmokeTest",
+  "phases": [
+    "phase-Z",
+    "phase-S",
+    "phase-T"
+  ],
+  "executionOrder": [
+    "phase-Z",
+    "phase-S",
+    "phase-T"
+  ],
+  "skipFlags": [
+    "z",
+    "s",
+    "t"
+  ],
+  "phaseCommands": {
+    "z": "package.json:r2g.test",
+    "s": "r2gSmokeTest",
+    "t": ".r2g/tests"
+  }
+}

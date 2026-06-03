@@ -48,7 +48,7 @@
     "@types/shortid": "0.0.29"
   },
   "r2g": {
-    "test": "echo 'this is great'"
+    "test": "node -e \"const assert = require('assert'); const matrix = require('./.r2g/fixtures/phase-matrix.json'); assert.deepStrictEqual(matrix.phases, ['phase-Z', 'phase-S', 'phase-T']); assert.strictEqual(matrix.phaseCommands.z, 'package.json:r2g.test'); console.log('phase-Z fixture contract ok');\""
   },
   "npp": {
     "publishable": true

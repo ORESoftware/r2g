@@ -24,14 +24,41 @@
 
 const assert = require('assert');
 const path = require('path');
-const cp = require('child_process');
-const os = require('os');
 const fs = require('fs');
-const EE = require('events');
 
-const v = require('../fixtures/foo.js');
-assert.strictEqual(v.foo, 3, 'foo value is not 3, but it should be 3.');
+process.on('unhandledRejection', err => {
+  console.error(err);
+  process.exit(1);
+});
 
+const timeout = setTimeout(() => {
+  console.error('r2g phase-T smoke test timed out.');
+  process.exit(1);
+}, 5000);
 
+(async () => {
+  const fixturesDir = path.resolve(__dirname, '../fixtures');
+  const matrix = require(path.resolve(fixturesDir, 'phase-matrix.json'));
+  const legacyFixture = require(path.resolve(fixturesDir, 'foo.js'));
+  const sampleText = fs.readFileSync(path.resolve(fixturesDir, 'sample-input.txt'), 'utf8');
 
-// your test goes here
+  assert.deepStrictEqual(matrix.phases, ['phase-Z', 'phase-S', 'phase-T']);
+  assert.deepStrictEqual(matrix.skipFlags, ['z', 's', 't']);
+  assert.strictEqual(matrix.packageName, 'r2g');
+  assert.strictEqual(matrix.smokeExport, 'r2gSmokeTest');
+  assert.strictEqual(legacyFixture.foo, 3, 'foo value should be 3.');
+  assert.match(sampleText, /fixture-token: r2g-phase-t/);
+
+  const pkg = require(matrix.packageName);
+  assert.strictEqual(typeof pkg[matrix.smokeExport], 'function');
+
+  const smokeResult = await Promise.resolve(pkg[matrix.smokeExport]());
+  assert.strictEqual(smokeResult, true);
+
+  clearTimeout(timeout);
+  console.log('phase-T smoke export and fixtures ok');
+})().catch(err => {
+  clearTimeout(timeout);
+  console.error(err);
+  process.exit(1);
+});
