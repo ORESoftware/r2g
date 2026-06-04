@@ -36,6 +36,15 @@ https://github.com/ORESoftware/r2g.example
 
 ### Installation
 
+With Homebrew:
+
+```console
+$ brew tap ORESoftware/r2g https://github.com/ORESoftware/r2g
+$ brew install ORESoftware/r2g/r2g
+```
+
+Or with npm:
+
 ```console
 $ npm i -g r2g
 ```
