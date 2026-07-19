@@ -1,0 +1,164 @@
+[help]
+url = "https://github.com/ORESoftware/r2g#readme"
+columns = ["options", "env", "type", "default", "description"]
+
+[parse]
+positionals_env = "R2G_POSITIONALS"
+unknown_options_env = "R2G_UNKNOWN_OPTIONS"
+errors_env = "R2G_PARSE_ERRORS"
+allow_unknown = false
+
+[flags.help]
+env = "R2G_HELP"
+aliases = ["help"]
+short = "h"
+type = "bool"
+help = "Print generated help and exit."
+
+[flags.version]
+env = "R2G_VERSION_REQUESTED"
+aliases = ["version", "vn"]
+type = "bool"
+help = "Print the r2g version and exit."
+
+[flags.verbosity]
+env = "R2G_VERBOSITY"
+aliases = ["verbosity"]
+short = "v"
+type = "integer"
+default = 1
+help = "Verbosity level, from 1 through 3."
+
+[flags.force]
+env = "R2G_FORCE"
+aliases = ["force"]
+short = "f"
+type = "bool"
+default = false
+help = "Allow a command-specific non-interactive operation."
+
+[flags.allow_unknown]
+env = "R2G_ALLOW_UNKNOWN"
+aliases = ["allow-unknown"]
+type = "bool"
+default = false
+help = "Allow options that r2g does not recognize."
+
+[flags.ignore_dirty]
+env = "R2G_IGNORE_DIRTY_GIT_INDEX"
+aliases = ["ignore-dirty-git-index", "ignore-dirty-index"]
+type = "bool"
+default = false
+help = "Allow packaging from a dirty Git worktree."
+
+[flags.ecosystem]
+env = "R2G_ECOSYSTEM"
+aliases = ["ecosystem", "language", "package-manager"]
+short = "e"
+type = "string"
+default = "auto"
+help = "Package ecosystem: auto, npm, rust, python, gleam, or go."
+
+[flags.project]
+env = "R2G_PROJECT"
+aliases = ["project", "project-dir", "package-dir"]
+type = "string"
+help = "Package directory; defaults to the nearest supported manifest."
+
+[flags.keep_temp]
+env = "R2G_KEEP_TEMP"
+aliases = ["keep-temp", "keep-workspace"]
+type = "bool"
+default = false
+help = "Keep the run-scoped subject, artifact, and consumer workspace."
+
+[flags.search_root]
+env = "R2G_SEARCH_ROOT"
+aliases = ["search-root", "search"]
+type = "string"
+help = "Filesystem root used to find local dependencies."
+
+[flags.pack]
+env = "R2G_PACK"
+aliases = ["pack"]
+type = "bool"
+default = false
+help = "Pack local npm dependencies before installing them."
+
+[flags.skip]
+env = "R2G_SKIP"
+aliases = ["skip"]
+type = "string"
+help = "Skip npm phases, for example --skip=s,t,z."
+
+[flags.skip_z]
+env = "R2G_SKIP_Z"
+aliases = ["z", "skip-z"]
+short = "z"
+type = "bool"
+default = false
+help = "Skip npm phase Z."
+
+[flags.skip_t]
+env = "R2G_SKIP_T"
+aliases = ["t", "skip-t"]
+short = "t"
+type = "bool"
+default = false
+help = "Skip npm phase T."
+
+[flags.skip_s]
+env = "R2G_SKIP_S"
+aliases = ["s", "skip-s"]
+short = "s"
+type = "bool"
+default = false
+help = "Skip npm phase S."
+
+[flags.full]
+env = "R2G_FULL"
+aliases = ["full"]
+type = "bool"
+default = false
+help = "Use selected local npm dependencies instead of registry copies."
+
+[flags.keep]
+env = "R2G_KEEP"
+aliases = ["keep", "multi"]
+type = "bool"
+default = false
+help = "Keep the previous npm installation before the next run."
+
+[flags.docker]
+env = "R2G_DOCKER"
+aliases = ["docker"]
+type = "bool"
+default = false
+help = "Include Docker-related files when initializing a project."
+
+[flags.otp]
+env = "R2G_OTP"
+aliases = ["otp"]
+type = "string"
+help = "One-time passcode for npm publication."
+
+[flags.access]
+env = "R2G_ACCESS"
+aliases = ["access"]
+type = "string"
+default = "restricted"
+help = "npm publication access, public or restricted."
+
+[flags.json]
+env = "R2G_JSON"
+aliases = ["json"]
+type = "bool"
+default = false
+help = "Write machine-readable JSON where the command supports it."
+
+[flags.completion]
+env = "R2G_COMPLETION"
+aliases = ["bash-completion", "completion"]
+type = "bool"
+default = false
+help = "Generate bash completion through flags-2-env."

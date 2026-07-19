@@ -1,5 +1,19 @@
 # r2g multi-ecosystem plan
 
+## Implemented foundation
+
+The first adapter slice is now implemented for npm, Rust/Cargo, Python/PyPI,
+Gleam/Hex, and Go modules. Rust, Python, Gleam, and Go use run-scoped subject,
+artifact, and downstream-consumer directories; failed workspaces are retained
+with `results.json`. Custom consumer skeletons and placeholder substitution are
+documented in `docs/multi-ecosystem.md`.
+
+The CLI now takes its schema from the repository-root `.cli-flags.toml` and is
+parsed by `flags-2-env`. Tagged GitHub Actions releases build one checksummed npm
+artifact for npm, GitHub Releases, Homebrew, Scoop, Chocolatey, and the curl
+installer. Remaining adapters and the migration of the legacy npm phases onto
+the cross-platform core stay on this plan.
+
 ## Goal
 
 r2g should prove that a library works after it has been packaged and installed
@@ -954,4 +968,3 @@ After that passes, expand to the remaining clients.
    both?
 6. How should adapters share one native build when many clients depend on the
    same C core?
-

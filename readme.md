@@ -8,7 +8,7 @@
 
 <br>
 
-#  @oresoftware/r2g 
+# r2g
 
 >
 > Properly test your NPM packages before publishing. <br>
@@ -16,11 +16,12 @@
 
 <br>
 
-#### Caveats + Disclaimer
+#### Platform note
 
 >
-> This will not work with MS Windows. Only MacOS and *nix. 
-> If you are interested in getting to work on Windows, pls file a ticket.
+> The `r2g` command and the Rust, Python, Gleam, and Go adapters are distributed
+> for macOS, Linux, and Windows. The legacy npm phase runner still requires Bash
+> and rsync while it is being moved onto the cross-platform adapter core.
 >
 
 <br>
@@ -49,6 +50,10 @@ Or with npm:
 $ npm i -g r2g
 ```
 
+Windows users can install with Scoop or Chocolatey, and macOS/Linux users can
+use the checksum-verifying curl route. See
+[`docs/distribution.md`](docs/distribution.md) for every supported install path.
+
 You can add the following to your ~/.bashrc and/or ~/.bash_profile files:
 
 ```shell
@@ -70,6 +75,12 @@ see docs/faq.md
 
 r2g tests your package after using `npm pack` and `npm install --production`. You can use your current test suite for testing, and also write smoke tests
 that are specific to r2g. r2g currently has 3 <i>phases</i>, each phase is optional:
+
+For Rust, Python, Gleam, and Go, the same rule is implemented by ecosystem
+adapters: create the publishable artifact, unpack or install it under a
+run-scoped temp workspace, create a clean consumer, resolve the artifact as a
+dependency, and run from the consumer directory. See
+[`docs/multi-ecosystem.md`](docs/multi-ecosystem.md).
 
 <br>
 

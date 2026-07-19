@@ -638,7 +638,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         fs.createReadStream(smokeTester)
           .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
           .once('error', cb)
-          .once('finish', cb);
+          .once('finish', () => cb(null));
       },
       
       copyPackageJSON(mkdirpProject: any, cb: EVCb) {
@@ -665,7 +665,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         const strm = fs.createWriteStream(packageJSONPath)
           .once('error', cb)
-          .once('finish', cb);
+          .once('finish', () => cb(null));
         
         strm.end(JSON.stringify(override, null, 2) + '\n');
         

@@ -9,5 +9,17 @@ process.once('exit', code => {
 
 
 import {opts, projectRoot, cwd} from './parse-cli-options';
+import {resolveEcosystem} from '../../cli/flags';
+import {runEcosystem} from './ecosystem-runner';
 import * as m from './run';
-m.run(cwd, projectRoot, opts);
+
+const ecosystem = resolveEcosystem(projectRoot, opts.ecosystem);
+if (ecosystem === 'npm') {
+  m.run(cwd, projectRoot, opts);
+}
+else {
+  runEcosystem(projectRoot, ecosystem, opts).catch(err => {
+    log.error(err && err.stack ? err.stack : err);
+    process.exitCode = 1;
+  });
+}

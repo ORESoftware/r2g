@@ -9,6 +9,9 @@ src
 .r2g
 .circleci
 .github
+Formula
+packaging
+install.sh
 
 ### files
 .dockerignore
@@ -27,4 +30,3 @@ Dockerfile*
 tsconfig*.json
 *.DS_Store
 *.tgz
-

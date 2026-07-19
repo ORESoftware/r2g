@@ -1,0 +1,22 @@
+{
+  "version": "0.3.0",
+  "description": "Prove packages work as real downstream dependencies before release",
+  "homepage": "https://github.com/ORESoftware/r2g",
+  "license": "MIT",
+  "depends": "nodejs",
+  "url": "https://github.com/ORESoftware/r2g/releases/download/v0.3.0/r2g-0.3.0.tgz",
+  "hash": "aa1d9c8301c4f59635930166324ee933a7b7437929a0f64ef01a47f1e436a76e",
+  "extract_dir": "package",
+  "installer": {
+    "script": "npm install --global $dir"
+  },
+  "uninstaller": {
+    "script": "npm uninstall --global r2g"
+  },
+  "checkver": {
+    "github": "https://github.com/ORESoftware/r2g"
+  },
+  "autoupdate": {
+    "url": "https://github.com/ORESoftware/r2g/releases/download/v$version/r2g-$version.tgz"
+  }
+}
