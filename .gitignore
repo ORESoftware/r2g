@@ -15,6 +15,7 @@ assert
 ### matching
 *.log
 *.tgz
+Dockerfile*
 
 ### negation
 !dist/README.md

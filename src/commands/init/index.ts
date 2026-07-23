@@ -5,7 +5,7 @@
 import log from "../../logger";
 
 process.once('exit', code => {
-  log.info('r2g is exiting with code =>', code);
+  log.info('r2g is exiting with code:', code);
 });
 
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>r2g</id>
+    <version>0.3.0</version>
+    <title>r2g</title>
+    <authors>ORESoftware</authors>
+    <projectUrl>https://github.com/ORESoftware/r2g</projectUrl>
+    <licenseUrl>https://github.com/ORESoftware/r2g/blob/dev/license.md</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Prove packages work as real downstream dependencies before release.</description>
+    <tags>r2g package testing npm rust python go gleam cli</tags>
+    <dependencies><dependency id="nodejs" version="[18.0.0,)" /></dependencies>
+  </metadata>
+  <files><file src="tools\**" target="tools" /></files>
+</package>

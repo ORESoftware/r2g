@@ -1,0 +1,9 @@
+[package]
+name = "r2g-fixture-rust"
+version = "0.1.0"
+edition = "2021"
+description = "r2g downstream-consumer fixture"
+license = "MIT"
+
+[lib]
+path = "src/lib.rs"

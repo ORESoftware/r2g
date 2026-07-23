@@ -1,21 +1,23 @@
 {
   "name": "r2g",
-  "version": "0.1.196",
-  "description": "Semver-oriented TypeScript library skeleton.",
+  "version": "0.3.0",
+  "description": "Prove packages work as real downstream dependencies before release.",
   "main": "dist/index.js",
   "bin": {
-    "r2g": "cli/r2g.sh",
-    "r2g_run": "cli/r2g_run.sh",
-    "r2g_init": "cli/r2g_init.sh",
-    "r2g_basic": "cli/r2g_basic.sh",
+    "r2g": "cli/r2g.js",
+    "r2g-bash": "cli/r2g.sh",
     "r2g_symlink": "cli/r2g_symlink.sh",
     "r2g_get_project_root": "cli/r2g_get_project_root.js"
   },
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "postinstall": "./assets/postinstall.sh",
-    "test": "suman test"
+    "build": "node scripts/clean-dist.mjs && tsc",
+    "test": "npm run build && npm run test:unit",
+    "test:unit": "node test/multi-ecosystem.test.js",
+    "test:e2e": "npm run build && node test/e2e-multi-ecosystem.js",
+    "audit:cli": "node scripts/audit-cli.mjs",
+    "prepublishOnly": "npm test && npm run audit:cli"
   },
   "repository": {
     "type": "git",
@@ -28,29 +30,33 @@
     "scaffold"
   ],
   "author": "TODO Yo.Mama",
-  "license": "SEE LICENSE IN LICENSE.md",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ORESoftware/r2g/issues"
   },
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
-    "@oresoftware/shell": "latest",
-    "async": "^2.6.1",
+    "@oresoftware/deep.mixin": "0.0.107",
+    "@oresoftware/f2e": "https://github.com/ORESoftware/flags-2-env/archive/30c0b7cc57d6db93bac68a6f620b3b06e05f2c59.tar.gz",
+    "async": "^2.6.4",
     "chalk": "^2.4.1",
     "clean-trace": "latest",
-    "dashdash": "^1.14.1",
     "json-stdio": "latest",
     "prepend-transform": "0.0.1016",
-    "residence": "latest",
-    "shortid": "^2.2.8"
+    "shortid": "^2.2.17",
+    "tar": "^7.4.3"
   },
   "devDependencies": {
     "@types/async": "^2.0.49",
-    "@types/node": "^9.6.2",
-    "@types/shortid": "0.0.29"
+    "@types/node": "^22.0.0",
+    "@types/shortid": "0.0.29",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "r2g": {
-    "test": "echo 'this is great'"
+    "test": "node -e \"const assert = require('assert'); const matrix = require('./.r2g/fixtures/phase-matrix.json'); assert.deepStrictEqual(matrix.phases, ['phase-Z', 'phase-S', 'phase-T']); assert.strictEqual(matrix.phaseCommands.z, 'package.json:r2g.test'); console.log('phase-Z fixture contract ok');\""
   },
   "npp": {
     "publishable": true

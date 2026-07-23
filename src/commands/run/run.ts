@@ -4,6 +4,7 @@ import cp = require('child_process');
 import path = require("path");
 import fs = require('fs');
 import async = require('async');
+import Module = require('module');
 import {getCleanTrace} from 'clean-trace';
 import * as util from "util";
 import * as assert from 'assert';
@@ -18,6 +19,7 @@ import {renameDeps} from "./rename-deps";
 import {installDeps} from "./copy-deps";
 import pt from "prepend-transform";
 import {timeout} from "async";
+import deepMixin from "@oresoftware/deep.mixin";
 
 ///////////////////////////////////////////////
 
@@ -25,6 +27,43 @@ const r2gProject = path.resolve(process.env.HOME + '/.r2g/temp/project');
 const r2gProjectCopy = path.resolve(process.env.HOME + '/.r2g/temp/copy');
 const smokeTester = require.resolve('../../smoke-tester.js');
 const defaultPackageJSONPath = require.resolve('../../../assets/default.package.json');
+
+const shQuote = (v: string) => {
+  return `'${String(v).replace(/'/g, `'\\''`)}'`;
+};
+
+const getNpmPackFileName = (stdout: string) => {
+  return String(stdout || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean).pop() || '';
+};
+
+const loadCommonJSFile = (pth: string) => {
+  const CJSModule: any = Module;
+  const m = new CJSModule(pth, module);
+  m.filename = pth;
+  m.paths = CJSModule._nodeModulePaths(path.dirname(pth));
+  m._compile(fs.readFileSync(pth, 'utf8'), pth);
+  return m.exports;
+};
+
+const loadR2GFile = (pth: string) => {
+  try {
+    return require(pth);
+  } catch (err) {
+    const message = String(err && err.message || '');
+    if (
+      err &&
+      (
+        err.code === 'ERR_REQUIRE_ESM' ||
+        message.includes('require is not defined in ES module scope') ||
+        message.includes('exports is not defined in ES module scope') ||
+        message.includes('module is not defined in ES module scope')
+      )
+    ) {
+      return loadCommonJSFile(pth);
+    }
+    throw err;
+  }
+};
 
 export interface Packages {
   [key: string]: boolean | string
@@ -60,6 +99,7 @@ const handleTask = (r2gProject: string) => {
         }
         
         if (first) {
+          first = false;
           process.nextTick(() => {
             d.exit();
             cb(err);
@@ -93,7 +133,7 @@ const handleTask = (r2gProject: string) => {
 
 export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
-  const userHome = path.resolve(process.env.HOME);
+  const userHome = path.resolve(process.env.HOME || '');
   
   let pkgJSON: any = null, r2gConf: any = null,
     packages: Packages = null, searchRoots: Array<string> = null,
@@ -114,8 +154,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     pkgJSON = require(pkgJSONPth);
     pkgName = pkgJSON.name;
     cleanPackageName = pkgJSON.name || '';
-  }
-  catch (err) {
+  } catch (err) {
     log.error(chalk.magentaBright('Could not read your projects package.json file.'));
     throw getCleanTrace(err);
   }
@@ -139,19 +178,17 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   try {
     customActionsStats = fs.statSync(customActionsPath);
-  }
-  catch (err) {
+  } catch (err) {
     //ignore
   }
   
   try {
     if (customActionsStats) {
-      customActions = require(customActionsPath);
+      customActions = loadR2GFile(customActionsPath);
       customActions = customActions.default || customActions;
       assert(customActions, 'custom.actions.js is missing certain exports.');
     }
-  }
-  catch (err) {
+  } catch (err) {
     log.error('Could not load custom.actions.js');
     log.error(err.message);
     process.exit(1);
@@ -161,21 +198,19 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   try {
     packageJSONOverrideStats = fs.statSync(pkgJSONOverridePth);
-  }
-  catch (err) {
+  } catch (err) {
     // ignore
   }
   
   try {
     if (packageJSONOverrideStats) {
       assert(packageJSONOverrideStats.isFile(), 'package.override.js should be a file, but it is not.');
-      packageJSONOverride = require(pkgJSONOverridePth);
+      packageJSONOverride = loadR2GFile(pkgJSONOverridePth);
       packageJSONOverride = packageJSONOverride.default || packageJSONOverride;
       assert(packageJSONOverride && !Array.isArray(packageJSONOverride) && typeof packageJSONOverride === 'object',
         'package.override.js does not export the right object.');
     }
-  }
-  catch (err) {
+  } catch (err) {
     log.error('Could not run stat on file at path:', pkgJSONOverridePth);
     log.error(err.message);
     process.exit(1);
@@ -183,8 +218,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   try {
     zTest = pkgJSON.r2g.test;
-  }
-  catch (err) {
+  } catch (err) {
     if (!opts.z) {
       log.info('using "npm test" to run phase-Z.');
     }
@@ -202,12 +236,11 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   const confPath = path.resolve(projectRoot + '/.r2g/config.js');
   
   try {
-    r2gConf = require(confPath);
+    r2gConf = loadR2GFile(confPath);
     r2gConf = r2gConf.default || r2gConf;
-  }
-  catch (err) {
+  } catch (err) {
     
-    if (opts.verbosity > 1) {
+    if (opts.verbosity > 0) {
       log.warning(err.message);
     }
     
@@ -256,8 +289,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     
     try {
       assert(fs.lstatSync(v).isDirectory());
-    }
-    catch (err) {
+    } catch (err) {
       log.error('Your "searchRoot" property does not seem to exist as a directory on the local/host filesystem.');
       log.error('In other words, the following path does not seem to be a directory:');
       log.error(v);
@@ -282,7 +314,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     pkgJSON.optionalDependencies || {}
   ];
   
-  const allDeps = deps.reduce(Object.assign, {});
+  const allDeps = deps.reduce((a, b) => Object.assign(a, b), {});
   
   Object.keys(packages).forEach(function (k) {
     if (!allDeps[k]) {
@@ -293,9 +325,70 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   const depsDir = path.resolve(process.env.HOME + `/.r2g/temp/deps`);
   
+  
   async.autoInject({
       
-      removeExistingProject(cb: EVCb) {
+      checkForUntrackedFiles(cb: EVCb<any>) {
+        
+        if (opts.ignore_dirty_git_index) {
+          return process.nextTick(cb);
+        }
+        
+        log.info('Checking for dirty git status...');
+        
+        const k = cp.spawn('bash');
+        k.stderr.pipe(process.stderr);
+        
+        k.stdin.end(`
+            set -e;
+            cd ${shQuote(projectRoot)};
+            if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+               exit 0;
+            fi
+            
+           if [[ -n "$(git status --porcelain)" ]]; then
+            exit 1;
+           fi
+        `);
+        
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('Changes to (untracked) files need to be committed. Check your git index using the `git status` command.');
+            log.error('Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.');
+          }
+          cb(code);
+        });
+      },
+      
+      checkForDirtyGitIndex(checkForUntrackedFiles: any, cb: EVCb<any>) {
+        
+        if (opts.ignore_dirty_git_index) {
+          return process.nextTick(cb);
+        }
+        
+        log.info('Checking for dirty git index...');
+        const k = cp.spawn('bash');
+        k.stderr.pipe(process.stderr);
+        
+        k.stdin.end(`
+          set -e;
+          cd ${shQuote(projectRoot)};
+          if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+               git diff --quiet --exit-code
+               git diff --cached --quiet --exit-code
+          fi
+        `);
+        
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('Looks like the git index was dirty. Use "--ignore-dirty-git-index" to skip this warning.');
+          }
+          cb(code);
+        });
+        
+      },
+      
+      removeExistingProject(checkForDirtyGitIndex: any, cb: EVCb) {
         
         if (opts.keep || opts.multi) {
           log.info("We are keeping the previously installed packages because '--keep' / '--multi' was used.");
@@ -316,7 +409,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(process.stderr);
         k.stdin.end(`mkdir -p "${r2gProject}"; mkdir -p "${r2gProjectCopy}";`);
         k.once('exit', code => {
-          if (code > 0) log.error("Could not create temp/project or temp/copy directory.");
+          if (code > 0) {
+            log.error("Could not create temp/project or temp/copy directory.");
+          }
           cb(code);
         });
         
@@ -355,7 +450,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         getFSMap(opts, searchRoots, packages, cb);
       },
       
-      copyProjectsInMap(getMap: any, cb: EVCb) {
+      copyProjectsInMap(getMap: any, mkdirDeps: any, cb: EVCb) {
         
         if (Object.keys(getMap).length < 1) {
           return process.nextTick(cb, null, {});
@@ -385,9 +480,15 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         const k = cp.spawn('bash');
         k.stderr.pipe(process.stderr);
-        k.stdin.end(`rm -rf ${r2gProjectCopy}; rsync -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";`);
+        k.stdin.end(`
+          rm -rf "${r2gProjectCopy}";
+          rsync --perms --copy-links -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";
+        `);
+        
         k.once('exit', code => {
-          if (code > 0) log.error('Could not rimraf project copy path or could not copy to it using rsync.');
+          if (code > 0) {
+            log.error('Could not rimraf project copy path or could not copy to it using rsync.');
+          }
           cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
         });
         
@@ -398,17 +499,26 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
         
-        const k = cp.spawn('bash');
-        k.stdin.end(`cd "${copyProject}" && ` + cmd);
+        const k = cp.spawn('npm', ['pack', '--loglevel=warn'], {
+          cwd: copyProject
+        });
         let stdout = '';
         k.stdout.on('data', d => {
-          stdout += String(d || '').trim();
+          stdout += String(d || '');
         });
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
-          cb(code, path.resolve(copyProject + '/' + stdout));
+          if (code > 0) {
+            log.error(`Could not run "npm pack" for this project => ${copyProject}.`);
+            return cb(new Error(`npm pack exited with code: ${code}`));
+          }
+          const tarballName = getNpmPackFileName(stdout);
+          if (!tarballName) {
+            return cb(new Error(`npm pack did not print a tarball filename. stdout: ${stdout}`));
+          }
+          cb(null, path.resolve(copyProject + '/' + tarballName));
         });
+        k.once('error', cb);
       },
       
       linkPackage(runNPMInstallInCopy: any, copyProject: string, cb: EVCb) {
@@ -457,7 +567,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stdin.end(`cd "${cwd}" && ` + cmd);
         
         k.once('exit', code => {
-          if (code > 0) log.error('Could not link from project to copy.');
+          if (code > 0) {
+            log.error('Could not link from project to copy.');
+          }
           cb(code);
         });
         
@@ -477,7 +589,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stdin.end(`cd "${copyProject}" && ` + cmd);
         
         k.once('exit', code => {
-          if (code > 0) log.error('Could not link from project to copy.');
+          if (code > 0) {
+            log.error('Could not link from project to copy.');
+          }
           cb(code);
         });
         
@@ -493,9 +607,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const cmd = String(zTest).slice(0);
         
         log.info(chalk.bold('Running the following command from the copy project dir:'), chalk.cyan.bold(cmd));
-        
+
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(copyProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
@@ -505,7 +619,9 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         k.stderr.pipe(pt(chalk.yellow('phase-Z: '))).pipe(process.stderr);
         
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run your z-test command: ${cmd}`);
+          if (code > 0) {
+            log.error(`Could not run your z-test command: ${cmd}`);
+          }
           cb(code);
         });
         
@@ -522,7 +638,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         fs.createReadStream(smokeTester)
           .pipe(fs.createWriteStream(path.resolve(r2gProject + '/smoke-tester.js')))
           .once('error', cb)
-          .once('finish', cb);
+          .once('finish', () => cb(null));
       },
       
       copyPackageJSON(mkdirpProject: any, cb: EVCb) {
@@ -537,40 +653,19 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         const defaultPkgJSON = require(defaultPackageJSONPath);
         const packageJSONPath = path.resolve(r2gProject + '/package.json');
         
-        function deepMerge(...sources: any[]) {
-          let acc: any = {};
-          for (const source of sources) {
-            if (Array.isArray(source)) {
-              if (!(Array.isArray(acc))) {
-                acc = []
-              }
-              acc = [...acc, ...source]
-            }
-            else if (source && typeof source === 'object') {
-              for (let [key, value] of Object.entries(source)) {
-                if (value instanceof Object && key in acc) {
-                  value = deepMerge(acc[key], value)
-                }
-                acc = {...acc, [key]: value}
-              }
-            }
-          }
-          return acc;
-        }
         
         let override = null;
         
         if (packageJSONOverride) {
-          override = deepMerge({}, defaultPkgJSON, packageJSONOverride);
+          override = deepMixin(defaultPkgJSON, packageJSONOverride);
           log.warning('package.json overriden with:', {override});
-        }
-        else {
+        } else {
           override = Object.assign({}, defaultPkgJSON);
         }
         
         const strm = fs.createWriteStream(packageJSONPath)
           .once('error', cb)
-          .once('finish', cb);
+          .once('finish', () => cb(null));
         
         strm.end(JSON.stringify(override, null, 2) + '\n');
         
@@ -609,17 +704,23 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         }
         
         // note that runNpmPack is the path to .tgz file
-        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";
-           npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
+        const cmd = `npm install --loglevel=warn --cache-min 9999999 --no-optional --production "${runNpmPack}";\n` +
+          `npm i --loglevel=warn --cache-min 9999999 --no-optional --production;`;
         
         log.info(`Running the following command via this dir: "${r2gProject}" ...`);
         log.info(chalk.blueBright(cmd));
         
         const k = cp.spawn('bash');
-        k.stdin.end(`cd "${r2gProject}" && ` + cmd);
+        k.stdin.end(`
+          set -e
+          cd "${r2gProject}"
+          ${cmd}
+        `);
         k.stderr.pipe(process.stderr);
         k.once('exit', code => {
-          if (code > 0) log.error(`Could not run the following command: ${cmd}.`);
+          if (code > 0) {
+            log.error(`Could not run the following command: ${cmd}.`);
+          }
           cb(code);
         });
       },
@@ -660,7 +761,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         log.info(`Running your exported r2gSmokeTest function(s) in "${r2gProject}" ...`);
         
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
@@ -694,8 +795,8 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           `cd "${copyProject}"`,
           `mkdir -p .r2g/tests`,
           `mkdir -p .r2g/fixtures`,
-          `rsync -r .r2g/tests "${r2gProject}"`,
-          `rsync -r .r2g/fixtures "${r2gProject}"`
+          `rsync --perms --copy-links -r .r2g/tests "${r2gProject}"`,
+          `rsync --perms --copy-links -r .r2g/fixtures "${r2gProject}"`
         ].join(' && '));
         
         k.once('exit', cb);
@@ -711,15 +812,43 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
         
         log.info(`Running user defined tests in "${r2gProject}/tests" ...`);
         
+        const tests = path.resolve(r2gProject + '/tests');
+        
+        let items: Array<string>;
+        try {
+          
+          items = fs.readdirSync(tests);
+
+        } catch (err) {
+          return process.nextTick(cb, err);
+        }
+        
+        // return;
+        
+        const cmd = items.filter(v => {
+            try {
+              return fs.lstatSync(path.resolve(tests + '/' + v)).isFile()
+            } catch (err) {
+              log.error(err.message);
+              return false;
+            }
+            
+          })
+          .map(v => {
+            const testPath = `./tests/${v}`;
+            return ` ( echo ${shQuote('running test')} && chmod u+x ${shQuote(testPath)} && ${shQuote(testPath)} ) | r2g_handle_stdio ${shQuote(v)} ; `;
+          })
+          .join(' ');
+        
         const k = cp.spawn('bash', [], {
-          env: Object.assign(process.env, {}, {
+          env: Object.assign({}, process.env, {
             PATH: path.resolve(r2gProject + '/node_modules/.bin') + ':' + process.env.PATH
           })
         });
-        
+
         k.stdout.pipe(pt(chalk.gray('phase-T: '))).pipe(process.stdout);
         k.stderr.pipe(pt(chalk.yellow('phase-T: '))).pipe(process.stderr);
-        
+
         k.once('exit', code => {
           if (code > 0) {
             log.error('an r2g test failed => a script in this dir failed to exit with code 0:', chalk.bold(path.resolve(process.env.HOME + '/.r2g/temp/project/tests')));
@@ -727,24 +856,26 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           }
           cb(code);
         });
+
+        log.info('About to run tests in your .r2g/tests dir.');
+        k.stdin.end(`
+          
+              set -eo pipefail
+              
+              echo 'Now we are in phase-T...';
+              
+              r2g_handle_stdio() {
+                  # REPLY is a built-in, see:
+                  while read; do echo -e "\${r2g_gray}$1:\${r2g_no_color} $REPLY"; done
+              }
+
+              export -f r2g_handle_stdio;
+          
+             cd "${r2gProject}";
+             ${cmd}
+             
+          `);
         
-        const tests = path.resolve(r2gProject + '/tests');
-        
-        try {
-          
-          const items = fs.readdirSync(tests);
-          
-          const cmd = ` echo 'Now we are in phase-T...';` +
-            items.filter(v => fs.lstatSync(tests + '/' + v).isFile())
-              .map(v => ` chmod u+x ./tests/${v} && ./tests/${v} && `)
-              .concat(' exit "$?" ').join(' ');
-          
-          log.info('About to run tests in your .r2g/tests dir.');
-          k.stdin.end(`cd "${r2gProject}" && ${cmd}`);
-        }
-        catch (err) {
-          return process.nextTick(cb, err);
-        }
       }
       
     },
@@ -754,11 +885,16 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
       if (err && err.OK) {
         log.warn(chalk.blueBright(' => r2g may have run with some problems.'));
         log.warn(util.inspect(err));
-      }
-      else if (err) {
-        throw getCleanTrace(err);
-      }
-      else {
+      } else if (err) {
+        if (typeof err === 'number') {
+          log.error(`r2g encountered exit code: ${err}`);
+          process.exit(err);
+          return;
+        }
+        log.error(getCleanTrace(err));
+        process.exit(1);
+        return;
+      } else {
         log.info(chalk.green('Successfully ran r2g.'))
       }
       
@@ -767,4 +903,3 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     });
   
 };
-

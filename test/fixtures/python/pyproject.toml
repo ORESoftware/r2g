@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "r2g-fixture-python"
+version = "0.1.0"
+description = "r2g downstream-consumer fixture"
+requires-python = ">=3.9"
+
+[tool.setuptools]
+py-modules = ["r2g_fixture_python"]

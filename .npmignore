@@ -9,6 +9,9 @@ src
 .r2g
 .circleci
 .github
+Formula
+packaging
+install.sh
 
 ### files
 .dockerignore
@@ -17,6 +20,8 @@ src
 .gitignore
 .npmignore
 .travis.yml
+.nlu.json
+.npp.json
 
 ### matching
 Dockerfile*
@@ -25,4 +30,3 @@ Dockerfile*
 tsconfig*.json
 *.DS_Store
 *.tgz
-

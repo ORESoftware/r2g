@@ -1,0 +1,174 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          gleam-version: "1.16.0"
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          python -m pip install --disable-pip-version-check build
+
+      - name: Verify immutable release version
+        run: node scripts/release/check-tag.mjs
+
+      - name: Verify CLI contract and unit tests
+        run: |
+          npm test
+          npm run audit:cli
+
+      - name: Prove downstream artifact consumption
+        run: npm run test:e2e
+
+      - name: Build release package and checksums
+        id: package
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p release
+          npm pack --ignore-scripts --pack-destination release
+          asset="r2g-$version.tgz"
+          test -f "release/$asset"
+          (cd release && sha256sum "$asset" > "$asset.sha256")
+          sha="$(cut -d ' ' -f 1 "release/$asset.sha256")"
+          node scripts/release/generate-installers.mjs "$version" "$sha"
+          printf 'version=%s\nasset=%s\nsha=%s\n' "$version" "$asset" "$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Publish npm package with trusted publishing
+        run: npm publish --access public
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "release/${{ steps.package.outputs.asset }}" \
+            "release/${{ steps.package.outputs.asset }}.sha256" \
+            "Formula/r2g.rb" \
+            "packaging/scoop/r2g.json" \
+            "packaging/chocolatey/r2g.nuspec" \
+            "packaging/chocolatey/tools/chocolateyinstall.ps1" \
+            "packaging/chocolatey/tools/chocolateyuninstall.ps1" \
+            "install.sh" \
+            --verify-tag \
+            --generate-notes
+
+  chocolatey:
+    needs: package-and-release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Download release package
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          gh release download $env:GITHUB_REF_NAME --dir release --pattern 'r2g-*.tgz' --pattern 'r2g-*.sha256'
+
+      - name: Build Chocolatey package
+        id: chocolatey
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $checksumFile = Get-ChildItem release/r2g-*.sha256 | Select-Object -First 1
+          $sha = (Get-Content $checksumFile.FullName).Split(' ')[0]
+          node scripts/release/generate-installers.mjs $version $sha
+          New-Item -ItemType Directory -Force release/chocolatey | Out-Null
+          choco pack packaging/chocolatey/r2g.nuspec --outputdirectory release/chocolatey
+          $nupkg = (Get-ChildItem release/chocolatey/*.nupkg | Select-Object -First 1).FullName
+          "nupkg=$nupkg" >> $env:GITHUB_OUTPUT
+
+      - name: Add Chocolatey package to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload $env:GITHUB_REF_NAME '${{ steps.chocolatey.outputs.nupkg }}' --clobber
+
+      - name: Publish to Chocolatey Community Repository
+        if: ${{ env.CHOCO_API_KEY != '' }}
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: choco push '${{ steps.chocolatey.outputs.nupkg }}' --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+
+  update-installers:
+    needs: package-and-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Generate GitOps installer update
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p "$RUNNER_TEMP/release"
+          gh release download "$GITHUB_REF_NAME" --dir "$RUNNER_TEMP/release" --pattern 'r2g-*.sha256'
+          sha="$(cut -d ' ' -f 1 "$RUNNER_TEMP/release"/r2g-*.sha256)"
+          node scripts/release/generate-installers.mjs "$version" "$sha"
+          if git diff --quiet -- Formula packaging; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          branch="release/installers-$GITHUB_REF_NAME"
+          git switch -c "$branch"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add Formula packaging
+          git commit -m "chore: update installers for $GITHUB_REF_NAME"
+          git push origin "$branch"
+          url="$(gh pr create --base "${{ github.event.repository.default_branch }}" --head "$branch" --title "Update installers for $GITHUB_REF_NAME" --body "Generated from the immutable $GITHUB_REF_NAME release asset and SHA-256 checksum.")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo 'changed=true' >> "$GITHUB_OUTPUT"
+          gh pr merge "$url" --auto --squash || true

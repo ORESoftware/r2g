@@ -16,8 +16,7 @@ exports.default = {
   searchRoot: searchRootPath,
   tests: '',
   packages: {
-    'clean-trace': true,
-    'residence': true
+    'clean-trace': true
   }
 
 };

@@ -9,6 +9,10 @@ import shortid = require("shortid");
 
 /////////////////////////////////////////////////////////////////
 
+const getNpmPackFileName = (stdout: string) => {
+  return String(stdout || '').split(/\r?\n/).map(v => v.trim()).filter(Boolean).pop() || '';
+};
+
 export const installDeps =  (createProjectMap: any, dependenciesToInstall: Array<string>, opts: any, cb: any) => {
 
   const finalMap = {} as any;
@@ -43,21 +47,17 @@ export const installDeps =  (createProjectMap: any, dependenciesToInstall: Array
           return process.nextTick(cb);
         }
 
-        const k = cp.spawn('bash', [], {
-          cwd: depRoot
-        });
-
-        const cmd = [
-          `npm pack --loglevel=warn;`,
-        ]
-          .join(' ');
+        const cmd = `npm pack --loglevel=warn`;
 
         log.info(`Running the following command: '${chalk.cyan.bold(cmd)}', in this directory: "${depRoot}".`);
 
+        const k = cp.spawn('npm', ['pack', '--loglevel=warn'], {
+          cwd: depRoot
+        });
+
         let stdout = '';
 
-        k.stdout.on('data', d => stdout += String(d).trim());
-        k.stdin.end(cmd);
+        k.stdout.on('data', d => stdout += String(d));
         k.stderr.pipe(process.stderr);
         k.once('exit', function (code) {
 
@@ -66,16 +66,21 @@ export const installDeps =  (createProjectMap: any, dependenciesToInstall: Array
           }
 
           // the map points to the .tgz file in the root of the project, where stdout should be the .tgz file name
-          finalMap[dep] = path.resolve(dest + '/' + basename + '/' + stdout);
+          const tarballName = getNpmPackFileName(stdout);
+          if (!tarballName) {
+            return cb(new Error(`npm pack did not print a tarball filename. stdout: ${stdout}`));
+          }
+          finalMap[dep] = path.resolve(dest + '/' + basename + '/' + tarballName);
           cb(null);
 
         });
+        k.once('error', cb);
       };
 
       const cmd = [
         `set -e`,
         `mkdir -p "${dest}"`,
-        `rsync -r --exclude="node_modules" --exclude=".git" "${c}" "${dest}";`,
+        `rsync --perms --copy-links -r --exclude="node_modules" --exclude=".git" "${c}" "${dest}";`,
       ]
         .join('; ');
 
