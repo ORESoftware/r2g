@@ -7,9 +7,12 @@ const {
   buildContainerizedArgs,
   buildPhaseCArgs,
   getForwardedRunFlags,
+  isLocalPkgPath,
   defaultImage,
   defaultContainerCmd,
   containerProjectMount,
+  containerPkgMount,
+  containerPkgTarballMount,
   containerHome
 } = require('../dist/commands/run/containerized');
 
@@ -94,4 +97,34 @@ test('buildPhaseCArgs: copies mount to a writable dir and iterates over tests/',
   const script = scriptOf(buildPhaseCArgs('/d', {image: 'node:22'}));
   assert.match(script, new RegExp(`cp -r ${containerProjectMount}/\\. "\\$HOME/project"`));
   assert.match(script, /for t in tests\/\*/);
+});
+
+test('isLocalPkgPath: distinguishes registry specs from local paths', () => {
+  assert.strictEqual(isLocalPkgPath('r2g'), false);
+  assert.strictEqual(isLocalPkgPath('r2g@1.2.3'), false);
+  assert.strictEqual(isLocalPkgPath('/abs/r2g-checkout'), true);
+  assert.strictEqual(isLocalPkgPath('./r2g.tgz'), true);
+  assert.strictEqual(isLocalPkgPath('~/codes/r2g'), true);
+  assert.strictEqual(isLocalPkgPath('r2g-1.0.0.tgz'), true);
+});
+
+test('buildContainerizedArgs: local tarball pkg is mounted ro and installed from the mount', () => {
+  const args = buildContainerizedArgs('/home/me/proj', {containerPkg: '/builds/r2g-9.9.9.tgz'});
+  assert.ok(args.includes(`/builds/r2g-9.9.9.tgz:${containerPkgTarballMount}:ro`));
+  const script = scriptOf(args);
+  assert.match(script, new RegExp(`npm install -g --loglevel=warn ${containerPkgTarballMount}`));
+  assert.doesNotMatch(script, /npm install -g --loglevel=warn 'r2g'/);
+});
+
+test('buildContainerizedArgs: local checkout dir pkg is mounted ro at the dir mount', () => {
+  const args = buildContainerizedArgs('/home/me/proj', {containerPkg: '/home/me/codes/r2g'});
+  assert.ok(args.includes(`/home/me/codes/r2g:${containerPkgMount}:ro`));
+  const script = scriptOf(args);
+  assert.match(script, new RegExp(`npm install -g --loglevel=warn ${containerPkgMount}`));
+});
+
+test('buildContainerizedArgs: registry spec pkg gets no extra mount', () => {
+  const args = buildContainerizedArgs('/home/me/proj', {containerPkg: 'r2g@2.0.1'});
+  assert.strictEqual(args.filter(a => a === '-v').length, 1);
+  assert.match(scriptOf(args), /npm install -g --loglevel=warn 'r2g@2\.0\.1'/);
 });

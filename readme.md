@@ -485,7 +485,11 @@ does nothing on the local filesystem:
 
 * your project dir is mounted **read-only** at `/r2g/project` and copied to a writable dir inside the container;
 * r2g is installed inside the container with `npm install -g r2g` (override the package source/version
-  with the env var `R2G_CONTAINER_PKG`, e.g. `R2G_CONTAINER_PKG=r2g@0.2.0`);
+  with the env var `R2G_CONTAINER_PKG`, e.g. `R2G_CONTAINER_PKG=r2g@0.2.0`; a local path — an
+  `npm pack` tarball like `R2G_CONTAINER_PKG=./r2g-0.2.0.tgz` or a checkout dir — is mounted
+  read-only into the container and installed from there, so your exact local build runs the phases);
+* the normal phases (Z, S, T, and phase-C when configured) run inside the container exactly as
+  they would on the host — only the host filesystem is untouched;
 * `$HOME` inside the container points at a container-local dir, so all `$HOME/.r2g/temp` writes stay in the container;
 * the container is started with `--rm`, so nothing persists after the run.
 

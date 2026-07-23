@@ -1,6 +1,9 @@
 'use strict';
 
 import cp = require('child_process');
+import fs = require('fs');
+import os = require('os');
+import path = require('path');
 
 // project
 import log from '../../logger';
@@ -54,27 +57,49 @@ export const getForwardedRunFlags = (opts: any): string[] => {
   return flags;
 };
 
+export const containerPkgMount = '/r2g/pkg';
+export const containerPkgTarballMount = '/r2g/pkg.tgz';
+
+// R2G_CONTAINER_PKG can be a registry spec ("r2g", "r2g@1.2.3") or a local path
+// (a checkout dir or an `npm pack` tarball). Local paths are mounted read-only
+// into the container and installed from there, so the exact local build — not
+// whatever is on the npm registry — runs the phases inside the container.
+export const isLocalPkgPath = (pkg: string): boolean => {
+  return /^(\/|\.\/|\.\.\/|~\/)/.test(pkg) || /\.(tgz|tar\.gz)$/.test(pkg);
+};
+
 // pure function: builds the `docker <args>` list for a whole-run --containerized invocation.
 // the host project is mounted read-only and copied to a writable dir inside the container,
-// so nothing on the host filesystem is ever written to.
+// so nothing on the host filesystem is ever written to. All the normal phases (Z, S, T,
+// and phase-C if configured) run inside the container exactly as they would on the host.
 export const buildContainerizedArgs = (projectRoot: string, opts: any): string[] => {
 
   const image = String(opts.image || '').trim() || defaultImage;
   const pkg = String((opts && opts.containerPkg) || process.env.R2G_CONTAINER_PKG || '').trim() || 'r2g';
   const forwarded = getForwardedRunFlags(opts).join(' ');
 
+  const mounts = ['-v', `${projectRoot}:${containerProjectMount}:ro`];
+  let installSpec = shQuote(pkg);
+
+  if (isLocalPkgPath(pkg)) {
+    const isTarball = /\.(tgz|tar\.gz)$/.test(pkg);
+    const target = isTarball ? containerPkgTarballMount : containerPkgMount;
+    mounts.push('-v', `${pkg}:${target}:ro`);
+    installSpec = target;
+  }
+
   const script = [
     `set -e`,
     `mkdir -p "$HOME/project"`,
     `cp -r ${containerProjectMount}/. "$HOME/project"`,
-    `npm install -g --loglevel=warn ${shQuote(pkg)}`,
+    `npm install -g --loglevel=warn ${installSpec}`,
     `cd "$HOME/project"`,
     `r2g run ${forwarded}`.trim()
   ].join('\n');
 
   return [
     'run', '--rm',
-    '-v', `${projectRoot}:${containerProjectMount}:ro`,
+    ...mounts,
     '-e', `HOME=${containerHome}`,
     image,
     'sh', '-c', script
@@ -120,6 +145,15 @@ export const runContainerized = (projectRoot: string, opts: any): Promise<number
         'The --containerized flag requires the "docker" executable to be on your PATH. ' +
         'Install Docker (https://docs.docker.com/get-docker) or drop the --containerized flag.'
       ));
+    }
+
+    const rawPkg = String((opts && opts.containerPkg) || process.env.R2G_CONTAINER_PKG || '').trim() || 'r2g';
+    if (isLocalPkgPath(rawPkg)) {
+      const abs = path.resolve(rawPkg.replace(/^~(?=\/)/, os.homedir()));
+      if (!fs.existsSync(abs)) {
+        return reject(new Error(`R2G_CONTAINER_PKG points to a local path that does not exist: ${abs}`));
+      }
+      opts = Object.assign({}, opts, {containerPkg: abs});
     }
 
     const args = buildContainerizedArgs(projectRoot, opts);
