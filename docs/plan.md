@@ -931,6 +931,11 @@ user/permission handling
 Linux-only documentation
 ```
 
+A first slice of this exists today for npm: `r2g run --containerized [--image=<image>]`
+runs the whole pipeline in a disposable container with the project mounted
+read-only, and phase-C runs the `.r2g/tests` files inside each container listed
+in the `containers` array of `.r2g/config.js` (skippable with `-c`/`--skip=c`).
+
 ## First flags-2-env workflow target
 
 The first `flags-2-env` r2g workflow should focus on a small but representative

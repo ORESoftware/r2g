@@ -466,6 +466,57 @@ https://github.com/ORESoftware/r2g.docker
 
 <br>
 
+## Containerized runs and phase-C
+
+r2g has two built-in ways to use containers, both of which shell out to your local `docker` executable.
+Like all r2g CLI flags, the flags below are declared in the flags-2-env based `.cli-flags.toml` file
+(see: https://github.com/oresoftware/flags-2-env).
+
+### Whole-run isolation: `--containerized`
+
+```bash
+$ r2g run --containerized                       # uses the default image, node:22
+$ r2g run --containerized --image=node:20       # pick a different image
+$ r2g run --containerized -z -s                 # phase-skip flags are forwarded into the container
+```
+
+With `--containerized`, the entire r2g pipeline runs inside a disposable Docker container and
+does nothing on the local filesystem:
+
+* your project dir is mounted **read-only** at `/r2g/project` and copied to a writable dir inside the container;
+* r2g is installed inside the container with `npm install -g r2g` (override the package source/version
+  with the env var `R2G_CONTAINER_PKG`, e.g. `R2G_CONTAINER_PKG=r2g@0.2.0`);
+* `$HOME` inside the container points at a container-local dir, so all `$HOME/.r2g/temp` writes stay in the container;
+* the container is started with `--rm`, so nothing persists after the run.
+
+`docker` must be on your PATH, otherwise r2g errors out with instructions.
+
+### phase-C: running your `.r2g/tests` in containers
+
+phase-C is a sibling of phase-S and phase-T. Declare a `containers` array in your `.r2g/config.js` file:
+
+```js
+exports.default = {
+  // ...
+  containers: [
+    {image: 'node:22'},                          // cmd defaults to 'node'
+    {image: 'oven/bun:latest', cmd: 'bun'}       // run each test file with bun instead
+  ]
+};
+```
+
+After phase-T completes, for each configured container r2g does a `docker run --rm` which mounts the
+built dummy project (`$HOME/.r2g/temp/project` — it already contains your packed tarball installed into
+`node_modules`, plus `tests/` and `fixtures/`) **read-only**, copies it to a writable dir inside the
+container, and executes each file in `tests/` with the configured `cmd` (default `node`). Output is
+prefixed with `phase-C:`, and the run fails if any container test fails.
+
+If no `containers` are configured, phase-C is a no-op. If containers are configured but `docker` is not
+on your PATH, the run fails with a clear message. Skip phase-C with `-c`, `--skip-c`, or `--skip=c`
+(just like `-z`/`-s`/`-t`).
+
+<br>
+
 ### For the future:
 
 * Instead a dummy NPM project which will depend on X, we can allow users to use their own test projects, and pull those in with `git clone` or what not.

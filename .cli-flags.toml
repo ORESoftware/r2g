@@ -115,6 +115,27 @@ type = "bool"
 default = false
 help = "Skip npm phase S."
 
+[flags.skip_c]
+env = "R2G_SKIP_C"
+aliases = ["c", "skip-c"]
+short = "c"
+type = "bool"
+default = false
+help = "Skip npm phase C."
+
+[flags.containerized]
+env = "R2G_CONTAINERIZED"
+aliases = ["containerized"]
+type = "bool"
+default = false
+help = "Run the whole r2g pipeline inside a disposable Docker container."
+
+[flags.image]
+env = "R2G_IMAGE"
+aliases = ["image"]
+type = "string"
+help = "Docker image for --containerized runs; defaults to node:22."
+
 [flags.full]
 env = "R2G_FULL"
 aliases = ["full"]

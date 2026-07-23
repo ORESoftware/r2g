@@ -20,6 +20,7 @@ import {installDeps} from "./copy-deps";
 import pt from "prepend-transform";
 import {timeout} from "async";
 import deepMixin from "@oresoftware/deep.mixin";
+import {buildPhaseCArgs, ContainerSpec, isDockerOnPath} from "./containerized";
 
 ///////////////////////////////////////////////
 
@@ -144,6 +145,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     opts.z = opts.z || skipped.includes('z');
     opts.s = opts.s || skipped.includes('s');
     opts.t = opts.t || skipped.includes('t');
+    opts.c = opts.c || skipped.includes('c');
   }
   
   const pkgJSONOverridePth = path.resolve(projectRoot + '/.r2g/package.override.js');
@@ -870,14 +872,55 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
               }
 
               export -f r2g_handle_stdio;
-          
+
              cd "${r2gProject}";
              ${cmd}
-             
+
           `);
-        
+
+      },
+
+      runContainerizedTests(runUserDefinedTests: any, cb: EVCb) {
+
+        if (opts.c) {
+          log.warn('Skipping phase-C');
+          return process.nextTick(cb);
+        }
+
+        const containers: Array<ContainerSpec> = flattenDeep([r2gConf.containers]).filter(Boolean);
+
+        if (containers.length < 1) {
+          log.info('phase-C: no containers are configured in .r2g/config.js, so phase-C is a no-op.');
+          return process.nextTick(cb);
+        }
+
+        if (!isDockerOnPath()) {
+          return process.nextTick(cb, new Error(
+            'phase-C: containers are configured in your .r2g/config.js file, but the "docker" executable is not on your PATH. ' +
+            'Install Docker (https://docs.docker.com/get-docker), or remove the "containers" config, or skip phase-C with -c / --skip=c.'
+          ));
+        }
+
+        async.eachSeries(containers, (c: ContainerSpec, cb: EVCb<any>) => {
+
+          const image = String(c && c.image || '').trim();
+          log.info(`phase-C: running your user defined tests in a container (image: ${chalk.bold(image || 'node:22')}) ...`);
+
+          const k = cp.spawn('docker', buildPhaseCArgs(r2gProject, c));
+          k.stdout.pipe(pt(chalk.gray('phase-C: '))).pipe(process.stdout);
+          k.stderr.pipe(pt(chalk.yellow('phase-C: '))).pipe(process.stderr);
+
+          k.once('exit', code => {
+            if (code > 0) {
+              log.error(`phase-C: a container test failed (image: ${image || 'node:22'}) => a script in tests/ exited with a non-zero code.`);
+            }
+            cb(code);
+          });
+
+        }, cb);
+
       }
-      
+
     },
     
     (err: any, results) => {
