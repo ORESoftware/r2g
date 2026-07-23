@@ -19,3 +19,8 @@ Dockerfile*
 
 ### negation
 !dist/README.md
+
+### os / editor cruft
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
