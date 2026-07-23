@@ -14,7 +14,7 @@
   "scripts": {
     "build": "node scripts/clean-dist.mjs && tsc",
     "test": "npm run build && npm run test:unit",
-    "test:unit": "node test/multi-ecosystem.test.js",
+    "test:unit": "node --test test/*.test.js",
     "test:containerized": "node --test test/containerized.test.js",
     "test:e2e": "npm run build && node test/e2e-multi-ecosystem.js",
     "audit:cli": "node scripts/audit-cli.mjs",

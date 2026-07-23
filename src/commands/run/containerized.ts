@@ -76,7 +76,13 @@ export const buildContainerizedArgs = (projectRoot: string, opts: any): string[]
 
   const image = String(opts.image || '').trim() || defaultImage;
   const pkg = String((opts && opts.containerPkg) || process.env.R2G_CONTAINER_PKG || '').trim() || 'r2g';
-  const forwarded = getForwardedRunFlags(opts).join(' ');
+  const flags = getForwardedRunFlags(opts);
+  // No docker-in-docker: phases Z/S/T run inside the container as normal, but
+  // phase-C is always skipped there — the host run is the one driving containers.
+  if (!flags.includes('-c')) {
+    flags.push('-c');
+  }
+  const forwarded = flags.join(' ');
 
   const mounts = ['-v', `${projectRoot}:${containerProjectMount}:ro`];
   let installSpec = shQuote(pkg);

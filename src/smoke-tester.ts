@@ -41,18 +41,54 @@ if (links.length < 1) {
   throw new Error(stylize('red', 'no requireable packages in package.json to smoke test with r2g.'));
 }
 
+type SmokeTestModule = {
+  default?: SmokeTestModule,
+  r2gSmokeTest?: () => any
+};
+
+const nativeImport = new Function('specifier', 'return import(specifier);') as
+  (specifier: string) => Promise<SmokeTestModule>;
+
+const isESModuleLoadError = (err: any): boolean => {
+  return Boolean(err && (
+    err.code === 'ERR_REQUIRE_ESM' ||
+    err.code === 'ERR_REQUIRE_ASYNC_MODULE'
+  ));
+};
+
+const loadModule = async (specifier: string): Promise<SmokeTestModule> => {
+  try {
+    return require(specifier);
+  }
+  catch (err) {
+    if (!isESModuleLoadError(err)) {
+      throw err;
+    }
+    console.log('CommonJS loading was unavailable; loading as an ES module:', specifier);
+    return nativeImport(specifier);
+  }
+};
+
+const getSmokeTest = (mod: SmokeTestModule): (() => any) | undefined => {
+  if (mod && typeof mod.r2gSmokeTest === 'function') {
+    return mod.r2gSmokeTest;
+  }
+  if (mod && mod.default && typeof mod.default.r2gSmokeTest === 'function') {
+    return mod.default.r2gSmokeTest;
+  }
+};
+
 const getAllPromises = (links: Array<string>) => {
-  return Promise.all(links.map(l => {
-    
-    let mod: any;
-    
+  return Promise.all(links.map(async l => {
+    let mod: SmokeTestModule;
+
     try {
       console.log('loading the following module:', l);
-      mod = require(l);
+      mod = await loadModule(l);
     }
     catch (err) {
-      
-      if (new RegExp(l).test(err.message)) {
+
+      if (String(err && err.message || err).includes(l)) {
         console.error(stylize('red', 'Could not load your package with name:'), stylize('bold', l));
         console.error(stylize('red', 'Because your module could not be loaded, it is likely that you have not built/compiled your project, or that your package.json name/main field is incorrect.'));
       }
@@ -61,9 +97,11 @@ const getAllPromises = (links: Array<string>) => {
       }
       throw err;
     }
-    
+
+    const smokeTest = getSmokeTest(mod);
+
     try {
-      assert.equal(typeof mod.r2gSmokeTest, 'function');
+      assert.equal(typeof smokeTest, 'function');
     }
     catch (err) {
       console.error(stylize('red', 'A module failed to export a function from "main" with key "r2gSmokeTest".'));
@@ -71,8 +109,8 @@ const getAllPromises = (links: Array<string>) => {
       console.error(stylize('red', l));
       throw err;
     }
-    
-    return Promise.resolve(mod.r2gSmokeTest()).then((v: any) => {
+
+    return Promise.resolve(smokeTest()).then((v: any) => {
       console.log('resolved result for:', l, 'result is:', v);
       return {path: l, result: v};
     });
@@ -101,5 +139,4 @@ getAllPromises(links)
     console.error(err);
     process.exit(1);
   });
-
 

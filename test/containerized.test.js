@@ -57,9 +57,9 @@ test('buildContainerizedArgs: r2g package source can be overridden via R2G_CONTA
 
 test('buildContainerizedArgs: forwards phase-skip flags to r2g run inside the container', () => {
   const script = scriptOf(buildContainerizedArgs('/p', {z: true, t: true, ignore_dirty_git_index: true}));
-  assert.match(script, /r2g run -z -t --ignore-dirty-git-index/);
+  assert.match(script, /r2g run -z -t --ignore-dirty-git-index -c/);
   const noSkips = scriptOf(buildContainerizedArgs('/p', {}));
-  assert.match(noSkips, /r2g run\s*$/m);
+  assert.match(noSkips, /r2g run -c\s*$/m);
 });
 
 test('getForwardedRunFlags: forwards each of -z, -s, -t, -c', () => {
@@ -127,4 +127,11 @@ test('buildContainerizedArgs: registry spec pkg gets no extra mount', () => {
   const args = buildContainerizedArgs('/home/me/proj', {containerPkg: 'r2g@2.0.1'});
   assert.strictEqual(args.filter(a => a === '-v').length, 1);
   assert.match(scriptOf(args), /npm install -g --loglevel=warn 'r2g@2\.0\.1'/);
+});
+
+test('buildContainerizedArgs: always skips phase-C inside the container (no docker-in-docker)', () => {
+  const plain = scriptOf(buildContainerizedArgs('/home/me/proj', {}));
+  assert.match(plain, /r2g run -c/);
+  const withSkips = scriptOf(buildContainerizedArgs('/home/me/proj', {z: true, c: true}));
+  assert.match(withSkips, /r2g run -z -c/);
 });
