@@ -11,10 +11,19 @@ process.once('exit', code => {
 import {opts, projectRoot, cwd} from './parse-cli-options';
 import {resolveEcosystem} from '../../cli/flags';
 import {runEcosystem} from './ecosystem-runner';
+import {runContainerized} from './containerized';
 import * as m from './run';
 
 const ecosystem = resolveEcosystem(projectRoot, opts.ecosystem);
-if (ecosystem === 'npm') {
+if (opts.containerized) {
+  runContainerized(projectRoot, opts).then(code => {
+    process.exitCode = code;
+  }).catch(err => {
+    log.error(err && err.stack ? err.stack : err);
+    process.exitCode = 1;
+  });
+}
+else if (ecosystem === 'npm') {
   void m.run(cwd, projectRoot, opts).catch(err => {
     log.error(err && err.stack ? err.stack : err);
     process.exitCode = 1;
