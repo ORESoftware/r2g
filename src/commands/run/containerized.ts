@@ -86,18 +86,37 @@ export const buildContainerizedArgs = (projectRoot: string, opts: any): string[]
 
   const mounts = ['-v', `${projectRoot}:${containerProjectMount}:ro`];
   let installSpec = shQuote(pkg);
+  const preinstall: string[] = [];
 
   if (isLocalPkgPath(pkg)) {
     const isTarball = /\.(tgz|tar\.gz)$/.test(pkg);
-    const target = isTarball ? containerPkgTarballMount : containerPkgMount;
-    mounts.push('-v', `${pkg}:${target}:ro`);
-    installSpec = target;
+    if (isTarball) {
+      mounts.push('-v', `${pkg}:${containerPkgTarballMount}:ro`);
+      installSpec = containerPkgTarballMount;
+    }
+    else {
+      // A dir install symlinks and then chmods through the symlink, which
+      // fails on a read-only mount — copy to a writable dir first. Exclude
+      // node_modules: host-compiled native addons (e.g. flags2env.node) are
+      // the wrong platform, so deps must resolve inside the container.
+      mounts.push('-v', `${pkg}:${containerPkgMount}:ro`);
+      preinstall.push(
+        `mkdir -p "$HOME/r2g-pkg"`,
+        `(cd ${containerPkgMount} && tar -cf - --exclude=./node_modules .) | (cd "$HOME/r2g-pkg" && tar -xf -)`,
+        // A global folder install only symlinks — deps must be installed in place.
+        `(cd "$HOME/r2g-pkg" && npm install --omit=dev --loglevel=warn --no-audit --no-fund)`,
+      );
+      installSpec = `"$HOME/r2g-pkg"`;
+    }
   }
 
   const script = [
     `set -e`,
+    // The npm phase runner needs rsync; the default node images don't ship it.
+    `command -v rsync >/dev/null 2>&1 || { command -v apt-get >/dev/null 2>&1 && apt-get update -qq >/dev/null && apt-get install -qq -y rsync >/dev/null; }`,
     `mkdir -p "$HOME/project"`,
     `cp -r ${containerProjectMount}/. "$HOME/project"`,
+    ...preinstall,
     `npm install -g --loglevel=warn ${installSpec}`,
     `cd "$HOME/project"`,
     `r2g run ${forwarded}`.trim()
@@ -113,18 +132,22 @@ export const buildContainerizedArgs = (projectRoot: string, opts: any): string[]
 };
 
 // pure function: builds the `docker <args>` list for one phase-C container.
-// mounts the built dummy project ($HOME/.r2g/temp/project) read-only, copies it to a
-// writable dir inside the container, and runs each file in tests/ with the configured cmd.
-export const buildPhaseCArgs = (dummyProjectDir: string, container: ContainerSpec): string[] => {
+// mounts the whole r2g temp workspace ($HOME/.r2g/temp — project + copy) read-only,
+// copies it to a writable dir inside the container, and runs each file in
+// project/tests with the configured cmd. Mounting the full workspace (not just
+// project/) matters because the dummy project's package.json references the
+// packed tarball by relative path (file:../copy/...), which npm re-resolves
+// during any install a test performs inside the container.
+export const buildPhaseCArgs = (tempWorkspaceDir: string, container: ContainerSpec): string[] => {
 
   const image = String(container && container.image || '').trim() || defaultImage;
   const cmd = String(container && container.cmd || '').trim() || defaultContainerCmd;
 
   const script = [
     `set -e`,
-    `mkdir -p "$HOME/project"`,
-    `cp -r ${containerProjectMount}/. "$HOME/project"`,
-    `cd "$HOME/project"`,
+    `mkdir -p "$HOME/r2g-temp"`,
+    `cp -r ${containerProjectMount}/. "$HOME/r2g-temp"`,
+    `cd "$HOME/r2g-temp/project"`,
     `for t in tests/*; do`,
     `  [ -f "$t" ] || continue`,
     `  echo "running test file: $t"`,
@@ -134,7 +157,7 @@ export const buildPhaseCArgs = (dummyProjectDir: string, container: ContainerSpe
 
   return [
     'run', '--rm',
-    '-v', `${dummyProjectDir}:${containerProjectMount}:ro`,
+    '-v', `${tempWorkspaceDir}:${containerProjectMount}:ro`,
     '-e', `HOME=${containerHome}`,
     image,
     'sh', '-c', script

@@ -524,10 +524,12 @@ exports.default = {
 ```
 
 After phase-T completes, for each configured container r2g does a `docker run --rm` which mounts the
-built dummy project (`$HOME/.r2g/temp/project` — it already contains your packed tarball installed into
-`node_modules`, plus `tests/` and `fixtures/`) **read-only**, copies it to a writable dir inside the
-container, and executes each file in `tests/` with the configured `cmd` (default `node`). Output is
-prefixed with `phase-C:`, and the run fails if any container test fails.
+whole r2g temp workspace (`$HOME/.r2g/temp` — `project/` already contains your packed tarball installed
+into `node_modules`, plus `tests/` and `fixtures/`; `copy/` holds the packed source, which the dummy
+project's package.json references by relative path, so in-container npm installs keep working)
+**read-only**, copies it to a writable dir inside the container, and executes each file in
+`project/tests/` with the configured `cmd` (default `node`). Output is prefixed with `phase-C:`, and
+the run fails if any container test fails.
 
 If no `containers` are configured, phase-C is a no-op. If containers are configured but `docker` is not
 on your PATH, the run fails with a clear message. Skip phase-C with `-c`, `--skip-c`, or `--skip=c`

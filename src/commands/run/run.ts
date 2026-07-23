@@ -975,7 +975,7 @@ export const run = async (cwd: string, projectRoot: string, opts: any): Promise<
           const image = String(c && c.image || '').trim();
           log.info(`phase-C: running your user defined tests in a container (image: ${chalk.bold(image || 'node:22')}) ...`);
 
-          const k = cp.spawn('docker', buildPhaseCArgs(r2gProject, c));
+          const k = cp.spawn('docker', buildPhaseCArgs(r2gTempRoot, c));
           k.stdout.pipe(pt(chalk.gray('phase-C: '))).pipe(process.stdout);
           k.stderr.pipe(pt(chalk.yellow('phase-C: '))).pipe(process.stderr);
 

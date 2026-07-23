@@ -93,9 +93,10 @@ test('buildPhaseCArgs: per-container cmd defaults to node and is overridable', (
   assert.doesNotMatch(bunScript, /node "\$t"/);
 });
 
-test('buildPhaseCArgs: copies mount to a writable dir and iterates over tests/', () => {
+test('buildPhaseCArgs: copies the whole temp workspace to a writable dir and runs project/tests', () => {
   const script = scriptOf(buildPhaseCArgs('/d', {image: 'node:22'}));
-  assert.match(script, new RegExp(`cp -r ${containerProjectMount}/\\. "\\$HOME/project"`));
+  assert.match(script, new RegExp(`cp -r ${containerProjectMount}/\\. "\\$HOME/r2g-temp"`));
+  assert.match(script, /cd "\$HOME\/r2g-temp\/project"/);
   assert.match(script, /for t in tests\/\*/);
 });
 
@@ -116,11 +117,12 @@ test('buildContainerizedArgs: local tarball pkg is mounted ro and installed from
   assert.doesNotMatch(script, /npm install -g --loglevel=warn 'r2g'/);
 });
 
-test('buildContainerizedArgs: local checkout dir pkg is mounted ro at the dir mount', () => {
+test('buildContainerizedArgs: local checkout dir pkg is mounted ro, copied writable, then installed', () => {
   const args = buildContainerizedArgs('/home/me/proj', {containerPkg: '/home/me/codes/r2g'});
   assert.ok(args.includes(`/home/me/codes/r2g:${containerPkgMount}:ro`));
   const script = scriptOf(args);
-  assert.match(script, new RegExp(`npm install -g --loglevel=warn ${containerPkgMount}`));
+  assert.match(script, /--exclude=\.\/node_modules/);
+  assert.match(script, /npm install -g --loglevel=warn "\$HOME\/r2g-pkg"/);
 });
 
 test('buildContainerizedArgs: registry spec pkg gets no extra mount', () => {
