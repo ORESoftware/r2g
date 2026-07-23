@@ -15,7 +15,10 @@ import * as m from './run';
 
 const ecosystem = resolveEcosystem(projectRoot, opts.ecosystem);
 if (ecosystem === 'npm') {
-  m.run(cwd, projectRoot, opts);
+  void m.run(cwd, projectRoot, opts).catch(err => {
+    log.error(err && err.stack ? err.stack : err);
+    process.exitCode = 1;
+  });
 }
 else {
   runEcosystem(projectRoot, ecosystem, opts).catch(err => {

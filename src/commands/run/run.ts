@@ -9,6 +9,7 @@ import {getCleanTrace} from 'clean-trace';
 import * as util from "util";
 import * as assert from 'assert';
 import * as Domain from 'domain';
+import {pathToFileURL} from 'url';
 
 // project
 import log from '../../logger';
@@ -23,10 +24,24 @@ import deepMixin from "@oresoftware/deep.mixin";
 
 ///////////////////////////////////////////////
 
-const r2gProject = path.resolve(process.env.HOME + '/.r2g/temp/project');
-const r2gProjectCopy = path.resolve(process.env.HOME + '/.r2g/temp/copy');
+const defaultTempRoot = path.resolve(process.env.HOME || '', '.r2g/temp');
+const configuredTempBase = process.env.R2G_TEMP_BASE && path.resolve(process.env.R2G_TEMP_BASE);
+const r2gTempRoot = configuredTempBase
+  ? path.resolve(configuredTempBase, 'r2g-npm')
+  : defaultTempRoot;
+const r2gProject = path.resolve(r2gTempRoot, 'project');
+const r2gProjectCopy = path.resolve(r2gTempRoot, 'copy');
 const smokeTester = require.resolve('../../smoke-tester.js');
 const defaultPackageJSONPath = require.resolve('../../../assets/default.package.json');
+
+const removeTempPath = (target: string, cb: (err?: any) => void): void => {
+  const resolved = path.resolve(target);
+  const isTempPath = resolved === r2gTempRoot || resolved.startsWith(r2gTempRoot + path.sep);
+  if (!isTempPath) {
+    return process.nextTick(cb, new Error(`Refusing to remove a path outside the r2g temp root: ${resolved}`));
+  }
+  fs.rm(resolved, {recursive: true, force: true}, cb);
+};
 
 const shQuote = (v: string) => {
   return `'${String(v).replace(/'/g, `'\\''`)}'`;
@@ -45,23 +60,45 @@ const loadCommonJSFile = (pth: string) => {
   return m.exports;
 };
 
-const loadR2GFile = (pth: string) => {
+const nativeImport = new Function('specifier', 'return import(specifier);') as
+  (specifier: string) => Promise<any>;
+
+const isLegacyCommonJSSyntaxError = (err: any): boolean => {
+  const message = String(err && err.message || '');
+  return (
+    message.includes('require is not defined in ES module scope') ||
+    message.includes('exports is not defined in ES module scope') ||
+    message.includes('module is not defined in ES module scope')
+  );
+};
+
+const isESModuleLoadError = (err: any): boolean => {
+  return Boolean(err && (
+    err.code === 'ERR_REQUIRE_ESM' ||
+    err.code === 'ERR_REQUIRE_ASYNC_MODULE'
+  ));
+};
+
+const loadR2GFile = async (pth: string): Promise<any> => {
   try {
     return require(pth);
   } catch (err) {
-    const message = String(err && err.message || '');
-    if (
-      err &&
-      (
-        err.code === 'ERR_REQUIRE_ESM' ||
-        message.includes('require is not defined in ES module scope') ||
-        message.includes('exports is not defined in ES module scope') ||
-        message.includes('module is not defined in ES module scope')
-      )
-    ) {
+    if (isLegacyCommonJSSyntaxError(err)) {
       return loadCommonJSFile(pth);
     }
-    throw err;
+    if (!isESModuleLoadError(err)) {
+      throw err;
+    }
+
+    try {
+      return await nativeImport(pathToFileURL(pth).href);
+    }
+    catch (importErr) {
+      if (isLegacyCommonJSSyntaxError(importErr)) {
+        return loadCommonJSFile(pth);
+      }
+      throw importErr;
+    }
   }
 };
 
@@ -131,7 +168,7 @@ const handleTask = (r2gProject: string) => {
   
 };
 
-export const run = (cwd: string, projectRoot: string, opts: any): void => {
+export const run = async (cwd: string, projectRoot: string, opts: any): Promise<void> => {
   
   const userHome = path.resolve(process.env.HOME || '');
   
@@ -184,7 +221,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   
   try {
     if (customActionsStats) {
-      customActions = loadR2GFile(customActionsPath);
+      customActions = await loadR2GFile(customActionsPath);
       customActions = customActions.default || customActions;
       assert(customActions, 'custom.actions.js is missing certain exports.');
     }
@@ -205,7 +242,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   try {
     if (packageJSONOverrideStats) {
       assert(packageJSONOverrideStats.isFile(), 'package.override.js should be a file, but it is not.');
-      packageJSONOverride = loadR2GFile(pkgJSONOverridePth);
+      packageJSONOverride = await loadR2GFile(pkgJSONOverridePth);
       packageJSONOverride = packageJSONOverride.default || packageJSONOverride;
       assert(packageJSONOverride && !Array.isArray(packageJSONOverride) && typeof packageJSONOverride === 'object',
         'package.override.js does not export the right object.');
@@ -236,7 +273,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
   const confPath = path.resolve(projectRoot + '/.r2g/config.js');
   
   try {
-    r2gConf = loadR2GFile(confPath);
+    r2gConf = await loadR2GFile(confPath);
     r2gConf = r2gConf.default || r2gConf;
   } catch (err) {
     
@@ -323,7 +360,7 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
     }
   });
   
-  const depsDir = path.resolve(process.env.HOME + `/.r2g/temp/deps`);
+  const depsDir = path.resolve(r2gTempRoot, 'deps');
   
   
   async.autoInject({
@@ -395,43 +432,34 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           return process.nextTick(cb);
         }
         
-        log.info('Removing existing files within "$HOME/.r2g/temp"...');
-        const k = cp.spawn('bash');
-        k.stdin.end(`rm -rf "$HOME/.r2g/temp"`);
-        k.once('exit', cb);
+        log.info(`Removing the existing r2g temp workspace at "${r2gTempRoot}"...`);
+        removeTempPath(r2gTempRoot, cb);
         
       },
       
       mkdirpProject(removeExistingProject: any, cb: EVCb) {
         
-        log.info('Making sure the right folders exist using mkdir -p ...');
-        const k = cp.spawn('bash');
-        k.stderr.pipe(process.stderr);
-        k.stdin.end(`mkdir -p "${r2gProject}"; mkdir -p "${r2gProjectCopy}";`);
-        k.once('exit', code => {
-          if (code > 0) {
-            log.error("Could not create temp/project or temp/copy directory.");
+        log.info('Making sure the r2g temp project and copy folders exist...');
+        fs.mkdir(r2gProject, {recursive: true}, err => {
+          if (err) {
+            return cb(err);
           }
-          cb(code);
+          fs.mkdir(r2gProjectCopy, {recursive: true}, cb);
         });
         
       },
       
       rimrafDeps(mkdirpProject: any, cb: EVCb) {
         
-        log.info('Removing existing files within "$HOME/.r2g.temp"...');
-        const k = cp.spawn('bash');
-        k.stdin.end(`rm -rf "${depsDir}"`);
-        k.once('exit', cb);
+        log.info(`Removing the existing r2g dependency workspace at "${depsDir}"...`);
+        removeTempPath(depsDir, cb);
         
       },
       
       mkdirDeps(rimrafDeps: any, cb: EVCb) {
         
-        log.info('Re-creating folders "$HOME/.r2g/temp"...');
-        const k = cp.spawn('bash');
-        k.stdin.end(`mkdir -p "${depsDir}"`);
-        k.once('exit', cb);
+        log.info(`Re-creating the r2g dependency workspace at "${depsDir}"...`);
+        fs.mkdir(depsDir, {recursive: true}, cb);
         
       },
       
@@ -476,25 +504,61 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
           return process.nextTick(cb, null, projectRoot);
         }
         
-        log.info('Copying your project to "$HOME/.r2g/temp/copy" using rsync ...');
-        
-        const k = cp.spawn('bash');
-        k.stderr.pipe(process.stderr);
-        k.stdin.end(`
-          rm -rf "${r2gProjectCopy}";
-          rsync --perms --copy-links -r --exclude=".git" --exclude="node_modules" "${projectRoot}" "${r2gProjectCopy}";
-        `);
-        
-        k.once('exit', code => {
-          if (code > 0) {
-            log.error('Could not rimraf project copy path or could not copy to it using rsync.');
+        log.info(`Copying your project to "${r2gProjectCopy}" using rsync ...`);
+
+        removeTempPath(r2gProjectCopy, err => {
+          if (err) {
+            return cb(err);
           }
-          cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
+          const k = cp.spawn('rsync', [
+            '--perms',
+            '--copy-links',
+            '-r',
+            '--exclude=.git',
+            '--exclude=node_modules',
+            projectRoot,
+            r2gProjectCopy
+          ]);
+          k.stderr.pipe(process.stderr);
+          k.once('exit', code => {
+            if (code > 0) {
+              log.error('Could not copy the project into the r2g temp workspace using rsync.');
+            }
+            cb(code, path.resolve(r2gProjectCopy + '/' + path.basename(projectRoot)));
+          });
+          k.once('error', cb);
         });
         
       },
+
+      installCopyDependenciesForPack(copyProject: string, cb: EVCb) {
+        const scripts = pkgJSON.scripts || {};
+        if (!(scripts.prepack || scripts.prepare)) {
+          return process.nextTick(cb);
+        }
+
+        const installCommand = fs.existsSync(path.resolve(copyProject, 'package-lock.json')) ? 'ci' : 'install';
+        const args = [installCommand, '--ignore-scripts', '--no-audit', '--no-fund'];
+        log.info(`Installing copied-project dependencies before npm pack: npm ${args.join(' ')}`);
+
+        const k = cp.spawn('npm', args, {cwd: copyProject});
+        k.stdout.pipe(pt(chalk.gray('pack-install: '))).pipe(process.stdout);
+        k.stderr.pipe(pt(chalk.yellow('pack-install: '))).pipe(process.stderr);
+        k.once('exit', code => {
+          if (code > 0) {
+            log.error('Could not install copied-project dependencies required by prepack/prepare.');
+          }
+          cb(code);
+        });
+        k.once('error', cb);
+      },
       
-      runNpmPack(renamePackagesToAbsolute: any, copyProject: string, cb: EVCb<string>) {
+      runNpmPack(
+        renamePackagesToAbsolute: any,
+        copyProject: string,
+        installCopyDependenciesForPack: any,
+        cb: EVCb<string>
+      ) {
         
         const cmd = `npm pack --loglevel=warn;`;
         log.info(chalk.bold('Running the following command from your project copy root:'), chalk.cyan.bold(cmd));
@@ -549,28 +613,33 @@ export const run = (cwd: string, projectRoot: string, opts: any): void => {
             .join(' && ');
         };
         
+        const cwd = String(copyProject).slice(0);
+        const packageLink = path.resolve(cwd, 'node_modules', cleanPackageName);
         const cmd = [
-          `mkdir -p "node_modules/${cleanPackageName}"`,
-          `rm -rf "node_modules/${cleanPackageName}"`,
-          `ln -sf "${r2gProject}/node_modules/${cleanPackageName}" "node_modules/${cleanPackageName}"`,
-          // `rsync -r "${r2gProject}/node_modules/${cleanPackageName}" "node_modules"`,
+          `mkdir -p ${shQuote(path.dirname(packageLink))}`,
+          `ln -sf ${shQuote(`${r2gProject}/node_modules/${cleanPackageName}`)} ${shQuote(packageLink)}`,
           getBinMap(pkgJSON.bin, `${copyProject}/node_modules/${cleanPackageName}`, cleanPackageName)
         ]
           .join(' && ');
-        
-        const cwd = String(copyProject).slice(0);
+
         log.info(chalk.bold(`Running the following command from "${cwd}":`), chalk.bold.cyan(cmd));
-        
-        const k = cp.spawn('bash');
-        
-        k.stderr.pipe(process.stderr);
-        k.stdin.end(`cd "${cwd}" && ` + cmd);
-        
-        k.once('exit', code => {
-          if (code > 0) {
-            log.error('Could not link from project to copy.');
+
+        fs.rm(packageLink, {recursive: true, force: true}, err => {
+          if (err) {
+            return cb(err);
           }
-          cb(code);
+          const k = cp.spawn('bash');
+
+          k.stderr.pipe(process.stderr);
+          k.stdin.end(`cd "${cwd}" && ` + cmd);
+
+          k.once('exit', code => {
+            if (code > 0) {
+              log.error('Could not link from project to copy.');
+            }
+            cb(code);
+          });
+          k.once('error', cb);
         });
         
       },
