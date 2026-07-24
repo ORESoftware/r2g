@@ -38,7 +38,7 @@
   "homepage": "https://github.com/ORESoftware/r2g#readme",
   "dependencies": {
     "@oresoftware/deep.mixin": "0.0.107",
-    "@oresoftware/f2e": "https://github.com/ORESoftware/flags-2-env/archive/30c0b7cc57d6db93bac68a6f620b3b06e05f2c59.tar.gz",
+    "@oresoftware/f2e": "https://github.com/ORESoftware/flags-2-env/archive/6acdb7f9bdb9db6e37c78bae1253ffa164803327.tar.gz",
     "async": "^2.6.4",
     "chalk": "^2.4.1",
     "clean-trace": "latest",
