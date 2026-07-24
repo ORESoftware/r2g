@@ -166,11 +166,7 @@ export const completionScript = (shell: string): string => {
 };
 
 export const parseCommand = (command: string): any => {
-  // The launcher (cli/r2g.js) strips the command token from argv before
-  // dispatching, so it is reinserted here for flags-2-env's [commands.*]
-  // scoping. "basic" is the implicit no-command entrypoint.
-  const commandTokens = command && command !== 'basic' ? [command] : [];
-  const parsed = f2e.parse(['r2g'].concat(commandTokens, process.argv.slice(2)), {configPath});
+  const parsed = f2e.parse(['r2g'].concat(process.argv.slice(2)), {configPath});
   if (parsed.isHelpMenu || booleanValue(parsed.R2G_HELP)) {
     if (parsed.printTable) {
       parsed.printTable(process.stdout);
@@ -193,12 +189,15 @@ export const parseCommand = (command: string): any => {
     access: parsed.R2G_ACCESS || 'restricted',
     allow_unknown: booleanValue(parsed.R2G_ALLOW_UNKNOWN),
     bash_completion: booleanValue(parsed.R2G_COMPLETION),
+    c: booleanValue(parsed.R2G_SKIP_C),
+    containerized: booleanValue(parsed.R2G_CONTAINERIZED),
     docker: booleanValue(parsed.R2G_DOCKER),
     ecosystem: normalizeEcosystem(parsed.R2G_ECOSYSTEM || 'auto'),
     force: booleanValue(parsed.R2G_FORCE),
     full: booleanValue(parsed.R2G_FULL),
     help: false,
     ignore_dirty_git_index: booleanValue(parsed.R2G_IGNORE_DIRTY_GIT_INDEX),
+    image: parsed.R2G_IMAGE || '',
     json: booleanValue(parsed.R2G_JSON),
     keep: booleanValue(parsed.R2G_KEEP),
     keep_temp: booleanValue(parsed.R2G_KEEP_TEMP),

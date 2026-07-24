@@ -85,7 +85,7 @@ dependency, and run from the consumer directory. See
 <br>
 
 * <b> phase-Z:</b> packs your project, installs that packed package back into the copied project, then runs a package-level command. By default this is `npm test`; override it with `r2g.test` in package.json.
-* <b> phase-S:</b> installs your packed project into `$HOME/.r2g/temp/project`, requires your package by name, then executes the `r2gSmokeTest` function exported from your package main.
+* <b> phase-S:</b> installs your packed project into `$HOME/.r2g/temp/project`, loads your package by name through CommonJS or native ESM, then executes the `r2gSmokeTest` function exported from your package main.
 * <b> phase-T:</b> copies executable scripts from `.r2g/tests` to `$HOME/.r2g/temp/project/tests`, copies `.r2g/fixtures` to `$HOME/.r2g/temp/project/fixtures`, and runs every file in the copied tests directory.
 
 <br>
@@ -103,6 +103,11 @@ The usual full coverage setup is:
 * `.r2g/config.js` declares `searchRoot` and optional local packages for `r2g run --full`.
 * `.r2g/custom.actions.js` can run setup/assertion hooks inside the temp project before and after install.
 * `.r2g/package.override.js` can adjust the temp project's package.json when the default dummy package is not enough.
+
+Projects with `"type": "module"` may author `.r2g/config.js`, custom actions,
+and package overrides as ESM, including top-level await. Legacy CommonJS config
+files remain supported. When a package defines `prepack` or `prepare`, r2g
+restores its copied dev dependencies before creating the tarball.
 
 <br>
 
@@ -204,6 +209,7 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 * You can use r2g with zero-config, depending on what you want to do.
 * Testing does not happen in your local codebase - before anything, your codebase is copied to `"$HOME/.r2g/temp/copy"`, and all writes happen within `"$HOME/.r2g/temp"`.
 * If you use the `--full` option, the local deps of your package will copied to: `"$HOME/.r2g/temp/deps"`
+* Set `R2G_TEMP_BASE` to an isolated absolute directory when CI or concurrent runs should not share `$HOME/.r2g/temp`.
 * You can and should put your regular tests in `.npmignore`, but your .r2g folder should not be in `.npmignore`
 
 <b>To make this README as clear and concise as possible:</b>
@@ -264,6 +270,14 @@ To get your test to pass, add this to X-main (your package's index file, whateve
 exports.r2gSmokeTest = async () => { 
   return Promise.resolve(true);
 };
+```
+
+The equivalent ESM export is:
+
+```js
+export async function r2gSmokeTest() {
+  return true;
+}
 ```
 
 the above function is called with `Promise.resolve(X.r2gSmokeTest())`, and in order to pass it must resolve to `true` (not just truthy). 
@@ -463,6 +477,63 @@ $ r2g docker
 The above command actually uses this command line tool: <br>
 https://github.com/ORESoftware/r2g.docker
 
+
+<br>
+
+## Containerized runs and phase-C
+
+r2g has two built-in ways to use containers, both of which shell out to your local `docker` executable.
+Like all r2g CLI flags, the flags below are declared in the flags-2-env based `.cli-flags.toml` file
+(see: https://github.com/oresoftware/flags-2-env).
+
+### Whole-run isolation: `--containerized`
+
+```bash
+$ r2g run --containerized                       # uses the default image, node:22
+$ r2g run --containerized --image=node:20       # pick a different image
+$ r2g run --containerized -z -s                 # phase-skip flags are forwarded into the container
+```
+
+With `--containerized`, the entire r2g pipeline runs inside a disposable Docker container and
+does nothing on the local filesystem:
+
+* your project dir is mounted **read-only** at `/r2g/project` and copied to a writable dir inside the container;
+* r2g is installed inside the container with `npm install -g r2g` (override the package source/version
+  with the env var `R2G_CONTAINER_PKG`, e.g. `R2G_CONTAINER_PKG=r2g@0.2.0`; a local path — an
+  `npm pack` tarball like `R2G_CONTAINER_PKG=./r2g-0.2.0.tgz` or a checkout dir — is mounted
+  read-only into the container and installed from there, so your exact local build runs the phases);
+* the normal phases (Z, S, T, and phase-C when configured) run inside the container exactly as
+  they would on the host — only the host filesystem is untouched;
+* `$HOME` inside the container points at a container-local dir, so all `$HOME/.r2g/temp` writes stay in the container;
+* the container is started with `--rm`, so nothing persists after the run.
+
+`docker` must be on your PATH, otherwise r2g errors out with instructions.
+
+### phase-C: running your `.r2g/tests` in containers
+
+phase-C is a sibling of phase-S and phase-T. Declare a `containers` array in your `.r2g/config.js` file:
+
+```js
+exports.default = {
+  // ...
+  containers: [
+    {image: 'node:22'},                          // cmd defaults to 'node'
+    {image: 'oven/bun:latest', cmd: 'bun'}       // run each test file with bun instead
+  ]
+};
+```
+
+After phase-T completes, for each configured container r2g does a `docker run --rm` which mounts the
+whole r2g temp workspace (`$HOME/.r2g/temp` — `project/` already contains your packed tarball installed
+into `node_modules`, plus `tests/` and `fixtures/`; `copy/` holds the packed source, which the dummy
+project's package.json references by relative path, so in-container npm installs keep working)
+**read-only**, copies it to a writable dir inside the container, and executes each file in
+`project/tests/` with the configured `cmd` (default `node`). Output is prefixed with `phase-C:`, and
+the run fails if any container test fails.
+
+If no `containers` are configured, phase-C is a no-op. If containers are configured but `docker` is not
+on your PATH, the run fails with a clear message. Skip phase-C with `-c`, `--skip-c`, or `--skip=c`
+(just like `-z`/`-s`/`-t`).
 
 <br>
 
