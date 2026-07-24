@@ -154,7 +154,13 @@ Machine interface, frozen as **contract v1**:
 - `results.json` (schema-versioned) for every run, npm included: subject,
   artifact digests (sha256), phase timings, per-phase pass/fail, image
   digests, adapter versions.
-- `--json` on every command; logs to stderr, data to stdout — always.
+- `--json` on every command. Output is line-oriented, json-stdio style:
+  structured events are single-line JSON records that may be freely
+  interspersed with human log lines (like `r2g is exiting with code: 0`) —
+  consumers parse line-by-line and skip non-JSON lines, so human logs and
+  machine events share stdout safely. The only pure-output exception is
+  anything the shell sources directly (completion scripts), which must stay
+  free of log lines.
 - Documented exit-code catalogue (0 ok; 2 packaging failed; 3 install
   failed; 4 verify failed; 5 publish refused; 10 environment/runtime
   missing; …).
