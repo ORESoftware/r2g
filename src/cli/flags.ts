@@ -166,7 +166,11 @@ export const completionScript = (shell: string): string => {
 };
 
 export const parseCommand = (command: string): any => {
-  const parsed = f2e.parse(['r2g'].concat(process.argv.slice(2)), {configPath});
+  // The launcher (cli/r2g.js) strips the command token from argv before
+  // dispatching, so it is reinserted here for flags-2-env's [commands.*]
+  // scoping. "basic" is the implicit no-command entrypoint.
+  const commandTokens = command && command !== 'basic' ? [command] : [];
+  const parsed = f2e.parse(['r2g'].concat(commandTokens, process.argv.slice(2)), {configPath});
   if (parsed.isHelpMenu || booleanValue(parsed.R2G_HELP)) {
     if (parsed.printTable) {
       parsed.printTable(process.stdout);
