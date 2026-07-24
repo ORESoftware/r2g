@@ -45,7 +45,7 @@
     "json-stdio": "latest",
     "prepend-transform": "0.0.1016",
     "shortid": "^2.2.17",
-    "tar": "^7.4.3"
+    "tar": "^7.5.21"
   },
   "devDependencies": {
     "@types/async": "^2.0.49",
