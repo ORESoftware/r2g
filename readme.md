@@ -62,6 +62,22 @@ You can add the following to your ~/.bashrc and/or ~/.bash_profile files:
 
 <i> => Note you will also get bash completion for r2g, if you source the above shell script. </i>
 
+### Shell completion
+
+Homebrew installs bash and zsh completion automatically. For npm installs,
+generate the script yourself — it completes subcommands and the flags scoped
+to each subcommand:
+
+```shell
+# bash — add to ~/.bashrc
+source <(r2g completion bash)
+
+# zsh — add to ~/.zshrc (after compinit)
+source <(r2g completion zsh)
+```
+
+`r2g --completion` remains a shortcut for `r2g completion bash`.
+
 <br>
 _____________________________________________________________________________________________
 
