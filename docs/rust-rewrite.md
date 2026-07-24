@@ -186,7 +186,8 @@ these pay off immediately and shrink the port:
    `--runtime`; digest-pin the default image.
 4. Safe-extraction guards everywhere archives are opened (entry count/size
    caps, path-traversal checks) — the recent tar advisory is the warning shot.
-5. Exit-code catalogue + logs-to-stderr discipline.
+5. Exit-code catalogue + line-delimited json-stdio events from `run`, so
+   zed-pkg can stream phase progress without waiting for `results.json`.
 
 **Phase 2 — r2g-rs skeleton:** `r2g-cli` with the flags-2-env Rust client
 reading the same `.cli-flags.toml`; port the leaf commands first
