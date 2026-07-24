@@ -30,14 +30,8 @@
     "skeleton",
     "scaffold"
   ],
-<<<<<<< HEAD
-  "author": "TODO Yo.Mama",
-  "license": "MIT",
-=======
   "author": "Olegzandr V.D.",
-  "readme": "SEE README AT https://github.com/ORESoftware/r2g/blob/master/readme.md",
-  "license": "SEE LICENSE IN https://github.com/ORESoftware/r2g/blob/master/license.md",
->>>>>>> origin/feature/next
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/ORESoftware/r2g/issues"
   },
