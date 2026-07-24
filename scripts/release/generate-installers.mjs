@@ -66,7 +66,7 @@ const nuspec = `<?xml version="1.0" encoding="utf-8"?>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Prove packages work as real downstream dependencies before release.</description>
     <tags>r2g package testing npm rust python go gleam cli</tags>
-    <dependencies><dependency id="nodejs" version="[18.0.0,)" /></dependencies>
+    <dependencies><dependency id="nodejs" version="[22.0.0,)" /></dependencies>
   </metadata>
   <files><file src="tools\\**" target="tools" /></files>
 </package>
