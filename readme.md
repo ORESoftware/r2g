@@ -198,8 +198,8 @@ r2g is one of several tools that makes managing multiple locally developed NPM p
 > * Copies your project to a temp folder and the .r2g folder is excluded/ignored
 > * Also copies symlinks so you can include symlinked files/folders easily when publishing
 > * Use `r2g publish --otp=123456` when npm requires a one-time password.
+> * Use `r2g publish --access=public` if you don't want restricted access (restricted is the default)
 >
-
 <br>
 
 
