@@ -154,7 +154,13 @@ Machine interface, frozen as **contract v1**:
 - `results.json` (schema-versioned) for every run, npm included: subject,
   artifact digests (sha256), phase timings, per-phase pass/fail, image
   digests, adapter versions.
-- `--json` on every command; logs to stderr, data to stdout — always.
+- `--json` on every command. Output is line-oriented, json-stdio style:
+  structured events are single-line JSON records that may be freely
+  interspersed with human log lines (like `r2g is exiting with code: 0`) —
+  consumers parse line-by-line and skip non-JSON lines, so human logs and
+  machine events share stdout safely. The only pure-output exception is
+  anything the shell sources directly (completion scripts), which must stay
+  free of log lines.
 - Documented exit-code catalogue (0 ok; 2 packaging failed; 3 install
   failed; 4 verify failed; 5 publish refused; 10 environment/runtime
   missing; …).
@@ -180,7 +186,8 @@ these pay off immediately and shrink the port:
    `--runtime`; digest-pin the default image.
 4. Safe-extraction guards everywhere archives are opened (entry count/size
    caps, path-traversal checks) — the recent tar advisory is the warning shot.
-5. Exit-code catalogue + logs-to-stderr discipline.
+5. Exit-code catalogue + line-delimited json-stdio events from `run`, so
+   zed-pkg can stream phase progress without waiting for `results.json`.
 
 **Phase 2 — r2g-rs skeleton:** `r2g-cli` with the flags-2-env Rust client
 reading the same `.cli-flags.toml`; port the leaf commands first
