@@ -1,6 +1,6 @@
 {
   "name": "r2g",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Prove packages work as real downstream dependencies before release.",
   "main": "dist/index.js",
   "bin": {
