@@ -96,4 +96,34 @@ const wrongScopeCli = runCli(['inspect', '--otp', '123456']);
 assert.notStrictEqual(wrongScopeCli.status, 0);
 assert.ok(wrongScopeCli.stderr.includes('Unknown option(s): --otp'), wrongScopeCli.stderr);
 
+// --- shell completion ---
+
+// completion output must be a clean, sourceable script: scope-aware for
+// subcommands and free of logger noise on stdout
+const completionBash = runCli(['completion', 'bash']);
+assert.strictEqual(completionBash.status, 0, completionBash.stderr);
+assert.ok(completionBash.stdout.includes("complete -o default -F _flags2env_complete_r2g"), completionBash.stdout);
+assert.ok(completionBash.stdout.includes('--containerized'), completionBash.stdout);
+assert.ok(!completionBash.stdout.includes('exiting'), completionBash.stdout);
+
+// bash is the default shell
+const completionDefault = runCli(['completion']);
+assert.strictEqual(completionDefault.status, 0, completionDefault.stderr);
+assert.strictEqual(completionDefault.stdout, completionBash.stdout);
+
+const completionZsh = runCli(['completion', 'zsh']);
+assert.strictEqual(completionZsh.status, 0, completionZsh.stderr);
+assert.ok(completionZsh.stdout.includes('#compdef r2g'), completionZsh.stdout);
+assert.ok(!completionZsh.stdout.includes('exiting'), completionZsh.stdout);
+
+const completionBad = runCli(['completion', 'fish']);
+assert.notStrictEqual(completionBad.status, 0);
+assert.ok(completionBad.stderr.includes('bash and zsh'), completionBad.stderr);
+
+// legacy --completion flag stays a clean alias for the bash script
+const completionFlag = runCli(['--completion']);
+assert.strictEqual(completionFlag.status, 0, completionFlag.stderr);
+assert.ok(completionFlag.stdout.includes("complete -o default -F _flags2env_complete_r2g"), completionFlag.stdout);
+assert.ok(!completionFlag.stdout.includes('exiting'), completionFlag.stdout);
+
 console.log('multi-ecosystem detection and CLI contract tests passed');

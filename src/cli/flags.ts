@@ -188,8 +188,13 @@ export const parseCommand = (command: string): any => {
   }
 
   const searchRoot = parsed.R2G_SEARCH_ROOT || '';
+  // flags-2-env reports argv[0] (the program name) as the first positional.
+  const positionals = jsonArray(parsed.R2G_POSITIONALS);
+  if (positionals[0] === 'r2g') {
+    positionals.shift();
+  }
   return {
-    _args: jsonArray(parsed.R2G_POSITIONALS),
+    _args: positionals,
     access: parsed.R2G_ACCESS || 'restricted',
     allow_unknown: booleanValue(parsed.R2G_ALLOW_UNKNOWN),
     bash_completion: booleanValue(parsed.R2G_COMPLETION),

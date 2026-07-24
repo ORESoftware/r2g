@@ -212,6 +212,9 @@ help = "npm publication access, public or restricted."
 
 # Commands without dedicated flags.
 
+[commands.completion]
+help = "Print the r2g shell completion script for bash or zsh."
+
 [commands.clean]
 help = "Remove cached r2g workspaces for the current project."
 

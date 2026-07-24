@@ -15,7 +15,7 @@ const requested = args[0] || '';
 const aliases = {
   test: 'run'
 };
-const commands = new Set(['basic', 'clean', 'init', 'inspect', 'publish', 'run']);
+const commands = new Set(['basic', 'clean', 'completion', 'init', 'inspect', 'publish', 'run']);
 const command = aliases[requested] || (commands.has(requested) ? requested : 'basic');
 const commandArgs = command === 'basic' ? args : args.slice(1);
 const packageRoot = path.resolve(__dirname, '..');
