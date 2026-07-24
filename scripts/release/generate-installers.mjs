@@ -27,11 +27,14 @@ const formula = `class R2g < Formula
   def install
     system "npm", "install", *std_npm_args
     bin.install_symlink libexec.glob("bin/*")
+    generate_completions_from_executable(libexec/"bin/r2g", "completion",
+                                         shells: [:bash, :zsh])
   end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/r2g --version")
     assert_match "r2g", shell_output("#{bin}/r2g --help")
+    assert_match "complete -o default", shell_output("#{bin}/r2g completion bash")
   end
 end
 `;
