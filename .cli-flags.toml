@@ -3,10 +3,13 @@ url = "https://github.com/ORESoftware/r2g#readme"
 columns = ["options", "env", "type", "default", "description"]
 
 [parse]
+command_env = "R2G_COMMAND"
 positionals_env = "R2G_POSITIONALS"
 unknown_options_env = "R2G_UNKNOWN_OPTIONS"
 errors_env = "R2G_PARSE_ERRORS"
 allow_unknown = false
+
+# Global flags: valid for every command.
 
 [flags.help]
 env = "R2G_HELP"
@@ -51,124 +54,11 @@ type = "bool"
 default = false
 help = "Allow packaging from a dirty Git worktree."
 
-[flags.ecosystem]
-env = "R2G_ECOSYSTEM"
-aliases = ["ecosystem", "language", "package-manager"]
-short = "e"
-type = "string"
-default = "auto"
-help = "Package ecosystem: auto, npm, rust, python, gleam, or go."
-
 [flags.project]
 env = "R2G_PROJECT"
 aliases = ["project", "project-dir", "package-dir"]
 type = "string"
 help = "Package directory; defaults to the nearest supported manifest."
-
-[flags.keep_temp]
-env = "R2G_KEEP_TEMP"
-aliases = ["keep-temp", "keep-workspace"]
-type = "bool"
-default = false
-help = "Keep the run-scoped subject, artifact, and consumer workspace."
-
-[flags.search_root]
-env = "R2G_SEARCH_ROOT"
-aliases = ["search-root", "search"]
-type = "string"
-help = "Filesystem root used to find local dependencies."
-
-[flags.pack]
-env = "R2G_PACK"
-aliases = ["pack"]
-type = "bool"
-default = false
-help = "Pack local npm dependencies before installing them."
-
-[flags.skip]
-env = "R2G_SKIP"
-aliases = ["skip"]
-type = "string"
-help = "Skip npm phases, for example --skip=s,t,z."
-
-[flags.skip_z]
-env = "R2G_SKIP_Z"
-aliases = ["z", "skip-z"]
-short = "z"
-type = "bool"
-default = false
-help = "Skip npm phase Z."
-
-[flags.skip_t]
-env = "R2G_SKIP_T"
-aliases = ["t", "skip-t"]
-short = "t"
-type = "bool"
-default = false
-help = "Skip npm phase T."
-
-[flags.skip_s]
-env = "R2G_SKIP_S"
-aliases = ["s", "skip-s"]
-short = "s"
-type = "bool"
-default = false
-help = "Skip npm phase S."
-
-[flags.skip_c]
-env = "R2G_SKIP_C"
-aliases = ["c", "skip-c"]
-short = "c"
-type = "bool"
-default = false
-help = "Skip npm phase C."
-
-[flags.containerized]
-env = "R2G_CONTAINERIZED"
-aliases = ["containerized"]
-type = "bool"
-default = false
-help = "Run the whole r2g pipeline inside a disposable Docker container."
-
-[flags.image]
-env = "R2G_IMAGE"
-aliases = ["image"]
-type = "string"
-help = "Docker image for --containerized runs; defaults to node:22."
-
-[flags.full]
-env = "R2G_FULL"
-aliases = ["full"]
-type = "bool"
-default = false
-help = "Use selected local npm dependencies instead of registry copies."
-
-[flags.keep]
-env = "R2G_KEEP"
-aliases = ["keep", "multi"]
-type = "bool"
-default = false
-help = "Keep the previous npm installation before the next run."
-
-[flags.docker]
-env = "R2G_DOCKER"
-aliases = ["docker"]
-type = "bool"
-default = false
-help = "Include Docker-related files when initializing a project."
-
-[flags.otp]
-env = "R2G_OTP"
-aliases = ["otp"]
-type = "string"
-help = "One-time passcode for npm publication."
-
-[flags.access]
-env = "R2G_ACCESS"
-aliases = ["access"]
-type = "string"
-default = "restricted"
-help = "npm publication access, public or restricted."
 
 [flags.json]
 env = "R2G_JSON"
@@ -183,3 +73,154 @@ aliases = ["bash-completion", "completion"]
 type = "bool"
 default = false
 help = "Generate bash completion through flags-2-env."
+
+# r2g run (alias: test) — pack the project and smoke-test it as an installed
+# dependency.
+
+[commands.run]
+aliases = ["test"]
+help = "Pack the current project and smoke-test it as an installed dependency."
+
+[commands.run.flags.ecosystem]
+env = "R2G_ECOSYSTEM"
+aliases = ["ecosystem", "language", "package-manager"]
+short = "e"
+type = "string"
+default = "auto"
+help = "Package ecosystem: auto, npm, rust, python, gleam, or go."
+
+[commands.run.flags.keep_temp]
+env = "R2G_KEEP_TEMP"
+aliases = ["keep-temp", "keep-workspace"]
+type = "bool"
+default = false
+help = "Keep the run-scoped subject, artifact, and consumer workspace."
+
+[commands.run.flags.search_root]
+env = "R2G_SEARCH_ROOT"
+aliases = ["search-root", "search"]
+type = "string"
+help = "Filesystem root used to find local dependencies."
+
+[commands.run.flags.pack]
+env = "R2G_PACK"
+aliases = ["pack"]
+type = "bool"
+default = false
+help = "Pack local npm dependencies before installing them."
+
+[commands.run.flags.skip]
+env = "R2G_SKIP"
+aliases = ["skip"]
+type = "string"
+help = "Skip npm phases, for example --skip=s,t,z."
+
+[commands.run.flags.skip_z]
+env = "R2G_SKIP_Z"
+aliases = ["z", "skip-z"]
+short = "z"
+type = "bool"
+default = false
+help = "Skip npm phase Z."
+
+[commands.run.flags.skip_t]
+env = "R2G_SKIP_T"
+aliases = ["t", "skip-t"]
+short = "t"
+type = "bool"
+default = false
+help = "Skip npm phase T."
+
+[commands.run.flags.skip_s]
+env = "R2G_SKIP_S"
+aliases = ["s", "skip-s"]
+short = "s"
+type = "bool"
+default = false
+help = "Skip npm phase S."
+
+[commands.run.flags.skip_c]
+env = "R2G_SKIP_C"
+aliases = ["c", "skip-c"]
+short = "c"
+type = "bool"
+default = false
+help = "Skip npm phase C."
+
+[commands.run.flags.containerized]
+env = "R2G_CONTAINERIZED"
+aliases = ["containerized"]
+type = "bool"
+default = false
+help = "Run the whole r2g pipeline inside a disposable Docker container."
+
+[commands.run.flags.image]
+env = "R2G_IMAGE"
+aliases = ["image"]
+type = "string"
+help = "Docker image for --containerized runs; defaults to node:22."
+
+[commands.run.flags.full]
+env = "R2G_FULL"
+aliases = ["full"]
+type = "bool"
+default = false
+help = "Use selected local npm dependencies instead of registry copies."
+
+[commands.run.flags.keep]
+env = "R2G_KEEP"
+aliases = ["keep", "multi"]
+type = "bool"
+default = false
+help = "Keep the previous npm installation before the next run."
+
+# r2g init — scaffold .r2g in the current project.
+
+[commands.init]
+help = "Scaffold the .r2g smoke-test harness in the current project."
+
+[commands.init.flags.docker]
+env = "R2G_DOCKER"
+aliases = ["docker"]
+type = "bool"
+default = false
+help = "Include Docker-related files when initializing a project."
+
+[commands.init.flags.search_root]
+env = "R2G_SEARCH_ROOT"
+aliases = ["search-root", "search"]
+type = "string"
+help = "Filesystem root used to find local dependencies."
+
+# r2g publish — publish the package after a successful smoke test.
+
+[commands.publish]
+help = "Publish the package to its registry after checks pass."
+
+[commands.publish.flags.otp]
+env = "R2G_OTP"
+aliases = ["otp"]
+type = "string"
+help = "One-time passcode for npm publication."
+
+[commands.publish.flags.access]
+env = "R2G_ACCESS"
+aliases = ["access"]
+type = "string"
+default = "restricted"
+help = "npm publication access, public or restricted."
+
+# Commands without dedicated flags.
+
+[commands.clean]
+help = "Remove cached r2g workspaces for the current project."
+
+[commands.inspect]
+help = "Print resolved project and dependency information."
+
+[commands.symlink]
+aliases = ["link"]
+help = "Symlink the local r2g checkout onto PATH (not on Windows)."
+
+[commands.docker]
+help = "Run the smoke test inside a container via dkr2g."
