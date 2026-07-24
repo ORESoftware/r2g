@@ -112,8 +112,6 @@ export const run = function (cwd: string, projectRoot: string, opts: any) {
         const cmd = [
           `rsync --perms --copy-links -r`,
           `--exclude=.r2g --exclude=node_modules --exclude=.github --exclude=.idea`,
-          `--exclude=LICENSE --exclude=LICENSE.md --exclude=license.md`,
-          `--exclude=readme.md --exclude README.md --exclude readme --exclude README`,
           `--exclude=.git "${projectRoot}/" "${publishDir}/";`
         ].join(' ');
         
