@@ -54,7 +54,7 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "r2g": {
     "test": "node -e \"const assert = require('assert'); const matrix = require('./.r2g/fixtures/phase-matrix.json'); assert.deepStrictEqual(matrix.phases, ['phase-Z', 'phase-S', 'phase-T']); assert.strictEqual(matrix.phaseCommands.z, 'package.json:r2g.test'); console.log('phase-Z fixture contract ok');\""
