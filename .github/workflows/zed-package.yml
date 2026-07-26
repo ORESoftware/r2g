@@ -1,0 +1,78 @@
+name: Zed package interoperability
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zed-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out package source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: source
+          persist-credentials: false
+
+      - name: Check out pinned zed CLI
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: zed-pkg/zed-cli
+          ref: cc1a8fbb203070ccfa09f32e38bff5818fd3675b
+          path: zed-cli
+          persist-credentials: false
+
+      - name: Check out pinned zed interfaces
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: zed-pkg/zed-interfaces
+          ref: 90534dd8468d98281356f2767f1a0b498598f868
+          path: zed-interfaces
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30
+        with:
+          toolchain: stable
+
+      - name: Configure isolated pack output
+        run: echo "ZED_PACK_OUT=$RUNNER_TEMP/zed-pack" >> "$GITHUB_ENV"
+
+      - name: Pack r2g for zed cloud
+        working-directory: source
+        run: cargo run --quiet --locked --manifest-path ../zed-cli/Cargo.toml -- pack --out "$ZED_PACK_OUT"
+
+      - name: Verify zed and npm metadata ship together
+        working-directory: source
+        run: |
+          python3 - <<'PY'
+          import io
+          import os
+          import pathlib
+          import tarfile
+          import tomllib
+
+          out = pathlib.Path(os.environ["ZED_PACK_OUT"])
+          archives = list(out.glob("*.tar.gz"))
+          assert len(archives) == 1, f"expected one artifact, found {len(archives)}"
+          assert archives[0].name == "oresoftware-r2g-0.3.1.tar.gz"
+          with tarfile.open(archives[0], "r:gz") as packed:
+              names = set(packed.getnames())
+              assert "pkg/.zpkg.toml" in names
+              assert "pkg/package.json" in names
+              manifest = tomllib.load(io.BytesIO(packed.extractfile("pkg/.zpkg.toml").read()))
+          assert manifest["package"]["name"] == "r2g"
+          print("verified r2g zed artifact retains native npm metadata")
+          PY
+
+      - name: Exercise publish planning without uploading
+        working-directory: source
+        run: cargo run --quiet --locked --manifest-path ../zed-cli/Cargo.toml -- publish --dry-run --skip-vcs-checks
