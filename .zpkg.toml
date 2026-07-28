@@ -1,0 +1,20 @@
+[package]
+org = "oresoftware"
+name = "r2g"
+version = "0.3.1"
+description = "Prove packages work as real downstream dependencies before release"
+license = "MIT"
+keywords = ["package", "publishing", "downstream", "interoperability"]
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/ORESoftware/r2g"
+
+[publish]
+include_readme = true
+tag_format = "v{version}"
+smoke_test = 'test -f "$ZED_PKG_TEST_TARGET/package.json"'
+exclude = [".env", ".env.*", ".direnv/**", ".zed-pack/**", "release/**", "**/*.log", ".DS_Store"]
+
+[scripts]
+test = "npm test"
