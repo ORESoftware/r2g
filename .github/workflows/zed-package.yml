@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: zed-pkg/zed-cli
-          ref: cc1a8fbb203070ccfa09f32e38bff5818fd3675b
+          ref: 5c5018a48f4f8da7daae94ec2eab99f17a6ffcef
           path: zed-cli
           persist-credentials: false
 
@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: zed-pkg/zed-interfaces
-          ref: 90534dd8468d98281356f2767f1a0b498598f868
+          ref: dc0e0a0620b9462817950b552d3d334a184b1cb1
           path: zed-interfaces
           persist-credentials: false
 
@@ -72,6 +72,10 @@ jobs:
           assert manifest["package"]["name"] == "r2g"
           print("verified r2g zed artifact retains native npm metadata")
           PY
+
+      - name: Validate coordinated native and forge release plan
+        working-directory: source
+        run: cargo run --quiet --locked --manifest-path ../zed-cli/Cargo.toml -- release plan
 
       - name: Exercise publish planning without uploading
         working-directory: source
