@@ -5,23 +5,21 @@ import {completionScript, findProjectRoot, parseCommand} from '../../cli/flags';
 
 const pkgJSON = require('../../../package.json');
 const opts = parseCommand('basic');
+let handled = false;
 
 if (opts.version) {
-  if (opts.json) {
-    console.log(JSON.stringify({versions: {r2g: pkgJSON.version}}));
-  }
-  else {
-    console.log('r2g version:', pkgJSON.version);
-  }
-  process.exit(0);
+  const output = opts.json
+    ? JSON.stringify({versions: {r2g: pkgJSON.version}})
+    : `r2g version: ${pkgJSON.version}`;
+  process.stdout.write(output + '\n');
+  handled = true;
 }
-
-if (opts.bash_completion) {
-  console.log(completionScript('bash'));
-  process.exit(0);
+else if (opts.bash_completion) {
+  process.stdout.write(completionScript('bash') + '\n');
+  handled = true;
 }
 
 const cwd = process.cwd();
 const projectRoot = findProjectRoot(cwd, 'npm', opts.project) || path.resolve(cwd);
 
-export {opts, cwd, projectRoot};
+export {opts, cwd, projectRoot, handled};
