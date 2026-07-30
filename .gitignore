@@ -24,3 +24,5 @@ Dockerfile*
 .DS_Store
 Thumbs.db
 *.tsbuildinfo
+.zed-pack/
+.zed/
