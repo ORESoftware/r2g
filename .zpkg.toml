@@ -16,5 +16,10 @@ tag_format = "v{version}"
 smoke_test = 'test -f "$ZED_PKG_TEST_TARGET/package.json"'
 exclude = [".env", ".env.*", ".direnv/**", ".zed-pack/**", "release/**", "**/*.log", ".DS_Store"]
 
+[publish.native]
+registry = "npm"
+package = "r2g"
+forge = ["github-packages", "gitlab-packages", "bitbucket-packages"]
+
 [scripts]
 test = "npm test"
