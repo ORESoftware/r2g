@@ -12,8 +12,14 @@ if (!/^[a-fA-F0-9]{64}$/.test(sha256)) {
 }
 
 const repo = process.env.R2G_GITHUB_REPOSITORY || 'ORESoftware/r2g';
+const defaultBranch = process.env.R2G_GITHUB_DEFAULT_BRANCH || 'main';
+if (!/^[A-Za-z0-9._/-]+$/.test(defaultBranch) || defaultBranch.includes('..')) {
+  throw new Error('R2G_GITHUB_DEFAULT_BRANCH is not a valid Git branch name');
+}
 const assetUrl = `https://github.com/${repo}/releases/download/v${version}/r2g-${version}.tgz`;
-const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
+const root = resolve(
+  process.env.R2G_RELEASE_ROOT || fileURLToPath(new URL('../..', import.meta.url))
+);
 
 const formula = `class R2g < Formula
   desc "Prove packages work as real downstream dependencies before release"
@@ -62,7 +68,7 @@ const nuspec = `<?xml version="1.0" encoding="utf-8"?>
     <title>r2g</title>
     <authors>ORESoftware</authors>
     <projectUrl>https://github.com/${repo}</projectUrl>
-    <licenseUrl>https://github.com/${repo}/blob/dev/license.md</licenseUrl>
+    <licenseUrl>https://github.com/${repo}/blob/${defaultBranch}/license.md</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Prove packages work as real downstream dependencies before release.</description>
     <tags>r2g package testing npm rust python go gleam cli</tags>

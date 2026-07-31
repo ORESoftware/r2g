@@ -70,10 +70,12 @@ jobs:
           (cd release && sha256sum "$asset" > "$asset.sha256")
           sha="$(cut -d ' ' -f 1 "release/$asset.sha256")"
           node scripts/release/generate-installers.mjs "$version" "$sha"
+          commit="$(git rev-list -n 1 "$GITHUB_REF_NAME")"
+          node scripts/release/generate-release-set.mjs "$version" "$sha" "$commit"
           printf 'version=%s\nasset=%s\nsha=%s\n' "$version" "$asset" "$sha" >> "$GITHUB_OUTPUT"
 
-      - name: Publish npm package with trusted publishing
-        run: npm publish --access public
+      - name: Publish npm package with trusted publishing and provenance
+        run: npm publish --access public --provenance
 
       - name: Create GitHub Release
         env:
@@ -82,6 +84,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             "release/${{ steps.package.outputs.asset }}" \
             "release/${{ steps.package.outputs.asset }}.sha256" \
+            "release/r2g-${{ steps.package.outputs.version }}.release-set.json" \
             "Formula/r2g.rb" \
             "packaging/scoop/r2g.json" \
             "packaging/chocolatey/r2g.nuspec" \
