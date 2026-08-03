@@ -1,0 +1,47 @@
+name: packed consumer E2E
+
+on:
+  pull_request:
+    paths:
+      - cli/**
+      - src/**
+      - test/package-consumer.e2e.test.js
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - .github/workflows/package-consumer-e2e.yml
+  push:
+    branches: [main]
+    paths:
+      - cli/**
+      - src/**
+      - test/package-consumer.e2e.test.js
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - .github/workflows/package-consumer-e2e.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Pack, install, and execute the downstream artifact
+        run: npm run test:package
