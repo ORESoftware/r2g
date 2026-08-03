@@ -3,6 +3,7 @@
 import fs = require('fs');
 import os = require('os');
 import path = require('path');
+import {createFallbackFlags2Env} from './fallback-flags';
 
 type Flags2EnvResult = {[key: string]: string} & {
   isHelpMenu?: boolean;
@@ -57,17 +58,38 @@ const packageRoot = path.resolve(__dirname, '..', '..');
 export const configPath = process.env.R2G_CLI_FLAGS_CONFIG || path.join(packageRoot, '.cli-flags.toml');
 
 const loadFlags2Env = (): Flags2EnvModule => {
+  const fallback = createFallbackFlags2Env() as Flags2EnvModule;
+  const configuredAddon = process.env.FLAGS2ENV_NODE_ADDON || '';
   const localRoot = process.env.R2G_FLAGS2ENV_PATH || path.join(os.homedir(), 'codes', 'ores', 'flags-2-env');
   const localClient = path.join(localRoot, 'clients', 'nodejs', 'lib.cjs');
   const localAddon = path.join(localRoot, 'clients', 'nodejs', 'build', 'Release', 'flags2env.node');
 
   if (exists(localClient) && exists(localAddon)) {
-    if (!process.env.FLAGS2ENV_NODE_ADDON) {
+    if (!configuredAddon) {
       process.env.FLAGS2ENV_NODE_ADDON = localAddon;
     }
     return require(localClient) as Flags2EnvModule;
   }
-  return require('@oresoftware/f2e') as Flags2EnvModule;
+
+  try {
+    const packageClient = require.resolve('@oresoftware/f2e');
+    const packageAddon = configuredAddon || path.join(
+      path.dirname(packageClient),
+      'build',
+      'Release',
+      'flags2env.node'
+    );
+    if (!exists(packageAddon)) {
+      return fallback;
+    }
+    if (!configuredAddon) {
+      process.env.FLAGS2ENV_NODE_ADDON = packageAddon;
+    }
+    return require(packageClient) as Flags2EnvModule;
+  }
+  catch (_) {
+    return fallback;
+  }
 };
 
 const f2e = loadFlags2Env();
