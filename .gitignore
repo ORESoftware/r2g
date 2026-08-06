@@ -26,3 +26,7 @@ Thumbs.db
 *.tsbuildinfo
 .zed-pack/
 .zed/
+tmp
+temp
+tmp/worktrees
+temp/worktrees
