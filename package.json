@@ -19,7 +19,9 @@
     "test:e2e": "npm run build && node test/e2e-multi-ecosystem.js",
     "test:package": "npm run build && node --test test/package-consumer.e2e.test.js",
     "audit:cli": "node scripts/audit-cli.mjs",
-    "prepublishOnly": "npm test && npm run audit:cli"
+    "prepublishOnly": "npm run lint:ores && npm test && npm run audit:cli",
+    "lint:ores": "if [ -f .ores-lint/lint.sh ]; then sh .ores-lint/lint.sh; else echo 'ores-lint not installed'; fi",
+    "prebuild": "npm run lint:ores"
   },
   "repository": {
     "type": "git",
@@ -63,5 +65,13 @@
   "npp": {
     "publishable": true
   },
-  "b3val": 3
+  "b3val": 3,
+  "oresLint": {
+    "note": "Declared, not installed. ores-lint resolves these from a global install - see .ores-lint/README.md",
+    "requires": {
+      "eslint": ">=9",
+      "typescript-eslint": ">=8 (optional; without it .ts files are skipped)"
+    },
+    "install": "npm i -g eslint typescript-eslint"
+  }
 }
