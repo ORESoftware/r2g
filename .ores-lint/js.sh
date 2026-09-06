@@ -73,6 +73,24 @@ done
 [ -n "$GLOBAL_ROOT" ] && export ORES_LINT_GLOBAL_ROOT="$GLOBAL_ROOT"
 [ -n "$GLOBAL_ROOT" ] && export NODE_PATH="${NODE_PATH:+$NODE_PATH:}$GLOBAL_ROOT"
 
+# Make the TypeScript gap visible. A repo with a tsconfig whose .ts files are
+# being skipped looks identical to a clean repo otherwise.
+if [ -f "$ROOT/tsconfig.json" ] || ls "$ROOT"/src/*.ts >/dev/null 2>&1; then
+  if ! node -e "
+    const {createRequire}=require('node:module');
+    const r=createRequire('$ROOT/package.json');
+    const paths=[process.env.ORES_LINT_GLOBAL_ROOT].filter(Boolean);
+    for (const id of ['typescript-eslint','@typescript-eslint/parser']) {
+      try { r.resolve(id); process.exit(0); } catch {}
+      if (paths.length) { try { r.resolve(id,{paths}); process.exit(0); } catch {} }
+    }
+    process.exit(1);
+  " 2>/dev/null; then
+    echo "ores-lint[js]: NOTE - this repo has TypeScript but no typescript-eslint parser;"
+    echo "               .ts/.tsx files are being SKIPPED. Fix with: npm i -g typescript-eslint"
+  fi
+fi
+
 OUT=$(mktemp) || exit 0
 RC=0
 ( cd "$ROOT" && "$ESLINT" . \
