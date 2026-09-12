@@ -7,6 +7,7 @@
  * to hundreds of heterogeneous repos must never be the thing that breaks them.
  */
 
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import oresPlugin from './plugin.mjs';
@@ -61,6 +62,36 @@ async function loadTsSupport() {
 const JS_FILES = ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'];
 const TS_FILES = ['**/*.ts', '**/*.mts', '**/*.cts', '**/*.tsx'];
 
+/**
+ * Directories that are separate git repositories nested inside this one. They
+ * have their own ores-lint install and must not be linted from here, or their
+ * findings would be reported twice under the wrong repo.
+ */
+/**
+ * ESLint 10 dropped support for `.eslintignore` and merely warns that it is
+ * being ignored. Rather than let a repo's stated intent silently stop applying,
+ * port it into flat-config `ignores`.
+ */
+function legacyIgnoreFile() {
+  try {
+    const raw = readFileSync(new URL('../../.eslintignore', import.meta.url), 'utf8');
+    return raw.split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#') && !l.startsWith('!'))
+      // .eslintignore used gitignore semantics: a bare name matched anywhere.
+      .map((l) => (l.includes('/') ? l.replace(/^\/+/, '') : `**/${l}`))
+      .map((l) => (l.endsWith('/') ? `${l}**` : l));
+  } catch { return []; }
+}
+
+function nestedRepoIgnores() {
+  try {
+    const raw = readFileSync(new URL('../nested-repos.json', import.meta.url), 'utf8');
+    const dirs = JSON.parse(raw);
+    return Array.isArray(dirs) ? dirs.map((d) => `${d}/**`) : [];
+  } catch { return []; }
+}
+
 const IGNORES = [
   '**/node_modules/**', '**/dist/**', '**/build/**', '**/out/**', '**/target/**',
   '**/coverage/**', '**/.next/**', '**/vendor/**', '**/*.min.js', '**/*.bundle.js',
@@ -109,7 +140,7 @@ export default async function oresConfig(opts = {}) {
   };
 
   const configs = [
-    { ignores: [...IGNORES, ...(opts.ignores || [])] },
+    { ignores: [...IGNORES, ...nestedRepoIgnores(), ...legacyIgnoreFile(), ...(opts.ignores || [])] },
     {
       files: JS_FILES,
       plugins: { ores: oresPlugin },
@@ -117,6 +148,15 @@ export default async function oresConfig(opts = {}) {
       rules: { ...semiRules, ...correctness, ...(opts.rules || {}) },
     },
   ];
+
+  if (!ts) {
+    // No TypeScript parser anywhere. Globally ignore TS rather than leaving it
+    // merely unmatched: a repo-specific config block that happens to match
+    // `**/*.ts` would otherwise hand TS source to the JS parser and produce a
+    // wall of bogus "Parsing error" findings. Ignoring is honest; js.sh prints
+    // a note so the gap stays visible instead of looking like a clean repo.
+    configs.push({ ignores: TS_FILES });
+  }
 
   if (ts) {
     configs.push({
