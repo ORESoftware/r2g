@@ -13,7 +13,7 @@
  */
 
 const DEFAULT_LEVEL_METHODS = ['trace', 'debug', 'info', 'log', 'warn', 'error', 'fatal'];
-const DEFAULT_TERMINAL_METHODS = ['send'];
+const DEFAULT_TERMINAL_METHODS = ['send', 'send_with_store'];
 
 const LOGGER_EXPORTS = new Set([
   'logger', 'browserLogger', 'edgeLogger', 'cloudflareWorkerLogger',
@@ -93,10 +93,22 @@ function isTrackedModule(source, moduleNames) {
   return false;
 }
 
+function inspectChain(node, knownLoggers, levelMethods, terminalMethods) {
+  const methods = [];
+  const root = collectCallChain(node, methods);
+  const levelIndex = methods.findIndex((method) => levelMethods.has(method));
+  const delivered = levelIndex >= 0 && methods.slice(levelIndex + 1).some((method) => terminalMethods.has(method));
+  const isEvent = Boolean(root && knownLoggers.has(root) && levelIndex >= 0);
+  return { methods, root, levelIndex, delivered, isEvent };
+}
+
 export const requireSendRule = {
   meta: {
     type: 'problem',
-    docs: { description: 'require chainable logger events to call a terminal method such as send()' },
+    docs: {
+      description: 'require chainable logger events to call a terminal method such as send() or send(boolean)',
+      url: 'https://github.com/ores-otel/ores.otel.log',
+    },
     schema: [{
       type: 'object',
       properties: {
@@ -108,7 +120,7 @@ export const requireSendRule = {
       additionalProperties: false,
     }],
     messages: {
-      missingSend: "Logging chain never calls {{terminal}} - this log event is built but never delivered.",
+      missingSend: "Logging chain never calls {{terminal}} - this log event is built but never delivered. Override with // eslint-disable-next-line ores/require-send or // ores-lint-disable-next-line require-send",
     },
   },
 
@@ -121,6 +133,36 @@ export const requireSendRule = {
     const levelMethods = new Set(options.levelMethods || DEFAULT_LEVEL_METHODS);
     const terminalMethods = new Set(options.terminalMethods || DEFAULT_TERMINAL_METHODS);
     const terminalLabel = [...terminalMethods].map((m) => `.${m}()`).join(' or ');
+
+    const scopes = [];
+    const enterScope = () => scopes.push({ pending: new Map() });
+    const exitScope = () => {
+      const scope = scopes.pop();
+      if (!scope) return;
+      for (const node of scope.pending.values()) {
+        context.report({ node, messageId: 'missingSend', data: { terminal: terminalLabel } });
+      }
+    };
+    const markPending = (name, node) => {
+      if (!name || !scopes.length) return;
+      scopes[scopes.length - 1].pending.set(name, node);
+    };
+    const clearPending = (name) => {
+      if (!name) return;
+      for (let i = scopes.length - 1; i >= 0; i--) {
+        if (scopes[i].pending.has(name)) {
+          scopes[i].pending.delete(name);
+          return;
+        }
+      }
+    };
+    const isPending = (name) => {
+      if (!name) return false;
+      for (let i = scopes.length - 1; i >= 0; i--) {
+        if (scopes[i].pending.has(name)) return true;
+      }
+      return false;
+    };
 
     const isLoggerProducer = (node) => {
       const current = unwrap(node);
@@ -144,7 +186,40 @@ export const requireSendRule = {
       return false;
     };
 
+    const consumeTerminalUse = (node) => {
+      const current = unwrap(node);
+      if (!current) return;
+      const chain = inspectChain(current, knownLoggers, levelMethods, terminalMethods);
+      if (chain.root && chain.methods.some((method) => terminalMethods.has(method))) {
+        clearPending(chain.root);
+      }
+      if (hasType(current, 'CallExpression', 'OptionalCallExpression')) {
+        for (const arg of current.arguments || []) {
+          const name = getQualifiedName(unwrap(arg));
+          if (isPending(name)) clearPending(name);
+        }
+      }
+    };
+
+    const functionEnter = () => enterScope();
+    const functionExit = () => exitScope();
+
     return {
+      Program() { enterScope(); },
+      'Program:exit'() { exitScope(); },
+      FunctionDeclaration: functionEnter,
+      'FunctionDeclaration:exit': functionExit,
+      FunctionExpression: functionEnter,
+      'FunctionExpression:exit': functionExit,
+      ArrowFunctionExpression(node) {
+        enterScope();
+        if (node.body && node.body.type !== 'BlockStatement') {
+          const name = getQualifiedName(unwrap(node.body));
+          if (isPending(name)) clearPending(name);
+        }
+      },
+      'ArrowFunctionExpression:exit': functionExit,
+
       ImportDeclaration(node) {
         if (!isTrackedModule(node.source?.value, moduleNames)) return;
         for (const specifier of node.specifiers || []) {
@@ -169,22 +244,47 @@ export const requireSendRule = {
         if (node.id?.type === 'Identifier' && node.id.name && isLoggerProducer(node.init)) {
           knownLoggers.add(node.id.name);
         }
+        if (node.id?.type !== 'Identifier' || !node.id.name) return;
+        const chain = inspectChain(node.init, knownLoggers, levelMethods, terminalMethods);
+        if (!chain.isEvent) return;
+        if (chain.delivered) return;
+        markPending(node.id.name, node);
       },
 
       AssignmentExpression(node) {
         const assignedName = getQualifiedName(node.left);
         if (assignedName && isLoggerProducer(node.right)) knownLoggers.add(assignedName);
+        const chain = inspectChain(node.right, knownLoggers, levelMethods, terminalMethods);
+        if (chain.isEvent && !chain.delivered && assignedName) {
+          markPending(assignedName, node);
+          return;
+        }
+        consumeTerminalUse(node.right);
+      },
+
+      ReturnStatement(node) {
+        if (!node.argument) return;
+        const name = getQualifiedName(unwrap(node.argument));
+        if (isPending(name)) {
+          clearPending(name);
+          return;
+        }
+        const chain = inspectChain(node.argument, knownLoggers, levelMethods, terminalMethods);
+        if (chain.isEvent && !chain.delivered) return;
+        consumeTerminalUse(node.argument);
+      },
+
+      CallExpression(node) {
+        consumeTerminalUse(node);
       },
 
       ExpressionStatement(node) {
-        const methods = [];
-        const root = collectCallChain(node.expression, methods);
-        if (!root || !knownLoggers.has(root)) return;
-        const levelIndex = methods.findIndex((method) => levelMethods.has(method));
-        if (levelIndex < 0) return;
-        const tail = methods.slice(levelIndex + 1);
-        if (tail.some((method) => terminalMethods.has(method))) return;
-        context.report({ node, messageId: 'missingSend', data: { terminal: terminalLabel } });
+        const chain = inspectChain(node.expression, knownLoggers, levelMethods, terminalMethods);
+        if (chain.isEvent && !chain.delivered) {
+          context.report({ node, messageId: 'missingSend', data: { terminal: terminalLabel } });
+          return;
+        }
+        consumeTerminalUse(node.expression);
       },
     };
   },
@@ -257,5 +357,5 @@ export const rules = {
   semi: semiRule,
 };
 
-const plugin = { meta: { name: 'ores-lint', version: '1.0.0' }, rules };
+const plugin = { meta: { name: 'ores-lint', version: '1.3.0' }, rules };
 export default plugin;
