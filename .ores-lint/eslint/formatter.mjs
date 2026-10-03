@@ -36,11 +36,19 @@ export default function oresFormatter(results) {
     }
   }
 
-  if (!byRule.size && !parseErrors.length) return 'ores-lint[js]: clean\n';
+  // Report how many files were actually examined. "clean" and "nothing was
+  // linted" are otherwise indistinguishable, which makes a silent coverage gap
+  // look like a passing repo - the single most misleading thing a linter can do.
+  const examined = results.length;
+  if (!byRule.size && !parseErrors.length) {
+    return examined === 0
+      ? 'ores-lint[js]: no lintable files matched (check ignores / file extensions)\n'
+      : `ores-lint[js]: clean (${examined} file${examined === 1 ? '' : 's'} linted)\n`;
+  }
 
   const out = [];
   const total = errors + warnings;
-  out.push(`ores-lint[js]: ${total} finding(s) across ${byRule.size} rule(s) in ${files} file(s)`);
+  out.push(`ores-lint[js]: ${total} finding(s) across ${byRule.size} rule(s) in ${files} of ${examined} file(s) linted`);
 
   // House rules first, then the rest by frequency.
   const ordered = [...byRule.entries()].sort((a, b) => {

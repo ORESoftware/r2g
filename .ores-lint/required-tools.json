@@ -16,5 +16,15 @@
     "range": "any",
     "install": "rustup component add clippy",
     "why": "the Rust half is a clippy wrapper"
+  },
+  "dart": {
+    "range": "any",
+    "install": "install the Dart SDK or Flutter",
+    "why": "optional; dart analyze is the Dart/Flutter linter. Without it Dart source is skipped."
+  },
+  "gleam": {
+    "range": "any",
+    "install": "see https://gleam.run/getting-started/installing/",
+    "why": "optional; gleam format --check and gleam check. Without it Gleam source is skipped."
   }
 }
