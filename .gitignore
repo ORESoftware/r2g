@@ -26,10 +26,11 @@ Thumbs.db
 *.tsbuildinfo
 .zed-pack/
 .zed/
-tmp
-temp
 tmp/worktrees
 temp/worktrees
 # Local temporary directories and repository-owned worktrees
 tmp/
 temp/
+
+# machine-local symlink to ORESoftware/my-ai AGENTS.md; never committed
+.ores/
